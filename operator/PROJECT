@@ -1,0 +1,9 @@
+domain: dcas.dev
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: operator
+repo: gitlab.dcas.dev/k8s/kube-glass/operator
+version: "3"
