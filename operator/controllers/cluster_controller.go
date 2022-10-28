@@ -18,8 +18,12 @@ package controllers
 
 import (
 	"context"
-
+	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -36,20 +40,37 @@ type ClusterReconciler struct {
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters/finalizers,verbs=update
+//+kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=vclusters,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Cluster object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx).WithValues("cluster", req.NamespacedName)
+	log.Info("reconciling Cluster")
 
-	// TODO(user): your logic here
+	cluster := &paasv1alpha1.Cluster{}
+	if err := r.Get(ctx, req.NamespacedName, cluster); err != nil {
+		if errors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		log.Error(err, "failed to retrieve cluster resource")
+		return ctrl.Result{}, err
+	}
+	if cluster.DeletionTimestamp != nil {
+		log.Info("skipping cluster that has been marked for deletion")
+		return ctrl.Result{}, nil
+	}
+
+	if err := r.reconcileVCluster(ctx, cluster); err != nil {
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileCluster(ctx, cluster); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -58,5 +79,59 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&paasv1alpha1.Cluster{}).
+		Owns(&vclusterv1alpha1.VCluster{}).
+		Owns(&capiv1betav1.Cluster{}).
 		Complete(r)
+}
+
+func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+	log := log.FromContext(ctx)
+	log.Info("reconciling vcluster")
+
+	vcluster := cluster.VCluster(cr)
+
+	found := &vclusterv1alpha1.VCluster{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: cr.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			if err := ctrl.SetControllerReference(cr, vcluster, r.Scheme); err != nil {
+				log.Error(err, "failed to set controller reference")
+				return err
+			}
+			if err := r.Create(ctx, vcluster); err != nil {
+				log.Error(err, "failed to create vcluster")
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	// reconcile by forcibly overwriting
+	// any changes
+	return r.Update(ctx, vcluster)
+}
+
+func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+	log := log.FromContext(ctx)
+	log.Info("reconciling cluster")
+
+	capiCluster := cluster.Cluster(cr)
+
+	found := &capiv1betav1.Cluster{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: cr.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			if err := ctrl.SetControllerReference(cr, capiCluster, r.Scheme); err != nil {
+				log.Error(err, "failed to set controller reference")
+				return err
+			}
+			if err := r.Create(ctx, capiCluster); err != nil {
+				log.Error(err, "failed to create cluster")
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	// reconcile by forcibly overwriting
+	// any changes
+	return r.Update(ctx, capiCluster)
 }
