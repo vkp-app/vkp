@@ -6,4 +6,14 @@ plugins:
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: operator
 repo: gitlab.dcas.dev/k8s/kube-glass/operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: dcas.dev
+  group: paas
+  kind: Cluster
+  path: gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1
+  version: v1alpha1
 version: "3"
