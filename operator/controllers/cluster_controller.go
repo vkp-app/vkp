@@ -26,7 +26,7 @@ import (
 	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
+	logging "sigs.k8s.io/controller-runtime/pkg/log"
 
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 )
@@ -49,26 +49,26 @@ type ClusterReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx).WithValues("cluster", req.NamespacedName)
+	log := logging.FromContext(ctx).WithValues("cluster", req.NamespacedName)
 	log.Info("reconciling Cluster")
 
-	cluster := &paasv1alpha1.Cluster{}
-	if err := r.Get(ctx, req.NamespacedName, cluster); err != nil {
+	cr := &paasv1alpha1.Cluster{}
+	if err := r.Get(ctx, req.NamespacedName, cr); err != nil {
 		if errors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
 		log.Error(err, "failed to retrieve cluster resource")
 		return ctrl.Result{}, err
 	}
-	if cluster.DeletionTimestamp != nil {
+	if cr.DeletionTimestamp != nil {
 		log.Info("skipping cluster that has been marked for deletion")
 		return ctrl.Result{}, nil
 	}
 
-	if err := r.reconcileVCluster(ctx, cluster); err != nil {
+	if err := r.reconcileVCluster(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
-	if err := r.reconcileCluster(ctx, cluster); err != nil {
+	if err := r.reconcileCluster(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -85,7 +85,7 @@ func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alpha1.Cluster) error {
-	log := log.FromContext(ctx)
+	log := logging.FromContext(ctx)
 	log.Info("reconciling vcluster")
 
 	vcluster := cluster.VCluster(cr)
@@ -111,7 +111,7 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 }
 
 func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *paasv1alpha1.Cluster) error {
-	log := log.FromContext(ctx)
+	log := logging.FromContext(ctx)
 	log.Info("reconciling cluster")
 
 	capiCluster := cluster.Cluster(cr)
