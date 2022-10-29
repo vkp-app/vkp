@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -84,6 +85,19 @@ func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+func (r *ClusterReconciler) reconcileID(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+	log := logging.FromContext(ctx)
+	log.V(1).Info("reconciling cluster ID")
+
+	if cr.Status.ClusterID == "" {
+		clusterID := cluster.NewID()
+		log.Info("generated cluster ID", "ID", clusterID)
+		cr.Status.ClusterID = clusterID
+		return r.Status().Update(ctx, cr)
+	}
+	return nil
+}
+
 func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling vcluster")
@@ -107,7 +121,10 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 	}
 	// reconcile by forcibly overwriting
 	// any changes
-	return r.Update(ctx, vcluster)
+	if !reflect.DeepEqual(vcluster.Spec, found.Spec) {
+		return r.Update(ctx, vcluster)
+	}
+	return nil
 }
 
 func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *paasv1alpha1.Cluster) error {
@@ -133,5 +150,8 @@ func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *paasv1alph
 	}
 	// reconcile by forcibly overwriting
 	// any changes
-	return r.Update(ctx, capiCluster)
+	if !reflect.DeepEqual(capiCluster.Spec, found.Spec) {
+		return r.Update(ctx, capiCluster)
+	}
+	return nil
 }

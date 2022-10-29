@@ -51,6 +51,8 @@ spec:
           status:
             description: ClusterStatus defines the observed state of Cluster
             properties:
+              clusterID:
+                type: string
               conditions:
                 items:
                   description: "Condition contains details for one aspect of the current
@@ -123,6 +125,13 @@ spec:
                 type: string
               kubeVersion:
                 type: string
+              message:
+                properties:
+                  addons:
+                    type: string
+                  kube:
+                    type: string
+                type: object
               platformVersion:
                 type: string
               webURL:

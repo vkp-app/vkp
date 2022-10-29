@@ -19,17 +19,19 @@ func VCluster(cluster *paasv1alpha1.Cluster) *vclusterv1alpha1.VCluster {
 		Spec: vclusterv1alpha1.VClusterSpec{
 			ControlPlaneEndpoint: v1beta1.APIEndpoint{
 				// todo determine host in a better way
-				Host: fmt.Sprintf("%s-%s.todo", cluster.GetName(), cluster.GetNamespace()),
+				Host: fmt.Sprintf("%s.todo", cluster.Status.ClusterID),
 				Port: 443,
 			},
 			HelmRelease: &vclusterv1alpha1.VirtualClusterHelmRelease{
 				Chart: vclusterv1alpha1.VirtualClusterHelmChart{
+					// todo support airgap
 					Name:    "vcluster",
 					Repo:    "https://charts.loft.sh",
 					Version: "0.12.2",
 				},
 				Values: "",
 			},
+			// todo support release configuration (e.g. stable vs fast-track)
 			KubernetesVersion: pointer.String("1.24"),
 		},
 	}
