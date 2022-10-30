@@ -7,12 +7,12 @@ import (
 	"fmt"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
-	"html/template"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"os"
 	"sigs.k8s.io/cluster-api/api/v1beta1"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
+	"text/template"
 )
 
 //go:embed config/values.yaml
@@ -22,14 +22,14 @@ var valuesTpl = template.Must(template.New("values.yaml").Parse(valuesTemplate))
 
 func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1alpha1.VCluster, error) {
 	log := logging.FromContext(ctx)
-	hostname := fmt.Sprintf("%s.%s", cluster.Status.ClusterID, os.Getenv(EnvHostname))
+	hostname := fmt.Sprintf("%s.%s", cluster.Status.ClusterID, cluster.Status.ClusterDomain)
 	values := new(bytes.Buffer)
 	valuesConfig := ValuesTemplate{
 		IngressClassName: getEnv(EnvIngressClass, "nginx"),
 		Host:             hostname,
 	}
 	log.V(3).Info("templating values.yaml file", "Template", valuesTemplate, "Overrides", valuesConfig)
-	if err := valuesTpl.Execute(values, &valuesConfig); err != nil {
+	if err := valuesTpl.Execute(values, valuesConfig); err != nil {
 		log.Error(err, "failed to template values.yaml")
 		return nil, err
 	}

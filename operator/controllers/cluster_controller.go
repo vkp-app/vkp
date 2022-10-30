@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"os"
 	"reflect"
 	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -66,6 +67,12 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, nil
 	}
 
+	if err := r.reconcileID(ctx, cr); err != nil {
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileDomain(ctx, cr); err != nil {
+		return ctrl.Result{}, err
+	}
 	if err := r.reconcileVCluster(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -93,6 +100,20 @@ func (r *ClusterReconciler) reconcileID(ctx context.Context, cr *paasv1alpha1.Cl
 		clusterID := cluster.NewID()
 		log.Info("generated cluster ID", "ID", clusterID)
 		cr.Status.ClusterID = clusterID
+		return r.Status().Update(ctx, cr)
+	}
+	return nil
+}
+
+func (r *ClusterReconciler) reconcileDomain(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+	log := logging.FromContext(ctx)
+	log.V(1).Info("reconciling cluster domain")
+
+	// set the cluster domain
+	// so that we can manage it independently
+	// of the operator
+	if cr.Status.ClusterDomain == "" {
+		cr.Status.ClusterDomain = os.Getenv(cluster.EnvHostname)
 		return r.Status().Update(ctx, cr)
 	}
 	return nil

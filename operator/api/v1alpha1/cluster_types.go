@@ -45,8 +45,10 @@ type ClusterStatus struct {
 	KubeURL string `json:"kubeURL,omitempty"`
 	WebURL  string `json:"webURL,omitempty"`
 
-	ClusterID string        `json:"clusterID,omitempty"`
-	Message   StatusMessage `json:"message,omitempty"`
+	ClusterID     string `json:"clusterID,omitempty"`
+	ClusterDomain string `json:"clusterDomain,omitempty"`
+
+	Message StatusMessage `json:"message,omitempty"`
 }
 
 type StatusMessage struct {

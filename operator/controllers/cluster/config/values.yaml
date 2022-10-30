@@ -9,4 +9,4 @@ securityContext:
       - ALL
   readOnlyRootFilesystem: true
   runAsNonRoot: true
-  runAsUser: 12345 # todo support variable uids (e.g. openshift)
+  runAsUser: 12345

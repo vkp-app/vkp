@@ -41,6 +41,9 @@ spec:
         - --v=5
         image: controller:latest
         name: manager
+        env:
+          - name: PAAS_HOSTNAME
+            value: k8s.192-168-49-2.nip.io
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
