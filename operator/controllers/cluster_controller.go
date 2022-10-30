@@ -102,7 +102,10 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 	log := logging.FromContext(ctx)
 	log.Info("reconciling vcluster")
 
-	vcluster := cluster.VCluster(cr)
+	vcluster, err := cluster.VCluster(ctx, cr)
+	if err != nil {
+		return err
+	}
 
 	found := &vclusterv1alpha1.VCluster{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: cr.GetName()}, found); err != nil {

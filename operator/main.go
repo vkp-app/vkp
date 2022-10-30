@@ -18,7 +18,9 @@ package main
 
 import (
 	"flag"
+	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	"os"
+	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -45,6 +47,8 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(paasv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(vclusterv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(capiv1betav1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

@@ -7,12 +7,17 @@ import (
 	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
 )
 
+const (
+	vclusterKind       = "VCluster"
+	vclusterApiVersion = "infrastructure.cluster.x-k8s.io/v1alpha1"
+)
+
 func Cluster(cluster *paasv1alpha1.Cluster) *capiv1betav1.Cluster {
 	clusterRef := &corev1.ObjectReference{
-		Kind:       "VCluster",
+		Kind:       vclusterKind,
 		Namespace:  cluster.GetNamespace(),
 		Name:       cluster.GetName(),
-		APIVersion: "infrastructure.cluster.x-k8s.io/v1alpha1",
+		APIVersion: vclusterApiVersion,
 	}
 	return &capiv1betav1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{

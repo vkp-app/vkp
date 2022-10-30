@@ -35,9 +35,10 @@ spec:
         #   type: RuntimeDefault
       containers:
       - command:
-        - /manager
+        - /ko-app/operator
         args:
         - --leader-elect
+        - --v=5
         image: controller:latest
         name: manager
         securityContext:

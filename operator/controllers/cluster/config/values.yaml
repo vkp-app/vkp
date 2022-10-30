@@ -1,0 +1,12 @@
+ingress:
+  enabled: true
+  ingressClassName: {{ .IngressClassName }}
+  host: {{ .Host }}
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 12345 # todo support variable uids (e.g. openshift)
