@@ -6,11 +6,18 @@ const (
 	EnvChartRepo    = "PAAS_CHART_REPO"
 	EnvChartVersion = "PAAS_CHART_VERSION"
 
-	EnvKubeVersion  = "PAAS_KUBE_VERSION"
-	EnvIngressClass = "PAAS_INGRESS_CLASS"
+	EnvKubeVersion = "PAAS_KUBE_VERSION"
+
+	EnvIngressClass  = "PAAS_INGRESS_CLASS"
+	EnvIngressIssuer = "PAAS_INGRESS_ISSUER"
 )
 
 type ValuesTemplate struct {
-	IngressClassName string
-	Host             string
+	Ingress ValuesIngress
+}
+
+type ValuesIngress struct {
+	ClassName string
+	Issuer    string
+	Host      string
 }

@@ -1,7 +1,11 @@
 ingress:
-  enabled: true
-  ingressClassName: {{ .IngressClassName }}
-  host: {{ .Host }}
+  enabled: false
+  ingressClassName: {{ .Ingress.ClassName }}
+  host: {{ .Ingress.Host }}
+  {{- if .Ingress.Issuer }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Ingress.Issuer }}
+  {{- end }}
 securityContext:
   allowPrivilegeEscalation: false
   capabilities:

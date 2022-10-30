@@ -44,6 +44,8 @@ spec:
         env:
           - name: PAAS_HOSTNAME
             value: k8s.192-168-49-2.nip.io
+          - name: PAAS_INGRESS_ISSUER
+            value: iss-kube
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

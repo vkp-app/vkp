@@ -20,6 +20,7 @@ import (
 	"context"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
+	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -43,6 +44,7 @@ type ClusterReconciler struct {
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters/finalizers,verbs=update
 //+kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=vclusters,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -79,6 +81,9 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.reconcileCluster(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
+	if err := r.reconcileIngress(ctx, cr); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -89,6 +94,7 @@ func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&paasv1alpha1.Cluster{}).
 		Owns(&vclusterv1alpha1.VCluster{}).
 		Owns(&capiv1betav1.Cluster{}).
+		Owns(&netv1.Ingress{}).
 		Complete(r)
 }
 
@@ -146,7 +152,7 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 	// reconcile by forcibly overwriting
 	// any changes
 	if !reflect.DeepEqual(vcluster.Spec, found.Spec) {
-		return r.Update(ctx, vcluster)
+		return r.SafeUpdate(ctx, found, vcluster)
 	}
 	return nil
 }
@@ -175,7 +181,45 @@ func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *paasv1alph
 	// reconcile by forcibly overwriting
 	// any changes
 	if !reflect.DeepEqual(capiCluster.Spec, found.Spec) {
-		return r.Update(ctx, capiCluster)
+		return r.SafeUpdate(ctx, found, capiCluster)
 	}
 	return nil
+}
+
+func (r *ClusterReconciler) reconcileIngress(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+	log := logging.FromContext(ctx)
+	log.Info("reconciling ingress")
+
+	ing := cluster.Ingress(cr)
+
+	found := &netv1.Ingress{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: cr.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			if err := ctrl.SetControllerReference(cr, ing, r.Scheme); err != nil {
+				log.Error(err, "failed to set controller reference")
+				return err
+			}
+			if err := r.Create(ctx, ing); err != nil {
+				log.Error(err, "failed to create ingress")
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	// reconcile by forcibly overwriting
+	// any changes
+	if !reflect.DeepEqual(ing.Spec, found.Spec) {
+		return r.SafeUpdate(ctx, found, ing)
+	}
+	return nil
+}
+
+// SafeUpdate calls Update with hacks required to ensure that
+// the update is applied correctly.
+//
+// https://github.com/argoproj/argo-cd/issues/3657
+func (r *ClusterReconciler) SafeUpdate(ctx context.Context, old, new client.Object, option ...client.UpdateOption) error {
+	new.SetResourceVersion(old.GetResourceVersion())
+	return r.Update(ctx, new, option...)
 }

@@ -22,11 +22,14 @@ var valuesTpl = template.Must(template.New("values.yaml").Parse(valuesTemplate))
 
 func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1alpha1.VCluster, error) {
 	log := logging.FromContext(ctx)
-	hostname := fmt.Sprintf("%s.%s", cluster.Status.ClusterID, cluster.Status.ClusterDomain)
+	hostname := fmt.Sprintf("api.%s.%s", cluster.Status.ClusterID, cluster.Status.ClusterDomain)
 	values := new(bytes.Buffer)
 	valuesConfig := ValuesTemplate{
-		IngressClassName: getEnv(EnvIngressClass, "nginx"),
-		Host:             hostname,
+		Ingress: ValuesIngress{
+			ClassName: getEnv(EnvIngressClass, "nginx"),
+			Issuer:    getEnv(EnvIngressIssuer, ""),
+			Host:      hostname,
+		},
 	}
 	log.V(3).Info("templating values.yaml file", "Template", valuesTemplate, "Overrides", valuesConfig)
 	if err := valuesTpl.Execute(values, valuesConfig); err != nil {
