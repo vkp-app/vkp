@@ -1,0 +1,29 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type Tenant {
+  id: ID!
+  name: String!
+  oidcGroup: String!
+}
+
+type Cluster {
+  id: ID!
+  tenant: ID!
+}
+
+type Query {
+  tenants: [Tenant!]!
+  clusters: [Cluster!]!
+  clustersInTenant(id: ID!): [Cluster!]!
+}
+
+input NewTenant {
+  name: String!
+  oidcGroup: String!
+}
+
+type Mutation {
+  createTenant(input: NewTenant!): Tenant!
+}

@@ -2,12 +2,17 @@ package main
 
 import (
 	"context"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/djcass44/go-utils/logging"
 	"github.com/djcass44/go-utils/otel"
 	"github.com/djcass44/go-utils/otel/metrics"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
 	"gitlab.com/autokubeops/serverless"
+	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph"
+	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
@@ -45,10 +50,16 @@ func main() {
 		return
 	}
 
+	// configure graphql
+	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	srv.AddTransport(transport.POST{})
+
 	// configure routing
 	router := mux.NewRouter()
 	router.Use(otel.Middleware(), logging.Middleware(log), metrics.Middleware())
 	router.Handle("/metrics", prom)
+	router.Handle("/api/v1/graphql", playground.Handler("GraphQL Playground", "/api/v1/query"))
+	router.Handle("/api/v1/query", srv)
 
 	// start the server
 	serverless.NewBuilder(router).
