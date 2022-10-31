@@ -35,6 +35,7 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1al
 			URL:      getEnv(EnvIDPURL, ""),
 			ClientID: getEnv(EnvIDPClientID, ""),
 		},
+		Storage: cluster.Spec.Storage,
 	}
 	log.V(3).Info("templating values.yaml file", "Template", valuesTemplate, "Overrides", valuesConfig)
 	if err := valuesTpl.Execute(values, valuesConfig); err != nil {

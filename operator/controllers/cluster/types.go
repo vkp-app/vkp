@@ -1,5 +1,7 @@
 package cluster
 
+import paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+
 const (
 	EnvHostname     = "PAAS_HOSTNAME"
 	EnvChartName    = "PAAS_CHART_NAME"
@@ -18,6 +20,7 @@ const (
 type ValuesTemplate struct {
 	Ingress ValuesIngress
 	IDP     ValuesIDP
+	Storage paasv1alpha1.Storage
 }
 
 type ValuesIngress struct {

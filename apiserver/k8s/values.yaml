@@ -1,0 +1,20 @@
+releaseOverride: apiserver
+image:
+  pullPolicy: Never
+env:
+  API_LOG_LEVEL: 5
+ingress:
+  tls:
+    secretName: tls-apiserver
+  annotations:
+    cert-manager.io/cluster-issuer: iss-kube
+  className: nginx
+livenessProbe:
+  path: /livez
+  port: 8081
+readinessProbe:
+  path: /readyz
+  port: 8081
+rollme: false
+service:
+  url: https://api.192-168-49-2.nip.io

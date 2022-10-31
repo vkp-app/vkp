@@ -32,3 +32,11 @@ volumes:
   - name: tls
     secret:
       secretName: {{ .Ingress.TLSSecretName }}
+storage:
+  persistence: true
+  {{- if .Storage.Size }}
+  size: "{{ .Storage.Size }}Gi"
+  {{- end }}
+  {{- if .Storage.StorageClassName }}
+  className: {{ .Storage.StorageClassName }}
+  {{- end }}

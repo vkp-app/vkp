@@ -1,0 +1,31 @@
+apiVersion: skaffold/v2beta29
+kind: Config
+metadata:
+  name: apiserver
+build:
+  artifacts:
+  - image: dev.local/kube-glass/apiserver
+    ko:
+      main: ./cmd/apiserver/
+      dependencies:
+        paths:
+          - cmd/
+          - go.mod
+          - go.sum
+  local:
+    push: false
+deploy:
+  kubeContext: minikube
+  helm:
+    releases:
+      - name: auto-deploy-app
+        remoteChart: https://av1o.gitlab.io/charts/auto-deploy-app-0.15.3.tgz
+        namespace: glass-system
+        createNamespace: true
+        upgradeOnChange: true
+        valuesFiles:
+          - k8s/values.yaml
+        imageStrategy:
+          helm: {}
+        artifactOverrides:
+          image: dev.local/kube-glass/apiserver
