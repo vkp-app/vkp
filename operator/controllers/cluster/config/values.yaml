@@ -14,3 +14,21 @@ securityContext:
   readOnlyRootFilesystem: true
   runAsNonRoot: true
   runAsUser: 12345
+vcluster:
+  extraArgs:
+    - --kube-apiserver-arg="--oidc-issuer-url={{ .IDP.URL }}"
+    - --kube-apiserver-arg="--oidc-client-id={{ .IDP.ClientID }}"
+    - --kube-apiserver-arg="--oidc-username-claim=email"
+    - --kube-apiserver-arg="--oidc-username-prefix=-"
+    - --kube-apiserver-arg="--oidc-groups-prefix=oidc:"
+    - --kube-apiserver-arg="--oidc-ca-file=/var/run/secrets/dcas.dev/tls/ca.crt"
+  volumeMounts:
+    - name: data
+      mountPath: /data
+    - name: tls
+      mountPath: /var/run/secrets/dcas.dev/tls
+      readOnly: true
+volumes:
+  - name: tls
+    secret:
+      secretName: {{ .Ingress.TLSSecretName }}

@@ -26,9 +26,14 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1al
 	values := new(bytes.Buffer)
 	valuesConfig := ValuesTemplate{
 		Ingress: ValuesIngress{
-			ClassName: getEnv(EnvIngressClass, "nginx"),
-			Issuer:    getEnv(EnvIngressIssuer, ""),
-			Host:      hostname,
+			ClassName:     getEnv(EnvIngressClass, "nginx"),
+			Issuer:        getEnv(EnvIngressIssuer, ""),
+			Host:          hostname,
+			TLSSecretName: fmt.Sprintf("tls-kubeapi-%s", cluster.GetName()),
+		},
+		IDP: ValuesIDP{
+			URL:      getEnv(EnvIDPURL, ""),
+			ClientID: getEnv(EnvIDPClientID, ""),
 		},
 	}
 	log.V(3).Info("templating values.yaml file", "Template", valuesTemplate, "Overrides", valuesConfig)

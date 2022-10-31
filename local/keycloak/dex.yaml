@@ -1,0 +1,33 @@
+config:
+  issuer: https://dex.192-168-49-2.nip.io
+  storage:
+    type: kubernetes
+    config:
+      inCluster: true
+  enablePasswordDB: true
+  oauth2:
+    skipApprovalScreen: true
+  staticClients:
+    - id: glass
+      redirectURIs:
+        - https://glass.192-168-49-2.nip.io
+      name: Glass
+      secret: password
+  connectors:
+    - id: mock
+      type: mockCallback
+      name: Mock
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: iss-kube
+  hosts:
+    - host: dex.192-168-49-2.nip.io
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: tls-dex
+      hosts:
+        - dex.192-168-49-2.nip.io

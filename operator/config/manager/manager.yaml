@@ -46,6 +46,10 @@ spec:
             value: k8s.192-168-49-2.nip.io
           - name: PAAS_INGRESS_ISSUER
             value: iss-kube
+          - name: PAAS_IDP_URL
+            value: https://dex.192-168-49-2.nip.io
+          - name: PAAS_IDP_CLIENT_ID
+            value: glass
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
