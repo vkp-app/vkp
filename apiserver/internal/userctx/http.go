@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-logr/logr"
 	"net/http"
+	"strings"
 )
 
 type contextKey int
@@ -13,8 +14,10 @@ const (
 	KeyGroups contextKey = iota
 )
 
-const headerUser = "x-forwarded-user"
-const headerGroups = "x-forwarded-groups"
+const (
+	headerUser   = "x-forwarded-user"
+	headerGroups = "x-forwarded-groups"
+)
 
 func Middleware() func(handler http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
@@ -32,4 +35,23 @@ func Middleware() func(handler http.Handler) http.Handler {
 			handler.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// CtxUser extracts the users information from a
+// given context.Context. If no user is present,
+// a false value will be returned.
+func CtxUser(ctx context.Context) (*User, bool) {
+	username, ok := ctx.Value(KeyUser).(string)
+	if !ok || username == "" {
+		return nil, false
+	}
+	groups, ok := ctx.Value(KeyGroups).(string)
+	if !ok {
+		return nil, false
+	}
+	return &User{
+		Username: username,
+		// todo confirm that groups are comma-delimited
+		Groups: strings.Split(groups, ","),
+	}, true
 }

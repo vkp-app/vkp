@@ -6,6 +6,8 @@ package graph
 import (
 	"context"
 	"fmt"
+	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/userctx"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -24,7 +26,18 @@ func (r *clusterResolver) Tenant(ctx context.Context, obj *paasv1alpha1.Cluster)
 func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paasv1alpha1.Tenant, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", name)
 	log.Info("creating tenant")
-	tenant := &paasv1alpha1.Tenant{}
+	user, ok := userctx.CtxUser(ctx)
+	if !ok {
+		return nil, ErrUnauthorised
+	}
+	tenant := &paasv1alpha1.Tenant{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Spec: paasv1alpha1.TenantSpec{
+			Owner: user.Username,
+		},
+	}
 	if err := r.Create(ctx, tenant); err != nil {
 		log.Error(err, "failed to create tenant")
 		return nil, err
