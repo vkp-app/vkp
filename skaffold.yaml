@@ -8,4 +8,4 @@ deploy:
     buildArgs:
       - --enable-helm
     paths:
-    - local/keycloak
+    - local/idp

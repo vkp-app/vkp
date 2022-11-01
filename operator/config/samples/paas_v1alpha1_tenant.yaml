@@ -1,0 +1,6 @@
+apiVersion: paas.dcas.dev/v1alpha1
+kind: Tenant
+metadata:
+  name: tenant-sample
+spec:
+  owner: django@dcas.dev

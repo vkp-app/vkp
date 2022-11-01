@@ -2,4 +2,5 @@
 namespace: operator-tenant
 resources:
 - paas_v1alpha1_cluster.yaml
+- paas_v1alpha1_tenant.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

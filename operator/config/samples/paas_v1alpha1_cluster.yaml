@@ -2,5 +2,7 @@ apiVersion: paas.dcas.dev/v1alpha1
 kind: Cluster
 metadata:
   name: cluster-sample
+  labels:
+    paas.dcas.dev/tenant: tenant-sample
 spec:
   # TODO(user): Add fields here

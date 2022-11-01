@@ -67,3 +67,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - tenants
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - tenants/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - tenants/status
+  verbs:
+  - get
+  - patch
+  - update
