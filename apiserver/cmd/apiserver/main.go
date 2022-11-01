@@ -73,10 +73,12 @@ func main() {
 	}
 
 	// configure graphql
-	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
+	c := generated.Config{Resolvers: &graph.Resolver{
 		Client: kubeClient,
 		Scheme: scheme,
-	}}))
+	}}
+	c.Directives.HasUser = graph.HasUser
+	srv := handler.New(generated.NewExecutableSchema(c))
 	srv.AddTransport(transport.POST{})
 
 	// configure routing

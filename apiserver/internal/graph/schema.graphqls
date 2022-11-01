@@ -1,6 +1,4 @@
-# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
+directive @hasUser on FIELD_DEFINITION
 
 type Tenant {
   name: ID!
@@ -32,11 +30,13 @@ type User {
 }
 
 type Query {
-  tenants: [Tenant!]!
-  clustersInTenant(tenant: ID!): [Cluster!]!
-  cluster(tenant: ID!, name: ID!): Cluster!
+  tenants: [Tenant!]! @hasUser
+  clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
+  cluster(tenant: ID!, name: ID!): Cluster! @hasUser
+
+  currentUser: User! @hasUser
 }
 
 type Mutation {
-  createTenant(name: String!): Tenant!
+  createTenant(name: String!): Tenant! @hasUser
 }

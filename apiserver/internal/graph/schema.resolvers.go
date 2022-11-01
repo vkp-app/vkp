@@ -6,15 +6,16 @@ package graph
 import (
 	"context"
 	"fmt"
-	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/userctx"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/go-logr/logr"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
+	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
+	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/userctx"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // Tenant is the resolver for the tenant field.
@@ -80,6 +81,11 @@ func (r *queryResolver) Cluster(ctx context.Context, tenant string, name string)
 		return nil, err
 	}
 	panic(fmt.Errorf("not implemented: Cluster - cluster"))
+}
+
+// CurrentUser is the resolver for the currentUser field.
+func (r *queryResolver) CurrentUser(ctx context.Context) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: CurrentUser - currentUser"))
 }
 
 // Owner is the resolver for the owner field.

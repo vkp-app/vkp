@@ -3,6 +3,7 @@ package userctx
 import (
 	"context"
 	"github.com/go-logr/logr"
+	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
 	"net/http"
 	"strings"
 )
@@ -40,7 +41,7 @@ func Middleware() func(handler http.Handler) http.Handler {
 // CtxUser extracts the users information from a
 // given context.Context. If no user is present,
 // a false value will be returned.
-func CtxUser(ctx context.Context) (*User, bool) {
+func CtxUser(ctx context.Context) (*model.User, bool) {
 	username, ok := ctx.Value(KeyUser).(string)
 	if !ok || username == "" {
 		return nil, false
@@ -49,7 +50,7 @@ func CtxUser(ctx context.Context) (*User, bool) {
 	if !ok {
 		return nil, false
 	}
-	return &User{
+	return &model.User{
 		Username: username,
 		// todo confirm that groups are comma-delimited
 		Groups: strings.Split(groups, ","),

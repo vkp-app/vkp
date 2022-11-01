@@ -44,6 +44,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	HasUser func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -71,6 +72,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Cluster          func(childComplexity int, tenant string, name string) int
 		ClustersInTenant func(childComplexity int, tenant string) int
+		CurrentUser      func(childComplexity int) int
 		Tenants          func(childComplexity int) int
 	}
 
@@ -96,6 +98,7 @@ type QueryResolver interface {
 	Tenants(ctx context.Context) ([]v1alpha1.Tenant, error)
 	ClustersInTenant(ctx context.Context, tenant string) ([]v1alpha1.Cluster, error)
 	Cluster(ctx context.Context, tenant string, name string) (*v1alpha1.Cluster, error)
+	CurrentUser(ctx context.Context) (*model.User, error)
 }
 type TenantResolver interface {
 	Owner(ctx context.Context, obj *v1alpha1.Tenant) (string, error)
@@ -209,6 +212,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ClustersInTenant(childComplexity, args["tenant"].(string)), true
 
+	case "Query.currentUser":
+		if e.complexity.Query.CurrentUser == nil {
+			break
+		}
+
+		return e.complexity.Query.CurrentUser(childComplexity), true
+
 	case "Query.tenants":
 		if e.complexity.Query.Tenants == nil {
 			break
@@ -318,9 +328,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema.graphqls", Input: `# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
+	{Name: "../schema.graphqls", Input: `directive @hasUser on FIELD_DEFINITION
 
 type Tenant {
   name: ID!
@@ -352,13 +360,15 @@ type User {
 }
 
 type Query {
-  tenants: [Tenant!]!
-  clustersInTenant(tenant: ID!): [Cluster!]!
-  cluster(tenant: ID!, name: ID!): Cluster!
+  tenants: [Tenant!]! @hasUser
+  clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
+  cluster(tenant: ID!, name: ID!): Cluster! @hasUser
+
+  currentUser: User! @hasUser
 }
 
 type Mutation {
-  createTenant(name: String!): Tenant!
+  createTenant(name: String!): Tenant! @hasUser
 }
 `, BuiltIn: false},
 }
@@ -760,8 +770,28 @@ func (ec *executionContext) _Mutation_createTenant(ctx context.Context, field gr
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTenant(rctx, fc.Args["name"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTenant(rctx, fc.Args["name"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*v1alpha1.Tenant); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Tenant`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -911,8 +941,28 @@ func (ec *executionContext) _Query_tenants(ctx context.Context, field graphql.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Tenants(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Tenants(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]v1alpha1.Tenant); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Tenant`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -963,8 +1013,28 @@ func (ec *executionContext) _Query_clustersInTenant(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ClustersInTenant(rctx, fc.Args["tenant"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ClustersInTenant(rctx, fc.Args["tenant"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]v1alpha1.Cluster); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Cluster`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1026,8 +1096,28 @@ func (ec *executionContext) _Query_cluster(ctx context.Context, field graphql.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Cluster(rctx, fc.Args["tenant"].(string), fc.Args["name"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Cluster(rctx, fc.Args["tenant"].(string), fc.Args["name"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*v1alpha1.Cluster); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Cluster`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1072,6 +1162,76 @@ func (ec *executionContext) fieldContext_Query_cluster(ctx context.Context, fiel
 	if fc.Args, err = ec.field_Query_cluster_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_currentUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_currentUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().CurrentUser(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model.User`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_currentUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "groups":
+				return ec.fieldContext_User_groups(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -3471,6 +3631,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "currentUser":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_currentUser(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -4158,6 +4341,20 @@ func (ec *executionContext) marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkube�
 		return graphql.Null
 	}
 	return ec._Tenant(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUser2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUser2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
