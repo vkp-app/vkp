@@ -10,7 +10,7 @@ config:
   staticClients:
     - id: glass
       redirectURIs:
-        - https://glass.192-168-49-2.nip.io
+        - https://glass.192-168-49-2.nip.io/oauth2/callback
       name: Glass
       secret: password
   connectors:
