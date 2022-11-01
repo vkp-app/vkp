@@ -9,6 +9,7 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: iss-kube
   className: nginx
+  path: /api
 livenessProbe:
   path: /livez
   port: 8081

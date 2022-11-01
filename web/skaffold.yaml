@@ -1,0 +1,15 @@
+apiVersion: skaffold/v2beta29
+kind: Config
+metadata:
+  name: web
+deploy:
+  kubeContext: minikube
+  helm:
+    releases:
+      - name: web-proxy
+        remoteChart: https://prism.v2.dcas.dev/api/v1/helm/-/nginx-11.1.5.tgz
+        namespace: glass-system
+        upgradeOnChange: true
+        skipBuildDependencies: true
+        valuesFiles:
+          - k8s/values.yaml

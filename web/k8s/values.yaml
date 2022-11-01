@@ -1,0 +1,33 @@
+global:
+  imageRegistry: public.ecr.aws
+podSecurityContext:
+  enabled: true
+containerSecurityContext:
+  enabled: true
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+serverBlock: |
+  server {
+    listen 0.0.0.0:8080;
+    location / {
+      proxy_pass http://host.minikube.internal:3000/;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_read_timeout 86400;
+    }
+  }
+service:
+  type: ClusterIP
+ingress:
+  enabled: true
+  hostname: glass.192-168-49-2.nip.io
+  #  annotations:
+  #    cert-manager.io/cluster-issuer: "iss-kube"
+  ingressClassName: nginx
+  extraTls:
+    - secretName: tls-apiserver
+      hosts:
+        - glass.192-168-49-2.nip.io
