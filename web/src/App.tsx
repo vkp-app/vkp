@@ -1,45 +1,44 @@
-import { useState } from 'react'
-import logo from './logo.svg'
+import React from 'react'
 import './App.css'
+import createCache from "@emotion/cache";
+import {CacheProvider} from "@emotion/react";
+import {makeStyles} from "tss-react/mui";
+import {CssBaseline, Theme} from "@mui/material";
+import Nav from "./containers/Nav";
 
-function App() {
-  const [count, setCount] = useState(0)
+const useStyles = makeStyles()((theme: Theme) => ({
+	root: {
+		display: "flex",
+	},
+	toolbar: {
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "flex-end",
+		padding: theme.spacing(0, 1),
+		height: 48
+	},
+	content: {
+		flexGrow: 1
+	},
+}));
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Hello Vite + React!</p>
-        <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
-            count is: {count}
-          </button>
-        </p>
-        <p>
-          Edit <code>App.tsx</code> and save to test HMR updates.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          {' | '}
-          <a
-            className="App-link"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-        </p>
-      </header>
-    </div>
-  )
+const App: React.FC = (): JSX.Element => {
+	// hooks
+	const {classes} = useStyles();
+
+	const cache = createCache({
+		key: "mui",
+		prepend: true
+	});
+
+	return (
+		<CacheProvider value={cache}>
+			<div className={classes.root}>
+				<CssBaseline/>
+				<Nav/>
+			</div>
+		</CacheProvider>
+	)
 }
 
-export default App
+export default App;
