@@ -85,7 +85,11 @@ func (r *queryResolver) Cluster(ctx context.Context, tenant string, name string)
 
 // CurrentUser is the resolver for the currentUser field.
 func (r *queryResolver) CurrentUser(ctx context.Context) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: CurrentUser - currentUser"))
+	user, ok := userctx.CtxUser(ctx)
+	if !ok {
+		return nil, ErrUnauthorised
+	}
+	return user, nil
 }
 
 // Owner is the resolver for the owner field.
