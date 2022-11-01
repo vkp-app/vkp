@@ -6,30 +6,81 @@ package graph
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/labels"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/go-logr/logr"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
-	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
+	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
+// Tenant is the resolver for the tenant field.
+func (r *clusterResolver) Tenant(ctx context.Context, obj *paasv1alpha1.Cluster) (string, error) {
+	return obj.ObjectMeta.Labels[labelTenant], nil
+}
+
 // CreateTenant is the resolver for the createTenant field.
-func (r *mutationResolver) CreateTenant(ctx context.Context, input model.NewTenant) (*model.Tenant, error) {
-	panic(fmt.Errorf("not implemented: CreateTenant - createTenant"))
+func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paasv1alpha1.Tenant, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", name)
+	log.Info("creating tenant")
+	tenant := &paasv1alpha1.Tenant{}
+	if err := r.Create(ctx, tenant); err != nil {
+		log.Error(err, "failed to create tenant")
+		return nil, err
+	}
+	return tenant, nil
 }
 
 // Tenants is the resolver for the tenants field.
-func (r *queryResolver) Tenants(ctx context.Context) ([]*model.Tenant, error) {
-	panic(fmt.Errorf("not implemented: Tenants - tenants"))
-}
-
-// Clusters is the resolver for the clusters field.
-func (r *queryResolver) Clusters(ctx context.Context) ([]*model.Cluster, error) {
-	panic(fmt.Errorf("not implemented: Clusters - clusters"))
+func (r *queryResolver) Tenants(ctx context.Context) ([]paasv1alpha1.Tenant, error) {
+	log := logr.FromContextOrDiscard(ctx)
+	log.Info("listing tenants")
+	tenants := &paasv1alpha1.TenantList{}
+	if err := r.List(ctx, tenants); err != nil {
+		log.Error(err, "failed to list tenants")
+		return nil, err
+	}
+	return tenants.Items, nil
 }
 
 // ClustersInTenant is the resolver for the clustersInTenant field.
-func (r *queryResolver) ClustersInTenant(ctx context.Context, id string) ([]*model.Cluster, error) {
-	panic(fmt.Errorf("not implemented: ClustersInTenant - clustersInTenant"))
+func (r *queryResolver) ClustersInTenant(ctx context.Context, tenant string) ([]paasv1alpha1.Cluster, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
+	log.Info("fetching clusters in tenant")
+	clusters := &paasv1alpha1.ClusterList{}
+	selector := labels.SelectorFromSet(labels.Set{labelTenant: tenant})
+	if err := r.List(ctx, clusters, &client.ListOptions{LabelSelector: selector}); err != nil {
+		log.Error(err, "failed to list clusters in tenant")
+		return nil, err
+	}
+	return clusters.Items, nil
 }
+
+// Cluster is the resolver for the cluster field.
+func (r *queryResolver) Cluster(ctx context.Context, tenant string, name string) (*paasv1alpha1.Cluster, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", name)
+	log.Info("fetching cluster")
+	cluster := &paasv1alpha1.Cluster{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: name}, cluster); err != nil {
+		log.Error(err, "failed to retrieve cluster")
+		return nil, err
+	}
+	panic(fmt.Errorf("not implemented: Cluster - cluster"))
+}
+
+// Owner is the resolver for the owner field.
+func (r *tenantResolver) Owner(ctx context.Context, obj *paasv1alpha1.Tenant) (string, error) {
+	return obj.Spec.Owner, nil
+}
+
+// ObservedClusters is the resolver for the observedClusters field.
+func (r *tenantResolver) ObservedClusters(ctx context.Context, obj *paasv1alpha1.Tenant) ([]paasv1alpha1.NamespacedName, error) {
+	return obj.Status.ObservedClusters, nil
+}
+
+// Cluster returns generated.ClusterResolver implementation.
+func (r *Resolver) Cluster() generated.ClusterResolver { return &clusterResolver{r} }
 
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
@@ -37,5 +88,10 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Tenant returns generated.TenantResolver implementation.
+func (r *Resolver) Tenant() generated.TenantResolver { return &tenantResolver{r} }
+
+type clusterResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type tenantResolver struct{ *Resolver }

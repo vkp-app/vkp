@@ -2,18 +2,7 @@
 
 package model
 
-type Cluster struct {
-	ID     string `json:"id"`
-	Tenant string `json:"tenant"`
-}
-
-type NewTenant struct {
-	Name      string `json:"name"`
-	OidcGroup string `json:"oidcGroup"`
-}
-
-type Tenant struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	OidcGroup string `json:"oidcGroup"`
+type User struct {
+	Username string   `json:"username"`
+	Groups   []string `json:"groups"`
 }

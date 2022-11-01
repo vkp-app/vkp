@@ -1,0 +1,22 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: glass-apiserver-role
+rules:
+  - apiGroups:
+      - paas.dcas.dev
+    resources:
+      - clusters
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - paas.dcas.dev
+    resources:
+      - tenants
+    verbs:
+      - get
+      - list
+      - watch

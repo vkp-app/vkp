@@ -16,6 +16,9 @@ build:
     push: false
 deploy:
   kubeContext: minikube
+  kustomize:
+    paths:
+      - k8s/
   helm:
     releases:
       - name: auto-deploy-app

@@ -3,27 +3,40 @@
 # https://gqlgen.com/getting-started/
 
 type Tenant {
-  id: ID!
+  name: ID!
+  owner: String!
+  observedClusters: [NamespacedName!]!
+}
+
+type NamespacedName {
   name: String!
-  oidcGroup: String!
+  namespace: String!
 }
 
 type Cluster {
-  id: ID!
+  name: ID!
   tenant: ID!
+
+  status: ClusterStatus!
+}
+
+type ClusterStatus {
+  kubeVersion: String!
+  kubeURL: String!
+  webURL: String!
+}
+
+type User {
+  username: String!
+  groups: [String!]!
 }
 
 type Query {
   tenants: [Tenant!]!
-  clusters: [Cluster!]!
-  clustersInTenant(id: ID!): [Cluster!]!
-}
-
-input NewTenant {
-  name: String!
-  oidcGroup: String!
+  clustersInTenant(tenant: ID!): [Cluster!]!
+  cluster(tenant: ID!, name: ID!): Cluster!
 }
 
 type Mutation {
-  createTenant(input: NewTenant!): Tenant!
+  createTenant(name: String!): Tenant!
 }

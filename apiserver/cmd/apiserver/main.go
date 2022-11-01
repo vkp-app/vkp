@@ -13,10 +13,18 @@ import (
 	"gitlab.com/autokubeops/serverless"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
+	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"os"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var scheme = runtime.NewScheme()
 
 type environment struct {
 	Port     int `envconfig:"PORT" default:"8080"`
@@ -28,6 +36,11 @@ type environment struct {
 	}
 }
 
+func init() {
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(paasv1alpha1.AddToScheme(scheme))
+}
+
 func main() {
 	var e environment
 	envconfig.MustProcess("api", &e)
@@ -37,9 +50,17 @@ func main() {
 
 	log, ctx := logging.NewZap(context.TODO(), zc)
 
+	config := ctrl.GetConfigOrDie()
+	kubeClient, err := client.New(config, client.Options{Scheme: scheme})
+	if err != nil {
+		log.Error(err, "failed to build kube client")
+		os.Exit(1)
+		return
+	}
+
 	// configure metrics and tracing
 	prom := metrics.MustNewDefault(ctx)
-	err := otel.Build(ctx, otel.Options{
+	err = otel.Build(ctx, otel.Options{
 		Enabled:     e.Otel.Enabled,
 		ServiceName: "glass-apiserver",
 		SampleRate:  e.Otel.SampleRate,
@@ -51,7 +72,10 @@ func main() {
 	}
 
 	// configure graphql
-	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
+		Client: kubeClient,
+		Scheme: scheme,
+	}}))
 	srv.AddTransport(transport.POST{})
 
 	// configure routing

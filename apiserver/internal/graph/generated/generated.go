@@ -16,6 +16,7 @@ import (
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -36,8 +37,10 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Cluster() ClusterResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Tenant() TenantResolver
 }
 
 type DirectiveRoot struct {
@@ -45,34 +48,58 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Cluster struct {
-		ID     func(childComplexity int) int
+		Name   func(childComplexity int) int
+		Status func(childComplexity int) int
 		Tenant func(childComplexity int) int
 	}
 
+	ClusterStatus struct {
+		KubeURL     func(childComplexity int) int
+		KubeVersion func(childComplexity int) int
+		WebURL      func(childComplexity int) int
+	}
+
 	Mutation struct {
-		CreateTenant func(childComplexity int, input model.NewTenant) int
+		CreateTenant func(childComplexity int, name string) int
+	}
+
+	NamespacedName struct {
+		Name      func(childComplexity int) int
+		Namespace func(childComplexity int) int
 	}
 
 	Query struct {
-		Clusters         func(childComplexity int) int
-		ClustersInTenant func(childComplexity int, id string) int
+		Cluster          func(childComplexity int, tenant string, name string) int
+		ClustersInTenant func(childComplexity int, tenant string) int
 		Tenants          func(childComplexity int) int
 	}
 
 	Tenant struct {
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		OidcGroup func(childComplexity int) int
+		Name             func(childComplexity int) int
+		ObservedClusters func(childComplexity int) int
+		Owner            func(childComplexity int) int
+	}
+
+	User struct {
+		Groups   func(childComplexity int) int
+		Username func(childComplexity int) int
 	}
 }
 
+type ClusterResolver interface {
+	Tenant(ctx context.Context, obj *v1alpha1.Cluster) (string, error)
+}
 type MutationResolver interface {
-	CreateTenant(ctx context.Context, input model.NewTenant) (*model.Tenant, error)
+	CreateTenant(ctx context.Context, name string) (*v1alpha1.Tenant, error)
 }
 type QueryResolver interface {
-	Tenants(ctx context.Context) ([]*model.Tenant, error)
-	Clusters(ctx context.Context) ([]*model.Cluster, error)
-	ClustersInTenant(ctx context.Context, id string) ([]*model.Cluster, error)
+	Tenants(ctx context.Context) ([]v1alpha1.Tenant, error)
+	ClustersInTenant(ctx context.Context, tenant string) ([]v1alpha1.Cluster, error)
+	Cluster(ctx context.Context, tenant string, name string) (*v1alpha1.Cluster, error)
+}
+type TenantResolver interface {
+	Owner(ctx context.Context, obj *v1alpha1.Tenant) (string, error)
+	ObservedClusters(ctx context.Context, obj *v1alpha1.Tenant) ([]v1alpha1.NamespacedName, error)
 }
 
 type executableSchema struct {
@@ -90,12 +117,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Cluster.id":
-		if e.complexity.Cluster.ID == nil {
+	case "Cluster.name":
+		if e.complexity.Cluster.Name == nil {
 			break
 		}
 
-		return e.complexity.Cluster.ID(childComplexity), true
+		return e.complexity.Cluster.Name(childComplexity), true
+
+	case "Cluster.status":
+		if e.complexity.Cluster.Status == nil {
+			break
+		}
+
+		return e.complexity.Cluster.Status(childComplexity), true
 
 	case "Cluster.tenant":
 		if e.complexity.Cluster.Tenant == nil {
@@ -103,6 +137,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Cluster.Tenant(childComplexity), true
+
+	case "ClusterStatus.kubeURL":
+		if e.complexity.ClusterStatus.KubeURL == nil {
+			break
+		}
+
+		return e.complexity.ClusterStatus.KubeURL(childComplexity), true
+
+	case "ClusterStatus.kubeVersion":
+		if e.complexity.ClusterStatus.KubeVersion == nil {
+			break
+		}
+
+		return e.complexity.ClusterStatus.KubeVersion(childComplexity), true
+
+	case "ClusterStatus.webURL":
+		if e.complexity.ClusterStatus.WebURL == nil {
+			break
+		}
+
+		return e.complexity.ClusterStatus.WebURL(childComplexity), true
 
 	case "Mutation.createTenant":
 		if e.complexity.Mutation.CreateTenant == nil {
@@ -114,14 +169,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTenant(childComplexity, args["input"].(model.NewTenant)), true
+		return e.complexity.Mutation.CreateTenant(childComplexity, args["name"].(string)), true
 
-	case "Query.clusters":
-		if e.complexity.Query.Clusters == nil {
+	case "NamespacedName.name":
+		if e.complexity.NamespacedName.Name == nil {
 			break
 		}
 
-		return e.complexity.Query.Clusters(childComplexity), true
+		return e.complexity.NamespacedName.Name(childComplexity), true
+
+	case "NamespacedName.namespace":
+		if e.complexity.NamespacedName.Namespace == nil {
+			break
+		}
+
+		return e.complexity.NamespacedName.Namespace(childComplexity), true
+
+	case "Query.cluster":
+		if e.complexity.Query.Cluster == nil {
+			break
+		}
+
+		args, err := ec.field_Query_cluster_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Cluster(childComplexity, args["tenant"].(string), args["name"].(string)), true
 
 	case "Query.clustersInTenant":
 		if e.complexity.Query.ClustersInTenant == nil {
@@ -133,7 +207,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ClustersInTenant(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.ClustersInTenant(childComplexity, args["tenant"].(string)), true
 
 	case "Query.tenants":
 		if e.complexity.Query.Tenants == nil {
@@ -142,13 +216,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Tenants(childComplexity), true
 
-	case "Tenant.id":
-		if e.complexity.Tenant.ID == nil {
-			break
-		}
-
-		return e.complexity.Tenant.ID(childComplexity), true
-
 	case "Tenant.name":
 		if e.complexity.Tenant.Name == nil {
 			break
@@ -156,12 +223,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Tenant.Name(childComplexity), true
 
-	case "Tenant.oidcGroup":
-		if e.complexity.Tenant.OidcGroup == nil {
+	case "Tenant.observedClusters":
+		if e.complexity.Tenant.ObservedClusters == nil {
 			break
 		}
 
-		return e.complexity.Tenant.OidcGroup(childComplexity), true
+		return e.complexity.Tenant.ObservedClusters(childComplexity), true
+
+	case "Tenant.owner":
+		if e.complexity.Tenant.Owner == nil {
+			break
+		}
+
+		return e.complexity.Tenant.Owner(childComplexity), true
+
+	case "User.groups":
+		if e.complexity.User.Groups == nil {
+			break
+		}
+
+		return e.complexity.User.Groups(childComplexity), true
+
+	case "User.username":
+		if e.complexity.User.Username == nil {
+			break
+		}
+
+		return e.complexity.User.Username(childComplexity), true
 
 	}
 	return 0, false
@@ -170,9 +258,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputNewTenant,
-	)
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap()
 	first := true
 
 	switch rc.Operation.Operation {
@@ -237,29 +323,42 @@ var sources = []*ast.Source{
 # https://gqlgen.com/getting-started/
 
 type Tenant {
-  id: ID!
+  name: ID!
+  owner: String!
+  observedClusters: [NamespacedName!]!
+}
+
+type NamespacedName {
   name: String!
-  oidcGroup: String!
+  namespace: String!
 }
 
 type Cluster {
-  id: ID!
+  name: ID!
   tenant: ID!
+
+  status: ClusterStatus!
+}
+
+type ClusterStatus {
+  kubeVersion: String!
+  kubeURL: String!
+  webURL: String!
+}
+
+type User {
+  username: String!
+  groups: [String!]!
 }
 
 type Query {
   tenants: [Tenant!]!
-  clusters: [Cluster!]!
-  clustersInTenant(id: ID!): [Cluster!]!
-}
-
-input NewTenant {
-  name: String!
-  oidcGroup: String!
+  clustersInTenant(tenant: ID!): [Cluster!]!
+  cluster(tenant: ID!, name: ID!): Cluster!
 }
 
 type Mutation {
-  createTenant(input: NewTenant!): Tenant!
+  createTenant(name: String!): Tenant!
 }
 `, BuiltIn: false},
 }
@@ -272,15 +371,15 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_createTenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.NewTenant
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewTenant2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐNewTenant(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["name"] = arg0
 	return args, nil
 }
 
@@ -299,18 +398,42 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_clustersInTenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_cluster_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
 		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["tenant"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_clustersInTenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenant"] = arg0
 	return args, nil
 }
 
@@ -352,8 +475,8 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Cluster_id(ctx context.Context, field graphql.CollectedField, obj *model.Cluster) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Cluster_id(ctx, field)
+func (ec *executionContext) _Cluster_name(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Cluster) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Cluster_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -366,7 +489,7 @@ func (ec *executionContext) _Cluster_id(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.Name, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -383,7 +506,7 @@ func (ec *executionContext) _Cluster_id(ctx context.Context, field graphql.Colle
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Cluster_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Cluster_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Cluster",
 		Field:      field,
@@ -396,7 +519,7 @@ func (ec *executionContext) fieldContext_Cluster_id(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Cluster_tenant(ctx context.Context, field graphql.CollectedField, obj *model.Cluster) (ret graphql.Marshaler) {
+func (ec *executionContext) _Cluster_tenant(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Cluster) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Cluster_tenant(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -410,7 +533,7 @@ func (ec *executionContext) _Cluster_tenant(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Tenant, nil
+		return ec.resolvers.Cluster().Tenant(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -431,10 +554,194 @@ func (ec *executionContext) fieldContext_Cluster_tenant(ctx context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "Cluster",
 		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Cluster_status(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Cluster) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Cluster_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(v1alpha1.ClusterStatus)
+	fc.Result = res
+	return ec.marshalNClusterStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Cluster_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cluster",
+		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			switch field.Name {
+			case "kubeVersion":
+				return ec.fieldContext_ClusterStatus_kubeVersion(ctx, field)
+			case "kubeURL":
+				return ec.fieldContext_ClusterStatus_kubeURL(ctx, field)
+			case "webURL":
+				return ec.fieldContext_ClusterStatus_webURL(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ClusterStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterStatus_kubeVersion(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.ClusterStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClusterStatus_kubeVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KubeVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClusterStatus_kubeVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterStatus_kubeURL(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.ClusterStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClusterStatus_kubeURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KubeURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClusterStatus_kubeURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterStatus_webURL(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.ClusterStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClusterStatus_webURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WebURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClusterStatus_webURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -454,7 +761,7 @@ func (ec *executionContext) _Mutation_createTenant(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTenant(rctx, fc.Args["input"].(model.NewTenant))
+		return ec.resolvers.Mutation().CreateTenant(rctx, fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -466,9 +773,9 @@ func (ec *executionContext) _Mutation_createTenant(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Tenant)
+	res := resTmp.(*v1alpha1.Tenant)
 	fc.Result = res
-	return ec.marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTenant(ctx, field.Selections, res)
+	return ec.marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createTenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -479,12 +786,12 @@ func (ec *executionContext) fieldContext_Mutation_createTenant(ctx context.Conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Tenant_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Tenant_name(ctx, field)
-			case "oidcGroup":
-				return ec.fieldContext_Tenant_oidcGroup(ctx, field)
+			case "owner":
+				return ec.fieldContext_Tenant_owner(ctx, field)
+			case "observedClusters":
+				return ec.fieldContext_Tenant_observedClusters(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Tenant", field.Name)
 		},
@@ -499,6 +806,94 @@ func (ec *executionContext) fieldContext_Mutation_createTenant(ctx context.Conte
 	if fc.Args, err = ec.field_Mutation_createTenant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _NamespacedName_name(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.NamespacedName) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NamespacedName_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NamespacedName_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NamespacedName",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _NamespacedName_namespace(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.NamespacedName) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NamespacedName_namespace(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Namespace, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NamespacedName_namespace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NamespacedName",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -529,9 +924,9 @@ func (ec *executionContext) _Query_tenants(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Tenant)
+	res := resTmp.([]v1alpha1.Tenant)
 	fc.Result = res
-	return ec.marshalNTenant2ᚕᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTenantᚄ(ctx, field.Selections, res)
+	return ec.marshalNTenant2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_tenants(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -542,64 +937,14 @@ func (ec *executionContext) fieldContext_Query_tenants(ctx context.Context, fiel
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Tenant_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Tenant_name(ctx, field)
-			case "oidcGroup":
-				return ec.fieldContext_Tenant_oidcGroup(ctx, field)
+			case "owner":
+				return ec.fieldContext_Tenant_owner(ctx, field)
+			case "observedClusters":
+				return ec.fieldContext_Tenant_observedClusters(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Tenant", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_clusters(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_clusters(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Clusters(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Cluster)
-	fc.Result = res
-	return ec.marshalNCluster2ᚕᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐClusterᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_clusters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Cluster_id(ctx, field)
-			case "tenant":
-				return ec.fieldContext_Cluster_tenant(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Cluster", field.Name)
 		},
 	}
 	return fc, nil
@@ -619,7 +964,7 @@ func (ec *executionContext) _Query_clustersInTenant(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ClustersInTenant(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Query().ClustersInTenant(rctx, fc.Args["tenant"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -631,9 +976,9 @@ func (ec *executionContext) _Query_clustersInTenant(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Cluster)
+	res := resTmp.([]v1alpha1.Cluster)
 	fc.Result = res
-	return ec.marshalNCluster2ᚕᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐClusterᚄ(ctx, field.Selections, res)
+	return ec.marshalNCluster2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_clustersInTenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -644,10 +989,12 @@ func (ec *executionContext) fieldContext_Query_clustersInTenant(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Cluster_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Cluster_name(ctx, field)
 			case "tenant":
 				return ec.fieldContext_Cluster_tenant(ctx, field)
+			case "status":
+				return ec.fieldContext_Cluster_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Cluster", field.Name)
 		},
@@ -660,6 +1007,69 @@ func (ec *executionContext) fieldContext_Query_clustersInTenant(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_clustersInTenant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_cluster(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_cluster(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Cluster(rctx, fc.Args["tenant"].(string), fc.Args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*v1alpha1.Cluster)
+	fc.Result = res
+	return ec.marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐCluster(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_cluster(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Cluster_name(ctx, field)
+			case "tenant":
+				return ec.fieldContext_Cluster_tenant(ctx, field)
+			case "status":
+				return ec.fieldContext_Cluster_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cluster", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_cluster_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -795,51 +1205,7 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Tenant_id(ctx context.Context, field graphql.CollectedField, obj *model.Tenant) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Tenant_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Tenant_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Tenant",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Tenant_name(ctx context.Context, field graphql.CollectedField, obj *model.Tenant) (ret graphql.Marshaler) {
+func (ec *executionContext) _Tenant_name(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Tenant) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Tenant_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -867,7 +1233,7 @@ func (ec *executionContext) _Tenant_name(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tenant_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -877,14 +1243,14 @@ func (ec *executionContext) fieldContext_Tenant_name(ctx context.Context, field 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Tenant_oidcGroup(ctx context.Context, field graphql.CollectedField, obj *model.Tenant) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Tenant_oidcGroup(ctx, field)
+func (ec *executionContext) _Tenant_owner(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Tenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Tenant_owner(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -897,7 +1263,7 @@ func (ec *executionContext) _Tenant_oidcGroup(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OidcGroup, nil
+		return ec.resolvers.Tenant().Owner(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -914,9 +1280,147 @@ func (ec *executionContext) _Tenant_oidcGroup(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Tenant_oidcGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Tenant_owner(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Tenant",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Tenant_observedClusters(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Tenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Tenant_observedClusters(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Tenant().ObservedClusters(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]v1alpha1.NamespacedName)
+	fc.Result = res
+	return ec.marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedNameᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Tenant_observedClusters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Tenant",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_NamespacedName_name(ctx, field)
+			case "namespace":
+				return ec.fieldContext_NamespacedName_namespace(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type NamespacedName", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_username(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_username(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_groups(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_groups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Groups, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -2700,42 +3204,6 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputNewTenant(ctx context.Context, obj interface{}) (model.NewTenant, error) {
-	var it model.NewTenant
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"name", "oidcGroup"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "oidcGroup":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oidcGroup"))
-			it.OidcGroup, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -2746,7 +3214,7 @@ func (ec *executionContext) unmarshalInputNewTenant(ctx context.Context, obj int
 
 var clusterImplementors = []string{"Cluster"}
 
-func (ec *executionContext) _Cluster(ctx context.Context, sel ast.SelectionSet, obj *model.Cluster) graphql.Marshaler {
+func (ec *executionContext) _Cluster(ctx context.Context, sel ast.SelectionSet, obj *v1alpha1.Cluster) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, clusterImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
@@ -2754,16 +3222,78 @@ func (ec *executionContext) _Cluster(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Cluster")
-		case "id":
+		case "name":
 
-			out.Values[i] = ec._Cluster_id(ctx, field, obj)
+			out.Values[i] = ec._Cluster_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "tenant":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Cluster_tenant(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "status":
+
+			out.Values[i] = ec._Cluster_status(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var clusterStatusImplementors = []string{"ClusterStatus"}
+
+func (ec *executionContext) _ClusterStatus(ctx context.Context, sel ast.SelectionSet, obj *v1alpha1.ClusterStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, clusterStatusImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ClusterStatus")
+		case "kubeVersion":
+
+			out.Values[i] = ec._ClusterStatus_kubeVersion(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "tenant":
+		case "kubeURL":
 
-			out.Values[i] = ec._Cluster_tenant(ctx, field, obj)
+			out.Values[i] = ec._ClusterStatus_kubeURL(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "webURL":
+
+			out.Values[i] = ec._ClusterStatus_webURL(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -2803,6 +3333,41 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createTenant(ctx, field)
 			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var namespacedNameImplementors = []string{"NamespacedName"}
+
+func (ec *executionContext) _NamespacedName(ctx context.Context, sel ast.SelectionSet, obj *v1alpha1.NamespacedName) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, namespacedNameImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NamespacedName")
+		case "name":
+
+			out.Values[i] = ec._NamespacedName_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "namespace":
+
+			out.Values[i] = ec._NamespacedName_namespace(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -2860,7 +3425,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "clusters":
+		case "clustersInTenant":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -2869,7 +3434,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_clusters(ctx, field)
+				res = ec._Query_clustersInTenant(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -2883,7 +3448,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "clustersInTenant":
+		case "cluster":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -2892,7 +3457,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_clustersInTenant(ctx, field)
+				res = ec._Query_cluster(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -2931,7 +3496,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var tenantImplementors = []string{"Tenant"}
 
-func (ec *executionContext) _Tenant(ctx context.Context, sel ast.SelectionSet, obj *model.Tenant) graphql.Marshaler {
+func (ec *executionContext) _Tenant(ctx context.Context, sel ast.SelectionSet, obj *v1alpha1.Tenant) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, tenantImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
@@ -2939,23 +3504,84 @@ func (ec *executionContext) _Tenant(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Tenant")
-		case "id":
-
-			out.Values[i] = ec._Tenant_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "name":
 
 			out.Values[i] = ec._Tenant_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "owner":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Tenant_owner(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "observedClusters":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Tenant_observedClusters(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userImplementors = []string{"User"}
+
+func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model.User) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("User")
+		case "username":
+
+			out.Values[i] = ec._User_username(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "oidcGroup":
+		case "groups":
 
-			out.Values[i] = ec._Tenant_oidcGroup(ctx, field, obj)
+			out.Values[i] = ec._User_groups(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -3304,7 +3930,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCluster2ᚕᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐClusterᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Cluster) graphql.Marshaler {
+func (ec *executionContext) marshalNCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐCluster(ctx context.Context, sel ast.SelectionSet, v v1alpha1.Cluster) graphql.Marshaler {
+	return ec._Cluster(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCluster2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.Cluster) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3328,7 +3958,7 @@ func (ec *executionContext) marshalNCluster2ᚕᚖgitlabᚗdcasᚗdevᚋk8sᚋku
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐCluster(ctx, sel, v[i])
+			ret[i] = ec.marshalNCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐCluster(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3348,7 +3978,7 @@ func (ec *executionContext) marshalNCluster2ᚕᚖgitlabᚗdcasᚗdevᚋk8sᚋku
 	return ret
 }
 
-func (ec *executionContext) marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐCluster(ctx context.Context, sel ast.SelectionSet, v *model.Cluster) graphql.Marshaler {
+func (ec *executionContext) marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐCluster(ctx context.Context, sel ast.SelectionSet, v *v1alpha1.Cluster) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -3356,6 +3986,10 @@ func (ec *executionContext) marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkube�
 		return graphql.Null
 	}
 	return ec._Cluster(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNClusterStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterStatus(ctx context.Context, sel ast.SelectionSet, v v1alpha1.ClusterStatus) graphql.Marshaler {
+	return ec._ClusterStatus(ctx, sel, &v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
@@ -3373,31 +4007,11 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNNewTenant2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐNewTenant(ctx context.Context, v interface{}) (model.NewTenant, error) {
-	res, err := ec.unmarshalInputNewTenant(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
+func (ec *executionContext) marshalNNamespacedName2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedName(ctx context.Context, sel ast.SelectionSet, v v1alpha1.NamespacedName) graphql.Marshaler {
+	return ec._NamespacedName(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalString(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) marshalNTenant2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTenant(ctx context.Context, sel ast.SelectionSet, v model.Tenant) graphql.Marshaler {
-	return ec._Tenant(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNTenant2ᚕᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTenantᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Tenant) graphql.Marshaler {
+func (ec *executionContext) marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedNameᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.NamespacedName) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3421,7 +4035,7 @@ func (ec *executionContext) marshalNTenant2ᚕᚖgitlabᚗdcasᚗdevᚋk8sᚋkub
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTenant(ctx, sel, v[i])
+			ret[i] = ec.marshalNNamespacedName2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedName(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3441,7 +4055,102 @@ func (ec *executionContext) marshalNTenant2ᚕᚖgitlabᚗdcasᚗdevᚋk8sᚋkub
 	return ret
 }
 
-func (ec *executionContext) marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTenant(ctx context.Context, sel ast.SelectionSet, v *model.Tenant) graphql.Marshaler {
+func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTenant2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenant(ctx context.Context, sel ast.SelectionSet, v v1alpha1.Tenant) graphql.Marshaler {
+	return ec._Tenant(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTenant2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.Tenant) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTenant2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenant(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenant(ctx context.Context, sel ast.SelectionSet, v *v1alpha1.Tenant) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

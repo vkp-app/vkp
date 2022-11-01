@@ -84,7 +84,10 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.reconcileIngress(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
-
+	if err := r.Status().Update(ctx, cr); err != nil {
+		log.Error(err, "failed to update status")
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{}, nil
 }
 
@@ -148,6 +151,10 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 			return nil
 		}
 		return err
+	}
+	cr.Status.KubeURL = vcluster.Spec.ControlPlaneEndpoint.Host
+	if vcluster.Spec.KubernetesVersion != nil {
+		cr.Status.KubeVersion = *vcluster.Spec.KubernetesVersion
 	}
 	// reconcile by forcibly overwriting
 	// any changes
