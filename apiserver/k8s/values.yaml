@@ -50,6 +50,7 @@ sidecars:
       - --cookie-secure=true
       - --cookie-secret=q4kE_9htyXtMQDgfSkRJcMTxwLCXLjHKFLPGHCbcOgg=
       - --upstream=http://localhost:8080
+      - --scope=openid profile email groups
     env:
       - name: SSL_CERT_FILE
         value: /var/run/secrets/dcas.dev/tls/ca.crt

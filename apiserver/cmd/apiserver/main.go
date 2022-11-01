@@ -13,6 +13,7 @@ import (
 	"gitlab.com/autokubeops/serverless"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
+	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/userctx"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -80,7 +81,7 @@ func main() {
 
 	// configure routing
 	router := mux.NewRouter()
-	router.Use(otel.Middleware(), logging.Middleware(log), metrics.Middleware())
+	router.Use(otel.Middleware(), logging.Middleware(log), metrics.Middleware(), userctx.Middleware())
 	router.Handle("/metrics", prom)
 	router.Handle("/api/v1/graphql", playground.Handler("GraphQL Playground", "/api/v1/query"))
 	router.Handle("/api/v1/query", srv)
