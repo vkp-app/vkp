@@ -5,6 +5,9 @@ import {CacheProvider} from "@emotion/react";
 import {makeStyles} from "tss-react/mui";
 import {CssBaseline, Theme} from "@mui/material";
 import Nav from "./containers/Nav";
+import {Route, Routes} from "react-router-dom";
+import ClusterList from "./containers/routes/ClusterList";
+import NotFound from "./containers/routes/NotFound";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -36,6 +39,19 @@ const App: React.FC = (): JSX.Element => {
 			<div className={classes.root}>
 				<CssBaseline/>
 				<Nav/>
+				<main className={classes.content}>
+					<div className={classes.toolbar}/>
+					<Routes>
+						<Route
+							path={"/clusters"}
+							element={<ClusterList/>}
+						/>
+						<Route
+							path={"/*"}
+							element={<NotFound/>}
+						/>
+					</Routes>
+				</main>
 			</div>
 		</CacheProvider>
 	)

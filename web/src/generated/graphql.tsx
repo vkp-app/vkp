@@ -77,12 +77,58 @@ export type User = {
   username: Scalars['String'];
 };
 
+export type ClustersQueryVariables = Exact<{
+  tenant: Scalars['ID'];
+}>;
+
+
+export type ClustersQuery = { __typename?: 'Query', clustersInTenant: Array<{ __typename?: 'Cluster', name: string, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string } }> };
+
 export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type CurrentUserQuery = { __typename?: 'Query', currentUser: { __typename?: 'User', username: string, groups: Array<string> } };
 
 
+export const ClustersDocument = gql`
+    query clusters($tenant: ID!) {
+  clustersInTenant(tenant: $tenant) {
+    name
+    status {
+      kubeVersion
+      kubeURL
+    }
+  }
+}
+    `;
+
+/**
+ * __useClustersQuery__
+ *
+ * To run a query within a React component, call `useClustersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useClustersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useClustersQuery({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *   },
+ * });
+ */
+export function useClustersQuery(baseOptions: Apollo.QueryHookOptions<ClustersQuery, ClustersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ClustersQuery, ClustersQueryVariables>(ClustersDocument, options);
+      }
+export function useClustersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ClustersQuery, ClustersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ClustersQuery, ClustersQueryVariables>(ClustersDocument, options);
+        }
+export type ClustersQueryHookResult = ReturnType<typeof useClustersQuery>;
+export type ClustersLazyQueryHookResult = ReturnType<typeof useClustersLazyQuery>;
+export type ClustersQueryResult = Apollo.QueryResult<ClustersQuery, ClustersQueryVariables>;
 export const CurrentUserDocument = gql`
     query currentUser {
   currentUser {

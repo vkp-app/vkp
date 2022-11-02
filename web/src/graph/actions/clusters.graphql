@@ -1,0 +1,9 @@
+query clusters($tenant: ID!) {
+    clustersInTenant(tenant: $tenant) {
+        name
+        status {
+            kubeVersion
+            kubeURL
+        }
+    }
+}

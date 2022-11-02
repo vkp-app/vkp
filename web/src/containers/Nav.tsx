@@ -134,7 +134,7 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 						to="/">
 						<Avatar
 							className={classes.avatar}
-							src="/favicon.png"
+							src="/src/img/kubernetes-icon-color.svg"
 							alt="KubeGlass logo"
 						/>
 						<Typography
