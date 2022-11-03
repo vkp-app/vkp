@@ -20,14 +20,23 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type NamespaceStrategy string
+
+const (
+	StrategySingle   NamespaceStrategy = "Single"
+	StrategyMultiple NamespaceStrategy = "Multiple"
+)
+
 // TenantSpec defines the desired state of Tenant
 type TenantSpec struct {
-	Owner string `json:"owner"`
+	Owner             string            `json:"owner"`
+	NamespaceStrategy NamespaceStrategy `json:"namespaceStrategy"`
 }
 
 // TenantStatus defines the observed state of Tenant
 type TenantStatus struct {
-	ObservedClusters []NamespacedName `json:"observedClusters,omitempty"`
+	ObservedClusters   []NamespacedName `json:"observedClusters,omitempty"`
+	ObservedNamespaces []string         `json:"observedNamespaces,omitempty"`
 }
 
 type NamespacedName struct {
@@ -37,7 +46,6 @@ type NamespacedName struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:resource:scope=Cluster
 
 // Tenant is the Schema for the tenants API
 type Tenant struct {

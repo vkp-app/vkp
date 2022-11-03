@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/go-logr/logr"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
@@ -31,12 +32,25 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paas
 	if !ok {
 		return nil, ErrUnauthorised
 	}
-	tenant := &paasv1alpha1.Tenant{
+	// create the containing namespace
+	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
+	}
+	if err := r.Create(ctx, ns); err != nil {
+		log.Error(err, "failed to create tenant namespace")
+		return nil, err
+	}
+	// create the tenant
+	tenant := &paasv1alpha1.Tenant{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: name,
+		},
 		Spec: paasv1alpha1.TenantSpec{
-			Owner: user.Username,
+			Owner:             user.Username,
+			NamespaceStrategy: paasv1alpha1.StrategySingle,
 		},
 	}
 	if err := r.Create(ctx, tenant); err != nil {

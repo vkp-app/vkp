@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -40,11 +41,12 @@ type TenantReconciler struct {
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=tenants/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=tenants/finalizers,verbs=update
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters,verbs=get;list;watch
+//+kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logging.FromContext(ctx).WithValues("tenant", req.Name)
+	log := logging.FromContext(ctx).WithValues("tenant", req.Name, "namespace", req.Namespace)
 	log.Info("reconciling Tenant")
 
 	cr := &paasv1alpha1.Tenant{}
@@ -59,10 +61,23 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		log.Info("skipping tenant that has been marked for deletion")
 		return ctrl.Result{}, nil
 	}
+	// basic reconciliation
+	if res, err := r.reconcileNamespaces(ctx, cr); err != nil {
+		return ctrl.Result{}, err
+	} else if res.Requeue {
+		return res, nil
+	}
+
 	// collect a list of managed clusters
 	clusters := &paasv1alpha1.ClusterList{}
 	selector := labels.SelectorFromSet(labels.Set{labelTenant: cr.GetName()})
-	if err := r.List(ctx, clusters, &client.ListOptions{LabelSelector: selector}); err != nil {
+	var ns string
+	// if the tenant uses a single namespace, we can limit
+	// our search to just that namespace
+	if cr.Spec.NamespaceStrategy == paasv1alpha1.StrategySingle {
+		ns = cr.GetNamespace()
+	}
+	if err := r.List(ctx, clusters, &client.ListOptions{LabelSelector: selector, Namespace: ns}); err != nil {
 		if errors.IsNotFound(err); err != nil {
 			return ctrl.Result{}, nil
 		}
@@ -86,9 +101,39 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	return ctrl.Result{}, nil
 }
 
+func (r *TenantReconciler) reconcileNamespaces(ctx context.Context, cr *paasv1alpha1.Tenant) (ctrl.Result, error) {
+	log := logging.FromContext(ctx)
+	log.Info("reconciling namespaces")
+
+	if cr.Spec.NamespaceStrategy == "" {
+		cr.Spec.NamespaceStrategy = paasv1alpha1.StrategySingle
+		if err := r.Update(ctx, cr); err != nil {
+			log.Error(err, "failed to set tenant default namespace strategy")
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: true}, nil
+	}
+
+	// single namespaces have been pre-prepared (since they contain the tenant)
+	// so we don't need to do anything
+	if cr.Spec.NamespaceStrategy == paasv1alpha1.StrategySingle {
+		log.Info("skipping namespace reconciliation due to namespace strategy")
+		if len(cr.Status.ObservedNamespaces) == 0 || cr.Status.ObservedNamespaces[0] != cr.GetNamespace() {
+			cr.Status.ObservedNamespaces = []string{cr.GetNamespace()}
+			if err := r.Status().Update(ctx, cr); err != nil {
+				log.Error(err, "failed to update tenant namespace list")
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+	return ctrl.Result{}, nil
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *TenantReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&paasv1alpha1.Tenant{}).
+		Owns(&corev1.Namespace{}).
 		Complete(r)
 }

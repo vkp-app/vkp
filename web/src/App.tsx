@@ -8,6 +8,7 @@ import Nav from "./containers/Nav";
 import {Route, Routes} from "react-router-dom";
 import ClusterList from "./containers/routes/ClusterList";
 import NotFound from "./containers/routes/NotFound";
+import ClusterView from "./containers/routes/ClusterView";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -42,6 +43,10 @@ const App: React.FC = (): JSX.Element => {
 				<main className={classes.content}>
 					<div className={classes.toolbar}/>
 					<Routes>
+						<Route
+							path={"/clusters/:tenant/cluster/:name"}
+							element={<ClusterView/>}/>
+						/>
 						<Route
 							path={"/clusters"}
 							element={<ClusterList/>}

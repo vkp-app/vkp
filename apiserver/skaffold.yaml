@@ -5,14 +5,16 @@ metadata:
 build:
   artifacts:
   - image: dev.local/kube-glass/apiserver
-    ko:
-      main: ./cmd/apiserver/
-      dependencies:
-        paths:
-          - cmd/
-          - internal/
-          - go.mod
-          - go.sum
+    custom:
+      buildCommand: ./hack/build.sh
+#    ko:
+#      main: ./cmd/apiserver/
+#      dependencies:
+#        paths:
+#          - cmd/
+#          - internal/
+#          - go.mod
+#          - go.sum
   local:
     push: false
 deploy:
@@ -23,7 +25,8 @@ deploy:
   helm:
     releases:
       - name: auto-deploy-app
-        remoteChart: https://av1o.gitlab.io/charts/auto-deploy-app-0.15.3.tgz
+        remoteChart: /home/django/.cache/helm/repository/auto-deploy-app-0.15.3.tgz
+#        remoteChart: https://av1o.gitlab.io/charts/auto-deploy-app-0.15.3.tgz
         namespace: glass-system
         createNamespace: true
         upgradeOnChange: true

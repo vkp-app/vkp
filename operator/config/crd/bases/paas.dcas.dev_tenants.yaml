@@ -13,7 +13,7 @@ spec:
     listKind: TenantList
     plural: tenants
     singular: tenant
-  scope: Cluster
+  scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
@@ -35,9 +35,12 @@ spec:
           spec:
             description: TenantSpec defines the desired state of Tenant
             properties:
+              namespaceStrategy:
+                type: string
               owner:
                 type: string
             required:
+            - namespaceStrategy
             - owner
             type: object
           status:
@@ -54,6 +57,10 @@ spec:
                   - name
                   - namespace
                   type: object
+                type: array
+              observedNamespaces:
+                items:
+                  type: string
                 type: array
             type: object
         type: object

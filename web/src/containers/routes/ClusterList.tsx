@@ -9,13 +9,13 @@ import {
 	TableBody,
 	TableCell,
 	TableHead,
-	TableRow, Tooltip
+	TableRow,
+	Tooltip
 } from "@mui/material";
 import InlineNotFound from "../alert/InlineNotFound";
 import {Cluster, useClustersQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import {Help} from "tabler-icons-react";
-import {Link} from "react-router-dom";
 
 const ClusterList: React.FC = (): JSX.Element => {
 	// hooks

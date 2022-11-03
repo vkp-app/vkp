@@ -5,14 +5,16 @@ metadata:
 build:
   artifacts:
   - image: controller
-    ko:
-      dependencies:
-        paths:
-          - api/
-          - controllers/
-          - main.go
-          - go.mod
-          - go.sum
+    custom:
+      buildCommand: ./hack/build.sh
+#    ko:
+#      dependencies:
+#        paths:
+#          - api/
+#          - controllers/
+#          - main.go
+#          - go.mod
+#          - go.sum
   local:
     push: false
 deploy:

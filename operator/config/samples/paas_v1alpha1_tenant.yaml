@@ -4,3 +4,4 @@ metadata:
   name: tenant-sample
 spec:
   owner: django@dcas.dev
+  namespaceStrategy: Single

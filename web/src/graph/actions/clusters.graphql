@@ -7,3 +7,13 @@ query clusters($tenant: ID!) {
         }
     }
 }
+
+query cluster($tenant: ID!, $cluster: ID!) {
+    cluster(tenant: $tenant, name: $cluster) {
+        name
+        status {
+            kubeVersion
+            kubeURL
+        }
+    }
+}
