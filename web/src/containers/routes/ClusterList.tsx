@@ -1,6 +1,8 @@
 import React, {useMemo} from "react";
 import StandardLayout from "../layout/StandardLayout";
 import {
+	Box,
+	Button,
 	Card,
 	Link as MuiLink,
 	ListSubheader,
@@ -77,8 +79,17 @@ const ClusterList: React.FC = (): JSX.Element => {
 
 
 	return <StandardLayout>
-		<ListSubheader>
+		<ListSubheader
+			sx={{display: "flex", alignItems: "center"}}>
 			Clusters
+			<Box sx={{flexGrow: 1}}/>
+			<Button
+				sx={{fontFamily: "Manrope", fontSize: 13, fontWeight: 600, height: 24, minHeight: 24, textTransform: "none"}}
+				variant={"outlined"}
+				component={Link}
+				to={"/new/cluster"}>
+				Create
+			</Button>
 		</ListSubheader>
 		<Card
 			variant={"outlined"}>
