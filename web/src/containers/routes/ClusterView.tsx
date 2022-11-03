@@ -5,19 +5,20 @@ import {Cluster, useClusterQuery} from "../../generated/graphql";
 import {
 	Button,
 	Card,
-	CardHeader, IconButton,
+	IconButton,
 	List,
-	ListItem, ListItemSecondaryAction,
+	ListItem,
+	ListItemSecondaryAction,
 	ListItemText,
 	ListSubheader,
 	Skeleton,
-	Theme,
-	Typography
+	Theme
 } from "@mui/material";
 import InlineError from "../alert/InlineError";
 import {makeStyles} from "tss-react/mui";
 import {ArrowLeft, ExternalLink} from "tabler-icons-react";
 import ClusterMetadataView from "./cluster/ClusterMetadataView";
+import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	title: {
@@ -75,7 +76,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 					<ListItemText
 						primaryTypographyProps={{className: classes.title}}
 						primary={loading ? <Skeleton variant={"text"} height={30} width={"40%"}/> : data?.cluster.name}
-						secondary={loading ? <Skeleton variant={"text"} height={20} width={"20%"}/> : `Kubernetes v${data?.cluster.status.kubeVersion || "1.XX"}`}
+						secondary={loading ? <Skeleton variant={"text"} height={20} width={"20%"}/> : <ClusterVersionIndicator showLabel version={data?.cluster.status.kubeVersion || ""}/>}
 					/>
 				</ListItem>
 				<ListItem>

@@ -2,22 +2,20 @@ import React, {useMemo} from "react";
 import StandardLayout from "../layout/StandardLayout";
 import {
 	Card,
-	IconButton,
+	Link as MuiLink,
 	ListSubheader,
 	Skeleton,
 	Table,
 	TableBody,
 	TableCell,
 	TableHead,
-	TableRow,
-	Tooltip,
-	Link as MuiLink
+	TableRow
 } from "@mui/material";
 import InlineNotFound from "../alert/InlineNotFound";
 import {Cluster, useClustersQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
-import {Help} from "tabler-icons-react";
 import {Link, useParams} from "react-router-dom";
+import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 
 const ClusterList: React.FC = (): JSX.Element => {
 	// hooks
@@ -46,18 +44,7 @@ const ClusterList: React.FC = (): JSX.Element => {
 			<TableCell
 				sx={{display: "flex", alignItems: "center"}}
 				align={"right"}>
-				<Tooltip title={"View Kubernetes version information (external)"}>
-					<IconButton
-						sx={{ml: 1}}
-						size={"small"}
-						href={`https://kubernetes.io/releases/#release-v${c.status.kubeVersion.replace(".", "-")}`}
-						target={"_blank"}>
-						<Help
-							size={18}
-						/>
-					</IconButton>
-				</Tooltip>
-				{c.status.kubeVersion}
+				<ClusterVersionIndicator version={c.status.kubeVersion}/>
 			</TableCell>
 		</TableRow>))
 	}, [data, loading, error]);
