@@ -82,7 +82,7 @@ export type ClustersQueryVariables = Exact<{
 }>;
 
 
-export type ClustersQuery = { __typename?: 'Query', clustersInTenant: Array<{ __typename?: 'Cluster', name: string, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string } }> };
+export type ClustersQuery = { __typename?: 'Query', clustersInTenant: Array<{ __typename?: 'Cluster', name: string, tenant: string, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string } }> };
 
 export type ClusterQueryVariables = Exact<{
   tenant: Scalars['ID'];
@@ -90,7 +90,7 @@ export type ClusterQueryVariables = Exact<{
 }>;
 
 
-export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string } } };
+export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string } } };
 
 export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -102,6 +102,7 @@ export const ClustersDocument = gql`
     query clusters($tenant: ID!) {
   clustersInTenant(tenant: $tenant) {
     name
+    tenant
     status {
       kubeVersion
       kubeURL
@@ -141,6 +142,7 @@ export const ClusterDocument = gql`
     query cluster($tenant: ID!, $cluster: ID!) {
   cluster(tenant: $tenant, name: $cluster) {
     name
+    tenant
     status {
       kubeVersion
       kubeURL

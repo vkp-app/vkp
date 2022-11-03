@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/go-logr/logr"
@@ -94,7 +93,7 @@ func (r *queryResolver) Cluster(ctx context.Context, tenant string, name string)
 		log.Error(err, "failed to retrieve cluster")
 		return nil, err
 	}
-	panic(fmt.Errorf("not implemented: Cluster - cluster"))
+	return cluster, nil
 }
 
 // CurrentUser is the resolver for the currentUser field.

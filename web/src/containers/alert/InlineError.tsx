@@ -40,6 +40,7 @@ const InlineError: React.FC<Props> = ({error, message}): JSX.Element | null => {
 			return <Alert
 				severity="error">
 				{message || "Something went wrong"}
+				{error && ` (${error?.message})`}
 			</Alert>
 	}
 }

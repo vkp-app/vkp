@@ -10,16 +10,24 @@ import {
 	TableCell,
 	TableHead,
 	TableRow,
-	Tooltip
+	Tooltip,
+	Link as MuiLink
 } from "@mui/material";
 import InlineNotFound from "../alert/InlineNotFound";
 import {Cluster, useClustersQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import {Help} from "tabler-icons-react";
+import {Link, useParams} from "react-router-dom";
 
 const ClusterList: React.FC = (): JSX.Element => {
 	// hooks
-	const {data, loading, error} = useClustersQuery({variables: {tenant: "tenant-sample"}});
+	const params = useParams();
+	const tenantName = params["tenant"];
+
+	const {data, loading, error} = useClustersQuery({
+		variables: {tenant: tenantName || ""},
+		skip: !tenantName
+	});
 
 	const clusterData = useMemo(() => {
 		if (loading || error || !data)
@@ -29,7 +37,11 @@ const ClusterList: React.FC = (): JSX.Element => {
 			<TableCell
 				component={"th"}
 				scope={"row"}>
-				{c.name}
+				<MuiLink
+					component={Link}
+					to={`/clusters/${c.tenant}/cluster/${c.name}`}>
+					{c.name}
+				</MuiLink>
 			</TableCell>
 			<TableCell
 				sx={{display: "flex", alignItems: "center"}}

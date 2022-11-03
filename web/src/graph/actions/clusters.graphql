@@ -1,6 +1,7 @@
 query clusters($tenant: ID!) {
     clustersInTenant(tenant: $tenant) {
         name
+        tenant
         status {
             kubeVersion
             kubeURL
@@ -11,6 +12,7 @@ query clusters($tenant: ID!) {
 query cluster($tenant: ID!, $cluster: ID!) {
     cluster(tenant: $tenant, name: $cluster) {
         name
+        tenant
         status {
             kubeVersion
             kubeURL

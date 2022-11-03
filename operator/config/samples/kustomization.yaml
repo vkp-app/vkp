@@ -1,6 +1,7 @@
 ## Append samples you want in your CSV to this file as resources ##
-namespace: operator-tenant
+namespace: tenant-sample
 resources:
 - paas_v1alpha1_cluster.yaml
 - paas_v1alpha1_tenant.yaml
+- namespace.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

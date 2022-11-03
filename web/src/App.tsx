@@ -45,10 +45,10 @@ const App: React.FC = (): JSX.Element => {
 					<Routes>
 						<Route
 							path={"/clusters/:tenant/cluster/:name"}
-							element={<ClusterView/>}/>
+							element={<ClusterView/>}
 						/>
 						<Route
-							path={"/clusters"}
+							path={"/clusters/:tenant"}
 							element={<ClusterList/>}
 						/>
 						<Route
