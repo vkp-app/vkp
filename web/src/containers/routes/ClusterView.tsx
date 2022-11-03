@@ -1,7 +1,7 @@
 import React from "react";
 import StandardLayout from "../layout/StandardLayout";
 import {Link, useParams} from "react-router-dom";
-import {useClusterQuery} from "../../generated/graphql";
+import {Cluster, useClusterQuery} from "../../generated/graphql";
 import {
 	Button,
 	Card,
@@ -17,6 +17,7 @@ import {
 import InlineError from "../alert/InlineError";
 import {makeStyles} from "tss-react/mui";
 import {ArrowLeft, ExternalLink} from "tabler-icons-react";
+import ClusterMetadataView from "./cluster/ClusterMetadataView";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	title: {
@@ -60,7 +61,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 					size={18}
 				/>
 			</IconButton>
-			Cluster dashboard
+			Back to clusters
 		</ListSubheader>
 		<Card
 			variant={"outlined"}
@@ -79,7 +80,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 				</ListItem>
 				<ListItem>
 					<ListItemText
-						primary={"Kubernetes API address"}
+						primary={"API address"}
 						secondary={loading ? <Skeleton variant={"text"} height={20} width={"40%"}/> : `https://${data?.cluster.status.kubeURL}:443`}
 					/>
 					<ListItemSecondaryAction>
@@ -98,12 +99,30 @@ const ClusterView: React.FC = (): JSX.Element => {
 				</ListItem>
 				<ListItem>
 					<ListItemText
-						primary={"Management API"}
-						secondary={loading ? <Skeleton variant={"text"} height={20} width={"40%"}/> : "VCluster"}
+						primary={"Dashboard address"}
+						secondary={loading ? <Skeleton variant={"text"} height={20} width={"40%"}/> : <i>This component has not been enabled.</i>}
 					/>
+					<ListItemSecondaryAction>
+						<Button
+							className={classes.button}
+							disabled
+							variant={"outlined"}
+							startIcon={<ExternalLink
+								size={18}
+							/>}>
+							Open
+						</Button>
+					</ListItemSecondaryAction>
 				</ListItem>
 			</List>
 		</Card>
+		<ListSubheader>
+			Metadata
+		</ListSubheader>
+		<ClusterMetadataView
+			cluster={data?.cluster as Cluster | null}
+			loading={loading}
+		/>
 	</StandardLayout>
 }
 export default ClusterView;
