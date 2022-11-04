@@ -1,8 +1,8 @@
 import React from "react";
-import StandardLayout from "../layout/StandardLayout";
 import {Alert, Box, Button, Card, FormGroup, ListSubheader, TextField, Theme} from "@mui/material";
 import {makeStyles} from "tss-react/mui";
 import {useNavigate} from "react-router-dom";
+import StandardLayout from "../layout/StandardLayout";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	button: {
@@ -27,28 +27,28 @@ const CreateCluster: React.FC = (): JSX.Element => {
 		</ListSubheader>
 		<Card
 			sx={{p: 2}}
-			variant={"outlined"}>
+			variant="outlined">
 			<Alert
 				sx={{mb: 2}}
-				severity={"info"}>
+				severity="info">
 				Some fields cannot be changed once the cluster has been created.
 			</Alert>
 			<FormGroup>
 				<TextField
-					label={"Name"}
+					label="Name"
 				/>
 			</FormGroup>
 			<Box
 				sx={{pt: 2, display: "flex", float: "right"}}>
 				<Button
 					className={classes.button}
-					variant={"outlined"}
+					variant="outlined"
 					onClick={() => navigate(-1)}>
 					Cancel
 				</Button>
 				<Button
 					className={classes.button}
-					variant={"outlined"}
+					variant="outlined"
 					disabled>
 					Create
 				</Button>

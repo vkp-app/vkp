@@ -15,7 +15,7 @@
  *
  */
 
-import React, {useMemo, useState} from "react";
+import React, {useState} from "react";
 import {
 	AppBar,
 	Avatar,
@@ -34,8 +34,8 @@ import {
 import {Link} from "react-router-dom";
 import {useTheme} from "@mui/material/styles";
 import {makeStyles} from "tss-react/mui";
-import {useCurrentUserQuery} from "../generated/graphql";
 import {ChevronDown, Help, User} from "tabler-icons-react";
+import {useCurrentUserQuery} from "../generated/graphql";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	grow: {
@@ -97,12 +97,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
 
 interface NavProps {
 	loading?: boolean;
-}
-
-interface UserInfo {
-	picture: string;
-	displayName: string;
-	username: string;
 }
 
 const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
@@ -185,7 +179,7 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 				onClose={handleMenuClose}>
 				{!data && <ListItemButton
 					component="a"
-					href={`/auth/redirect`}
+					href="/auth/redirect"
 					rel="noopener noreferrer">
 					<ListItemText
 						primary="Not logged in."

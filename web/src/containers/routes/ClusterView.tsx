@@ -1,7 +1,5 @@
 import React from "react";
-import StandardLayout from "../layout/StandardLayout";
 import {Link, useParams} from "react-router-dom";
-import {Cluster, useClusterQuery} from "../../generated/graphql";
 import {
 	Button,
 	Card,
@@ -14,9 +12,11 @@ import {
 	Skeleton,
 	Theme
 } from "@mui/material";
-import InlineError from "../alert/InlineError";
 import {makeStyles} from "tss-react/mui";
 import {ArrowLeft, ExternalLink} from "tabler-icons-react";
+import InlineError from "../alert/InlineError";
+import {Cluster, useClusterQuery} from "../../generated/graphql";
+import StandardLayout from "../layout/StandardLayout";
 import ClusterMetadataView from "./cluster/ClusterMetadataView";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 
@@ -54,7 +54,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 		<ListSubheader
 			sx={{display: "flex", alignItem: "center"}}>
 			<IconButton
-				size={"small"}
+				size="small"
 				centerRipple={false}
 				component={Link}
 				to={`/clusters/${tenantName}`}>
@@ -65,49 +65,49 @@ const ClusterView: React.FC = (): JSX.Element => {
 			Back to clusters
 		</ListSubheader>
 		<Card
-			variant={"outlined"}
+			variant="outlined"
 			sx={{p: 2}}>
 			{!loading && error && <InlineError
-				message={"Unable to load cluster information"}
+				message="Unable to load cluster information"
 				error={error}
 			/>}
 			<List>
 				<ListItem>
 					<ListItemText
 						primaryTypographyProps={{className: classes.title}}
-						primary={loading ? <Skeleton variant={"text"} height={30} width={"40%"}/> : data?.cluster.name}
-						secondary={loading ? <Skeleton variant={"text"} height={20} width={"20%"}/> : <ClusterVersionIndicator showLabel version={data?.cluster.status.kubeVersion || ""}/>}
+						primary={loading ? <Skeleton variant="text" height={30} width="40%"/> : data?.cluster.name}
+						secondary={loading ? <Skeleton variant="text" height={20} width="20%"/> : <ClusterVersionIndicator showLabel version={data?.cluster.status.kubeVersion || ""}/>}
 					/>
 				</ListItem>
 				<ListItem>
 					<ListItemText
-						primary={"API address"}
-						secondary={loading ? <Skeleton variant={"text"} height={20} width={"40%"}/> : `https://${data?.cluster.status.kubeURL}:443`}
+						primary="API address"
+						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : `https://${data?.cluster.status.kubeURL}:443`}
 					/>
 					<ListItemSecondaryAction>
 						<Button
 							className={classes.button}
 							disabled={loading}
-							variant={"outlined"}
+							variant="outlined"
 							startIcon={<ExternalLink
 								size={18}
 							/>}
 							href={`https://${data?.cluster.status.kubeURL}`}
-							target={"_blank"}>
+							target="_blank">
 							Open
 						</Button>
 					</ListItemSecondaryAction>
 				</ListItem>
 				<ListItem>
 					<ListItemText
-						primary={"Dashboard address"}
-						secondary={loading ? <Skeleton variant={"text"} height={20} width={"40%"}/> : <i>This component has not been enabled.</i>}
+						primary="Dashboard address"
+						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : <i>This component has not been enabled.</i>}
 					/>
 					<ListItemSecondaryAction>
 						<Button
 							className={classes.button}
 							disabled
-							variant={"outlined"}
+							variant="outlined"
 							startIcon={<ExternalLink
 								size={18}
 							/>}>

@@ -1,5 +1,4 @@
 import React, {useMemo} from "react";
-import StandardLayout from "../layout/StandardLayout";
 import {
 	Box,
 	Button,
@@ -13,10 +12,11 @@ import {
 	TableHead,
 	TableRow
 } from "@mui/material";
+import {Link, useParams} from "react-router-dom";
+import StandardLayout from "../layout/StandardLayout";
 import InlineNotFound from "../alert/InlineNotFound";
 import {Cluster, useClustersQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
-import {Link, useParams} from "react-router-dom";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 
 const ClusterList: React.FC = (): JSX.Element => {
@@ -35,8 +35,8 @@ const ClusterList: React.FC = (): JSX.Element => {
 		return (data.clustersInTenant as Cluster[]).map(c => (<TableRow
 			key={c.name}>
 			<TableCell
-				component={"th"}
-				scope={"row"}>
+				component="th"
+				scope="row">
 				<MuiLink
 					component={Link}
 					to={`/clusters/${c.tenant}/cluster/${c.name}`}>
@@ -45,7 +45,7 @@ const ClusterList: React.FC = (): JSX.Element => {
 			</TableCell>
 			<TableCell
 				sx={{display: "flex", alignItems: "center"}}
-				align={"right"}>
+				align="right">
 				<ClusterVersionIndicator version={c.status.kubeVersion}/>
 			</TableCell>
 		</TableRow>))
@@ -57,19 +57,19 @@ const ClusterList: React.FC = (): JSX.Element => {
 			items.push(<TableRow
 				key={i}>
 				<TableCell
-					component={"th"}
-					scope={"row"}>
+					component="th"
+					scope="row">
 					<Skeleton
-						variant={"text"}
-						width={"60%"}
+						variant="text"
+						width="60%"
 					/>
 				</TableCell>
 				<TableCell
-					align={"right"}>
+					align="right">
 					<Skeleton
 						sx={{float: "right"}}
-						variant={"text"}
-						width={"10%"}
+						variant="text"
+						width="10%"
 					/>
 				</TableCell>
 			</TableRow>);
@@ -85,14 +85,14 @@ const ClusterList: React.FC = (): JSX.Element => {
 			<Box sx={{flexGrow: 1}}/>
 			<Button
 				sx={{fontFamily: "Manrope", fontSize: 13, fontWeight: 600, height: 24, minHeight: 24, textTransform: "none"}}
-				variant={"outlined"}
+				variant="outlined"
 				component={Link}
-				to={"/new/cluster"}>
+				to="/new/cluster">
 				Create
 			</Button>
 		</ListSubheader>
 		<Card
-			variant={"outlined"}>
+			variant="outlined">
 			<Table>
 				<TableHead>
 					<TableRow>
@@ -106,8 +106,8 @@ const ClusterList: React.FC = (): JSX.Element => {
 			</Table>
 			{!loading && error && <InlineError error={error}/>}
 			{data?.clustersInTenant.length === 0 && <InlineNotFound
-				title={"No clusters"}
-				subtitle={"This tenancy is empty. Create a cluster to get started"}
+				title="No clusters"
+				subtitle="This tenancy is empty. Create a cluster to get started"
 			/>}
 		</Card>
 	</StandardLayout>

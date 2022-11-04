@@ -1,16 +1,16 @@
-import React, {useEffect, useMemo} from 'react'
+import React, {useEffect, useMemo} from "react"
 import createCache from "@emotion/cache";
 import {CacheProvider} from "@emotion/react";
 import {makeStyles} from "tss-react/mui";
-import Nav from "./containers/Nav";
 import {Route, Routes} from "react-router-dom";
+import {CssBaseline, Theme, useMediaQuery} from "@mui/material";
+import {createTheme, ThemeProvider} from "@mui/material/styles";
+import Nav from "./containers/Nav";
 import ClusterList from "./containers/routes/ClusterList";
 import NotFound from "./containers/routes/NotFound";
 import ClusterView from "./containers/routes/ClusterView";
 import Home from "./containers/routes/Home";
 import CreateCluster from "./containers/routes/CreateCluster";
-import {CssBaseline, Theme, useMediaQuery} from "@mui/material";
-import {createTheme, ThemeProvider} from "@mui/material/styles";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -37,7 +37,7 @@ const App: React.FC = (): JSX.Element => {
 		prepend: true
 	});
 
-	const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+	const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
 	const theme = useMemo(() => {
 		return createTheme({
@@ -61,19 +61,19 @@ const App: React.FC = (): JSX.Element => {
 						<div className={classes.toolbar}/>
 						<Routes>
 							<Route
-								path={"/"}
+								path="/"
 								element={<Home/>}
 							/>
 							<Route
-								path={"/clusters/:tenant/cluster/:name"}
+								path="/clusters/:tenant/cluster/:name"
 								element={<ClusterView/>}
 							/>
 							<Route
-								path={"/clusters/:tenant"}
+								path="/clusters/:tenant"
 								element={<ClusterList/>}
 							/>
 							<Route
-								path={"/new/cluster"}
+								path="/new/cluster"
 								element={<CreateCluster/>}
 							/>
 							<Route

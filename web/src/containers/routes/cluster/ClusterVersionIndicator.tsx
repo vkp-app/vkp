@@ -1,8 +1,8 @@
 import {Box, IconButton, Link, Tooltip} from "@mui/material";
 import React, {ReactNode, useEffect, useMemo, useState} from "react";
 import {AlertCircle, CircleCheck, InfoCircle} from "tabler-icons-react";
-import {KUBERNETES_VERSION_LATEST, KUBERNETES_VERSION_MAX, KUBERNETES_VERSION_MIN} from "../../../config/constants";
 import {useTheme} from "@mui/material/styles";
+import {KUBERNETES_VERSION_LATEST, KUBERNETES_VERSION_MAX, KUBERNETES_VERSION_MIN} from "../../../config/constants";
 
 interface Props {
 	version: string | number;
@@ -54,13 +54,13 @@ const ClusterVersionIndicator: React.FC<Props> = ({version, showLabel = false}):
 		{showLabel && <span>Kubernetes&nbsp;</span>}
 		<Link
 			href={`https://kubernetes.io/releases/#release-v1-${num}`}
-			target={"_blank"}>
+			target="_blank">
 			v1.{num}
 		</Link>
 		<Tooltip title={tooltip}>
 			<IconButton
 				sx={{ml: 1}}
-				size={"small"}
+				size="small"
 				centerRipple={false}>
 				{icon}
 			</IconButton>

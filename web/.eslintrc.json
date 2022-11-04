@@ -1,0 +1,75 @@
+{
+  "extends": "react-app",
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint",
+    "jsx-a11y",
+    "import"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "rules": {
+    "no-var": "error",
+    "template-curly-spacing": [
+      "warn",
+      "never"
+    ],
+    "react-hooks/exhaustive-deps": [
+      "off"
+    ],
+    "indent": [
+      "warn",
+      "tab",
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "react/jsx-curly-brace-presence": [
+      "warn",
+      {
+        "props": "never",
+        "children": "never"
+      }
+    ],
+    "react/jsx-curly-spacing": [
+      "warn",
+      {
+        "when": "never"
+      }
+    ],
+    "object-curly-spacing": [
+      "warn",
+      "never"
+    ],
+    "array-bracket-spacing": [
+      "warn",
+      "never"
+    ],
+    "react/jsx-key": [
+      "error"
+    ],
+    "import/order": [
+      "warn"
+    ],
+    "quotes": [
+      "warn",
+      "double"
+    ],
+    "react/no-danger": "error",
+    "react/no-this-in-sfc": "error",
+    "react/react-in-jsx-scope": "error",
+    "react/jsx-first-prop-new-line": [
+      1,
+      "multiline"
+    ],
+    "react/jsx-space-before-closing": [
+      1,
+      "never"
+    ]
+  }
+}
