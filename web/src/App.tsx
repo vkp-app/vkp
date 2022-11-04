@@ -1,9 +1,7 @@
-import React from 'react'
-import './App.css'
+import React, {useEffect, useMemo} from 'react'
 import createCache from "@emotion/cache";
 import {CacheProvider} from "@emotion/react";
 import {makeStyles} from "tss-react/mui";
-import {CssBaseline, Theme} from "@mui/material";
 import Nav from "./containers/Nav";
 import {Route, Routes} from "react-router-dom";
 import ClusterList from "./containers/routes/ClusterList";
@@ -11,6 +9,8 @@ import NotFound from "./containers/routes/NotFound";
 import ClusterView from "./containers/routes/ClusterView";
 import Home from "./containers/routes/Home";
 import CreateCluster from "./containers/routes/CreateCluster";
+import {CssBaseline, Theme, useMediaQuery} from "@mui/material";
+import {createTheme, ThemeProvider} from "@mui/material/styles";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -37,37 +37,53 @@ const App: React.FC = (): JSX.Element => {
 		prepend: true
 	});
 
+	const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+	const theme = useMemo(() => {
+		return createTheme({
+			palette: {
+				mode: prefersDarkMode ? "dark" : "light"
+			}
+		});
+	}, [prefersDarkMode]);
+
+	useEffect(() => {
+		document.documentElement.setAttribute("data-theme", theme.palette.mode);
+	}, [theme.palette.mode]);
+
 	return (
 		<CacheProvider value={cache}>
-			<div className={classes.root}>
-				<CssBaseline/>
-				<Nav/>
-				<main className={classes.content}>
-					<div className={classes.toolbar}/>
-					<Routes>
-						<Route
-							path={"/"}
-							element={<Home/>}
-						/>
-						<Route
-							path={"/clusters/:tenant/cluster/:name"}
-							element={<ClusterView/>}
-						/>
-						<Route
-							path={"/clusters/:tenant"}
-							element={<ClusterList/>}
-						/>
-						<Route
-							path={"/new/cluster"}
-							element={<CreateCluster/>}
-						/>
-						<Route
-							path={"/*"}
-							element={<NotFound/>}
-						/>
-					</Routes>
-				</main>
-			</div>
+			<ThemeProvider theme={theme}>
+				<div className={classes.root}>
+					<CssBaseline/>
+					<Nav/>
+					<main className={classes.content}>
+						<div className={classes.toolbar}/>
+						<Routes>
+							<Route
+								path={"/"}
+								element={<Home/>}
+							/>
+							<Route
+								path={"/clusters/:tenant/cluster/:name"}
+								element={<ClusterView/>}
+							/>
+							<Route
+								path={"/clusters/:tenant"}
+								element={<ClusterList/>}
+							/>
+							<Route
+								path={"/new/cluster"}
+								element={<CreateCluster/>}
+							/>
+							<Route
+								path={"/*"}
+								element={<NotFound/>}
+							/>
+						</Routes>
+					</main>
+				</div>
+			</ThemeProvider>
 		</CacheProvider>
 	)
 }

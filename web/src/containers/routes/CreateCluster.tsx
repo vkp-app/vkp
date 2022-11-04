@@ -1,6 +1,6 @@
 import React from "react";
 import StandardLayout from "../layout/StandardLayout";
-import {Box, Button, Card, FormGroup, ListSubheader, TextField, Theme} from "@mui/material";
+import {Alert, Box, Button, Card, FormGroup, ListSubheader, TextField, Theme} from "@mui/material";
 import {makeStyles} from "tss-react/mui";
 import {useNavigate} from "react-router-dom";
 
@@ -28,6 +28,11 @@ const CreateCluster: React.FC = (): JSX.Element => {
 		<Card
 			sx={{p: 2}}
 			variant={"outlined"}>
+			<Alert
+				sx={{mb: 2}}
+				severity={"info"}>
+				Some fields cannot be changed once the cluster has been created.
+			</Alert>
 			<FormGroup>
 				<TextField
 					label={"Name"}

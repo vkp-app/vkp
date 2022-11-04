@@ -60,7 +60,8 @@ const ClusterVersionIndicator: React.FC<Props> = ({version, showLabel = false}):
 		<Tooltip title={tooltip}>
 			<IconButton
 				sx={{ml: 1}}
-				size={"small"}>
+				size={"small"}
+				centerRipple={false}>
 				{icon}
 			</IconButton>
 		</Tooltip>
