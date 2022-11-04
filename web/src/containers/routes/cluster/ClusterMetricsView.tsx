@@ -47,6 +47,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading}): JSX.Element =>
 						primary={loading ? <CircularProgress/> : <SparkLine
 							width={300}
 							data={data?.clusterMetricPods.map(i => Number(i.value)) || []}
+							baseZero
 						/>}
 					/>
 				</ListItem>

@@ -35,9 +35,14 @@ interface Props {
 	data: number[];
 	color?: "primary" | "secondary" | "inherit" | "success" | "warning" | "error";
 	sx?: SxProps;
+	baseZero?: boolean;
 }
 
-const SparkLine: React.FC<Props> = ({width = 150, height = 25, data, color = "primary", sx}): JSX.Element => {
+/**
+ * Largely borrowed from https://github.com/Janpot/mui-plus/blob/master/packages/mui-plus/src/Sparkline/Sparkline.tsx
+ * @licence MIT
+ */
+const SparkLine: React.FC<Props> = ({width = 150, height = 25, data, color = "primary", sx, baseZero = false}): JSX.Element => {
 	const margin = 3;
 	const dotRadius = 3;
 
@@ -48,7 +53,7 @@ const SparkLine: React.FC<Props> = ({width = 150, height = 25, data, color = "pr
 	}
 
 	const [scaleX, scaleY] = useMemo(() => {
-		const min = Math.min(...data);
+		const min = baseZero ? Math.min(0, ...data) : Math.min(...data);
 		const max = Math.max(...data);
 		return [
 			scaleLinear(0, data.length, margin, width - margin),
