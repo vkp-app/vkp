@@ -29,12 +29,20 @@ type User {
   groups: [String!]!
 }
 
+type MetricValue {
+  time: Int!
+  value: String!
+}
+
 type Query {
   tenants: [Tenant!]! @hasUser
   clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
   cluster(tenant: ID!, name: ID!): Cluster! @hasUser
 
   currentUser: User! @hasUser
+
+  clusterMetricMemory(tenant: ID!, cluster: ID!): [MetricValue!]!
+  clusterMetricCPU(tenant: ID!, cluster: ID!): [MetricValue!]!
 }
 
 type Mutation {

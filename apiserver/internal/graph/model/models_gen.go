@@ -2,6 +2,11 @@
 
 package model
 
+type MetricValue struct {
+	Time  int64  `json:"time"`
+	Value string `json:"value"`
+}
+
 type User struct {
 	Username string   `json:"username"`
 	Groups   []string `json:"groups"`

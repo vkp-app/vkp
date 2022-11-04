@@ -1,9 +1,9 @@
-import React from "react"
-import ReactDOM from "react-dom/client"
-import "./index.css"
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
 import {BrowserRouter} from "react-router-dom";
 import {ApolloProvider} from "@apollo/client";
-import App from "./App"
+import App from "./App";
 import Client from "./graph";
 import "typeface-roboto";
 

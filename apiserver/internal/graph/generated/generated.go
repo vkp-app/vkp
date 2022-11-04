@@ -60,6 +60,11 @@ type ComplexityRoot struct {
 		WebURL      func(childComplexity int) int
 	}
 
+	MetricValue struct {
+		Time  func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
 	Mutation struct {
 		CreateTenant func(childComplexity int, name string) int
 	}
@@ -70,10 +75,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Cluster          func(childComplexity int, tenant string, name string) int
-		ClustersInTenant func(childComplexity int, tenant string) int
-		CurrentUser      func(childComplexity int) int
-		Tenants          func(childComplexity int) int
+		Cluster             func(childComplexity int, tenant string, name string) int
+		ClusterMetricCPU    func(childComplexity int, tenant string, cluster string) int
+		ClusterMetricMemory func(childComplexity int, tenant string, cluster string) int
+		ClustersInTenant    func(childComplexity int, tenant string) int
+		CurrentUser         func(childComplexity int) int
+		Tenants             func(childComplexity int) int
 	}
 
 	Tenant struct {
@@ -99,6 +106,8 @@ type QueryResolver interface {
 	ClustersInTenant(ctx context.Context, tenant string) ([]v1alpha1.Cluster, error)
 	Cluster(ctx context.Context, tenant string, name string) (*v1alpha1.Cluster, error)
 	CurrentUser(ctx context.Context) (*model.User, error)
+	ClusterMetricMemory(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
+	ClusterMetricCPU(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
 }
 type TenantResolver interface {
 	Owner(ctx context.Context, obj *v1alpha1.Tenant) (string, error)
@@ -162,6 +171,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ClusterStatus.WebURL(childComplexity), true
 
+	case "MetricValue.time":
+		if e.complexity.MetricValue.Time == nil {
+			break
+		}
+
+		return e.complexity.MetricValue.Time(childComplexity), true
+
+	case "MetricValue.value":
+		if e.complexity.MetricValue.Value == nil {
+			break
+		}
+
+		return e.complexity.MetricValue.Value(childComplexity), true
+
 	case "Mutation.createTenant":
 		if e.complexity.Mutation.CreateTenant == nil {
 			break
@@ -199,6 +222,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Cluster(childComplexity, args["tenant"].(string), args["name"].(string)), true
+
+	case "Query.clusterMetricCPU":
+		if e.complexity.Query.ClusterMetricCPU == nil {
+			break
+		}
+
+		args, err := ec.field_Query_clusterMetricCPU_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ClusterMetricCPU(childComplexity, args["tenant"].(string), args["cluster"].(string)), true
+
+	case "Query.clusterMetricMemory":
+		if e.complexity.Query.ClusterMetricMemory == nil {
+			break
+		}
+
+		args, err := ec.field_Query_clusterMetricMemory_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ClusterMetricMemory(childComplexity, args["tenant"].(string), args["cluster"].(string)), true
 
 	case "Query.clustersInTenant":
 		if e.complexity.Query.ClustersInTenant == nil {
@@ -359,12 +406,20 @@ type User {
   groups: [String!]!
 }
 
+type MetricValue {
+  time: Int!
+  value: String!
+}
+
 type Query {
   tenants: [Tenant!]! @hasUser
   clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
   cluster(tenant: ID!, name: ID!): Cluster! @hasUser
 
   currentUser: User! @hasUser
+
+  clusterMetricMemory(tenant: ID!, cluster: ID!): [MetricValue!]!
+  clusterMetricCPU(tenant: ID!, cluster: ID!): [MetricValue!]!
 }
 
 type Mutation {
@@ -405,6 +460,54 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_clusterMetricCPU_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenant"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["cluster"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cluster"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_clusterMetricMemory_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenant"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["cluster"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cluster"] = arg1
 	return args, nil
 }
 
@@ -747,6 +850,94 @@ func (ec *executionContext) _ClusterStatus_webURL(ctx context.Context, field gra
 func (ec *executionContext) fieldContext_ClusterStatus_webURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClusterStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricValue_time(ctx context.Context, field graphql.CollectedField, obj *model.MetricValue) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricValue_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Time, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt2int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricValue_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricValue_value(ctx context.Context, field graphql.CollectedField, obj *model.MetricValue) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricValue_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricValue_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricValue",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1232,6 +1423,128 @@ func (ec *executionContext) fieldContext_Query_currentUser(ctx context.Context, 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_clusterMetricMemory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_clusterMetricMemory(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ClusterMetricMemory(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]model.MetricValue)
+	fc.Result = res
+	return ec.marshalNMetricValue2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMetricValueᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_clusterMetricMemory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "time":
+				return ec.fieldContext_MetricValue_time(ctx, field)
+			case "value":
+				return ec.fieldContext_MetricValue_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricValue", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_clusterMetricMemory_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_clusterMetricCPU(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_clusterMetricCPU(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ClusterMetricCPU(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]model.MetricValue)
+	fc.Result = res
+	return ec.marshalNMetricValue2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMetricValueᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_clusterMetricCPU(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "time":
+				return ec.fieldContext_MetricValue_time(ctx, field)
+			case "value":
+				return ec.fieldContext_MetricValue_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricValue", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_clusterMetricCPU_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -3469,6 +3782,41 @@ func (ec *executionContext) _ClusterStatus(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var metricValueImplementors = []string{"MetricValue"}
+
+func (ec *executionContext) _MetricValue(ctx context.Context, sel ast.SelectionSet, obj *model.MetricValue) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metricValueImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MetricValue")
+		case "time":
+
+			out.Values[i] = ec._MetricValue_time(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+
+			out.Values[i] = ec._MetricValue_value(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -3641,6 +3989,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_currentUser(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "clusterMetricMemory":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_clusterMetricMemory(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "clusterMetricCPU":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_clusterMetricCPU(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -4188,6 +4582,69 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int64(ctx context.Context, v interface{}) (int64, error) {
+	res, err := graphql.UnmarshalInt64(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
+	res := graphql.MarshalInt64(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNMetricValue2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMetricValue(ctx context.Context, sel ast.SelectionSet, v model.MetricValue) graphql.Marshaler {
+	return ec._MetricValue(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMetricValue2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMetricValueᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MetricValue) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMetricValue2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMetricValue(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNNamespacedName2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedName(ctx context.Context, sel ast.SelectionSet, v v1alpha1.NamespacedName) graphql.Marshaler {

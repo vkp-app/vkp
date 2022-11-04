@@ -3,6 +3,7 @@ image:
   pullPolicy: Never
 env:
   API_LOG_LEVEL: 5
+  API_METRICS_PROMETHEUS_ADDR: http://prometheus-olm-prometheus.monitoring.svc.cluster.local:9090
 ingress:
   tls:
     secretName: tls-apiserver

@@ -10,6 +10,8 @@ import (
 	"github.com/djcass44/go-utils/otel/metrics"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/prometheus/client_golang/api"
+	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"gitlab.com/autokubeops/serverless"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
@@ -34,6 +36,10 @@ type environment struct {
 	Otel struct {
 		Enabled    bool    `split_words:"true"`
 		SampleRate float64 `split_words:"true"`
+	}
+
+	Metrics struct {
+		PrometheusAddr string `split_words:"true" required:"true"`
 	}
 }
 
@@ -72,10 +78,18 @@ func main() {
 		return
 	}
 
+	promClient, err := api.NewClient(api.Config{Address: e.Metrics.PrometheusAddr})
+	if err != nil {
+		log.Error(err, "failed to create Prometheus client")
+		os.Exit(1)
+		return
+	}
+
 	// configure graphql
 	c := generated.Config{Resolvers: &graph.Resolver{
-		Client: kubeClient,
-		Scheme: scheme,
+		Client:     kubeClient,
+		Scheme:     scheme,
+		Prometheus: promv1.NewAPI(promClient),
 	}}
 	c.Directives.HasUser = graph.HasUser
 	srv := handler.New(generated.NewExecutableSchema(c))

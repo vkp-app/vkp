@@ -1,0 +1,86 @@
+fullnameOverride: prometheus-olm
+global:
+  rbac:
+    pspEnabled: false
+    createAggregateClusterRoles: true
+grafana:
+  enabled: false
+prometheus-node-exporter:
+  image:
+    repository: harbor.dcas.dev/quay.io/prometheus/node-exporter
+  prometheus:
+    monitor:
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          separator: ;
+          regex: ^(.*)$
+          targetLabel: instance
+          replacement: $1
+          action: replace
+  rbac:
+    pspEnabled: false
+kubeStateMetrics:
+  image:
+    repository: harbor.dcas.dev/k8s.gcr.io/kube-state-metrics/kube-state-metrics
+kube-state-metrics:
+  metricLabelsAllowlist:
+    - pods=[*]
+    - deployments=[app.kubernetes.io/name,app.kubernetes.io/component,app.kubernetes.io/instance]
+  prometheus:
+    monitor:
+      metricRelabelings:
+        - action: labeldrop
+          regex: instance
+      relabelings:
+        - action: labeldrop
+          regex: pod
+prometheusOperator:
+  admissionWebhooks:
+    patch:
+      podAnnotations:
+        linkerd.io/inject: disabled
+      image:
+        repository: harbor.dcas.dev/k8s.gcr.io/ingress-nginx/kube-webhook-certgen
+  image:
+    repository: harbor.dcas.dev/quay.io/prometheus-operator/prometheus-operator
+  prometheusConfigReloader:
+    image:
+      repository: harbor.dcas.dev/quay.io/prometheus-operator/prometheus-config-reloader
+  thanosImage:
+    repository: harbor.dcas.dev/quay.io/thanos/thanos
+alertmanager:
+  alertmanagerSpec:
+    image:
+      repository: harbor.dcas.dev/quay.io/prometheus/alertmanager
+prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: iss-kube
+    hosts:
+      - prometheus.192-168-49-2.nip.io
+    pathType: ImplementationSpecific
+    tls:
+      - secretName: prometheus-general-tls
+        hosts:
+          - prometheus.192-168-49-2.nip.io
+  prometheusSpec:
+    image:
+      repository: harbor.dcas.dev/quay.io/prometheus/prometheus
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector: {}
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelector: {}
+    probeSelectorNilUsesHelmValues: false
+    probeSelector: {}
+#    retention: 12h
+#    storageSpec:
+#      volumeClaimTemplate:
+#        spec:
+#          accessModes: ["ReadWriteOnce"]
+#          resources:
+#            requests:
+#              storage: 5Gi

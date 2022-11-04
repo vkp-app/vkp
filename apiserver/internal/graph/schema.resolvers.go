@@ -5,13 +5,14 @@ package graph
 
 import (
 	"context"
-	corev1 "k8s.io/api/core/v1"
+	"fmt"
 
 	"github.com/go-logr/logr"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/userctx"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
@@ -103,6 +104,16 @@ func (r *queryResolver) CurrentUser(ctx context.Context) (*model.User, error) {
 		return nil, ErrUnauthorised
 	}
 	return user, nil
+}
+
+// ClusterMetricMemory is the resolver for the clusterMetricMemory field.
+func (r *queryResolver) ClusterMetricMemory(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
+	return r.GetMetric(ctx, fmt.Sprintf(`sum by (namespace) (container_memory_usage_bytes{namespace="%s", pod=~".*-%s"})`, tenant, cluster))
+}
+
+// ClusterMetricCPU is the resolver for the clusterMetricCPU field.
+func (r *queryResolver) ClusterMetricCPU(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
+	return r.GetMetric(ctx, fmt.Sprintf(`sum(rate(container_cpu_usage_seconds_total{namespace="%s", pod=~".*-%s"}[1m])) by (namespace)`, tenant, cluster))
 }
 
 // Owner is the resolver for the owner field.
