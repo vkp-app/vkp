@@ -4,3 +4,4 @@
 *.iml
 charts/
 main
+.kpt-pipeline
