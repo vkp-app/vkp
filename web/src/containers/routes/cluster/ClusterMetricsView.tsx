@@ -1,5 +1,5 @@
 import React from "react";
-import {Card, Grid, ListItem, ListItemText} from "@mui/material";
+import {Card, CircularProgress, Grid, ListItem, ListItemText} from "@mui/material";
 import SparkLine from "../../data/SparkLine";
 import {Cluster, useMetricsClusterQuery} from "../../../generated/graphql";
 
@@ -22,7 +22,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading}): JSX.Element =>
 				<ListItem>
 					<ListItemText
 						secondary="Cluster memory usage"
-						primary={<SparkLine
+						primary={loading ? <CircularProgress/> : <SparkLine
 							width={300}
 							data={data?.clusterMetricMemory.map(i => Number(i.value)) || []}
 						/>}
@@ -33,7 +33,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading}): JSX.Element =>
 				<ListItem>
 					<ListItemText
 						secondary="Cluster CPU usage"
-						primary={<SparkLine
+						primary={loading ? <CircularProgress/> : <SparkLine
 							width={300}
 							data={data?.clusterMetricCPU.map(i => Number(i.value)) || []}
 						/>}
@@ -44,7 +44,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading}): JSX.Element =>
 				<ListItem>
 					<ListItemText
 						secondary="Pod count"
-						primary={<SparkLine
+						primary={loading ? <CircularProgress/> : <SparkLine
 							width={300}
 							data={data?.clusterMetricPods.map(i => Number(i.value)) || []}
 						/>}
