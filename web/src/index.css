@@ -10,15 +10,7 @@ body {
 }
 
 html {
-  height: 100%;
-  background-color: #FAFAFA;
   overflow-y: scroll !important; /* always show the scrollbar so the page doesn't shift */
-}
-
-html[data-theme='dark'] {
-  height: 100%;
-  background-color: #001E3C;
-  overflow-y: scroll !important;
 }
 
 code {

@@ -108,12 +108,17 @@ func (r *queryResolver) CurrentUser(ctx context.Context) (*model.User, error) {
 
 // ClusterMetricMemory is the resolver for the clusterMetricMemory field.
 func (r *queryResolver) ClusterMetricMemory(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
-	return r.GetMetric(ctx, fmt.Sprintf(`sum by (namespace) (container_memory_usage_bytes{namespace="%s", pod=~".*-%s"})`, tenant, cluster))
+	return r.GetMetric(ctx, fmt.Sprintf(`sum by (namespace) (container_memory_usage_bytes{namespace="%s", pod=~".*-%s|%s-.+"})`, tenant, cluster, cluster))
 }
 
 // ClusterMetricCPU is the resolver for the clusterMetricCPU field.
 func (r *queryResolver) ClusterMetricCPU(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
-	return r.GetMetric(ctx, fmt.Sprintf(`sum(rate(container_cpu_usage_seconds_total{namespace="%s", pod=~".*-%s"}[1m])) by (namespace)`, tenant, cluster))
+	return r.GetMetric(ctx, fmt.Sprintf(`sum(rate(container_cpu_usage_seconds_total{namespace="%s", pod=~".*-%s|%s-.+"}[1m])) by (namespace)`, tenant, cluster, cluster))
+}
+
+// ClusterMetricPods is the resolver for the clusterMetricPods field.
+func (r *queryResolver) ClusterMetricPods(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
+	return r.GetMetric(ctx, fmt.Sprintf(`sum by (namespace) (kube_pod_status_ready{namespace="%s", pod=~".*-%s|%s-.+", condition="true"})`, tenant, cluster, cluster))
 }
 
 // Owner is the resolver for the owner field.

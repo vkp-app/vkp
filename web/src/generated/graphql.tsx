@@ -1,5 +1,6 @@
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import * as Apollo from "@apollo/client";
+import {gql} from "@apollo/client";
+
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -29,6 +30,12 @@ export type ClusterStatus = {
   webURL: Scalars['String'];
 };
 
+export type MetricValue = {
+  __typename?: 'MetricValue';
+  time: Scalars['Int'];
+  value: Scalars['String'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   createTenant: Tenant;
@@ -48,6 +55,9 @@ export type NamespacedName = {
 export type Query = {
   __typename?: 'Query';
   cluster: Cluster;
+  clusterMetricCPU: Array<MetricValue>;
+  clusterMetricMemory: Array<MetricValue>;
+  clusterMetricPods: Array<MetricValue>;
   clustersInTenant: Array<Cluster>;
   currentUser: User;
   tenants: Array<Tenant>;
@@ -56,6 +66,24 @@ export type Query = {
 
 export type QueryClusterArgs = {
   name: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
+export type QueryClusterMetricCpuArgs = {
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
+export type QueryClusterMetricMemoryArgs = {
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
+export type QueryClusterMetricPodsArgs = {
+  cluster: Scalars['ID'];
   tenant: Scalars['ID'];
 };
 
@@ -96,6 +124,14 @@ export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type CurrentUserQuery = { __typename?: 'Query', currentUser: { __typename?: 'User', username: string, groups: Array<string> } };
+
+export type MetricsClusterQueryVariables = Exact<{
+  tenant: Scalars['ID'];
+  cluster: Scalars['ID'];
+}>;
+
+
+export type MetricsClusterQuery = { __typename?: 'Query', clusterMetricMemory: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricCPU: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricPods: Array<{ __typename?: 'MetricValue', time: number, value: string }> };
 
 
 export const ClustersDocument = gql`
@@ -214,6 +250,51 @@ export function useCurrentUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type CurrentUserQueryHookResult = ReturnType<typeof useCurrentUserQuery>;
 export type CurrentUserLazyQueryHookResult = ReturnType<typeof useCurrentUserLazyQuery>;
 export type CurrentUserQueryResult = Apollo.QueryResult<CurrentUserQuery, CurrentUserQueryVariables>;
+export const MetricsClusterDocument = gql`
+    query metricsCluster($tenant: ID!, $cluster: ID!) {
+  clusterMetricMemory(tenant: $tenant, cluster: $cluster) {
+    time
+    value
+  }
+  clusterMetricCPU(tenant: $tenant, cluster: $cluster) {
+    time
+    value
+  }
+  clusterMetricPods(tenant: $tenant, cluster: $cluster) {
+    time
+    value
+  }
+}
+    `;
+
+/**
+ * __useMetricsClusterQuery__
+ *
+ * To run a query within a React component, call `useMetricsClusterQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMetricsClusterQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMetricsClusterQuery({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      cluster: // value for 'cluster'
+ *   },
+ * });
+ */
+export function useMetricsClusterQuery(baseOptions: Apollo.QueryHookOptions<MetricsClusterQuery, MetricsClusterQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MetricsClusterQuery, MetricsClusterQueryVariables>(MetricsClusterDocument, options);
+      }
+export function useMetricsClusterLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MetricsClusterQuery, MetricsClusterQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MetricsClusterQuery, MetricsClusterQueryVariables>(MetricsClusterDocument, options);
+        }
+export type MetricsClusterQueryHookResult = ReturnType<typeof useMetricsClusterQuery>;
+export type MetricsClusterLazyQueryHookResult = ReturnType<typeof useMetricsClusterLazyQuery>;
+export type MetricsClusterQueryResult = Apollo.QueryResult<MetricsClusterQuery, MetricsClusterQueryVariables>;
 
       export interface PossibleTypesResultData {
         possibleTypes: {

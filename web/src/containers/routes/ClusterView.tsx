@@ -19,6 +19,7 @@ import {Cluster, useClusterQuery} from "../../generated/graphql";
 import StandardLayout from "../layout/StandardLayout";
 import ClusterMetadataView from "./cluster/ClusterMetadataView";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
+import ClusterMetricsView from "./cluster/ClusterMetricsView";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	title: {
@@ -117,6 +118,13 @@ const ClusterView: React.FC = (): JSX.Element => {
 				</ListItem>
 			</List>
 		</Card>
+		<ListSubheader>
+			Metrics
+		</ListSubheader>
+		<ClusterMetricsView
+			cluster={data?.cluster as Cluster | null}
+			loading={loading}
+		/>
 		<ListSubheader>
 			Metadata
 		</ListSubheader>

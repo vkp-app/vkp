@@ -43,6 +43,7 @@ type Query {
 
   clusterMetricMemory(tenant: ID!, cluster: ID!): [MetricValue!]!
   clusterMetricCPU(tenant: ID!, cluster: ID!): [MetricValue!]!
+  clusterMetricPods(tenant: ID!, cluster: ID!): [MetricValue!]!
 }
 
 type Mutation {
