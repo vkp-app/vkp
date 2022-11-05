@@ -27,7 +27,7 @@ interface Props extends PropsWithChildren {
 const StandardLayout: React.FC<Props> = ({size = "medium", children}): JSX.Element => {
 	return (
 		<Grid
-			sx={{mt: 2}}
+			sx={{mt: 2, mb: 2}}
 			container>
 			<Grid
 				item

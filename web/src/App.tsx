@@ -43,6 +43,37 @@ const App: React.FC = (): JSX.Element => {
 		return createTheme({
 			palette: {
 				mode: prefersDarkMode ? "dark" : "light"
+			},
+			components: {
+				MuiTooltip: {
+					styleOverrides: {
+						tooltip: {
+							fontSize: "0.9rem"
+						}
+					}
+				},
+				MuiListSubheader: {
+					styleOverrides: {
+						root: {
+							backgroundColor: "transparent"
+						}
+					}
+				},
+				MuiOutlinedInput: {
+					styleOverrides: {
+						root: {
+							borderRadius: 8
+						},
+					}
+				},
+				MuiInputLabel: {
+					styleOverrides: {
+						shrink: {
+							color: "text.primary",
+							fontWeight: 500
+						}
+					}
+				}
 			}
 		});
 	}, [prefersDarkMode]);

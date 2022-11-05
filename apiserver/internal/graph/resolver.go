@@ -46,6 +46,10 @@ func (r *Resolver) GetMetric(ctx context.Context, promQL string) ([]model.Metric
 		log.Info("failed to cast response data into model.Matrix")
 		return nil, errors.New("unexpected data type returned from Prometheus")
 	}
+	if len(data) == 0 {
+		log.V(1).Info("received empty data from Prometheus")
+		return []model.MetricValue{}, nil
+	}
 	// convert the response data
 	// into our graphql format
 	results := make([]model.MetricValue, len(data[0].Values))

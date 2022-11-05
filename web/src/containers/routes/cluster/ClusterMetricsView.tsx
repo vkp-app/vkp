@@ -29,7 +29,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading}): JSX.Element =>
 					/>
 				</ListItem>
 			</Grid>
-			<Grid item sx={6}>
+			<Grid item xs={6}>
 				<ListItem>
 					<ListItemText
 						secondary="Cluster CPU usage"
@@ -40,13 +40,25 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading}): JSX.Element =>
 					/>
 				</ListItem>
 			</Grid>
-			<Grid item sx={6}>
+			<Grid item xs={6}>
 				<ListItem>
 					<ListItemText
 						secondary="Pod count"
 						primary={loading ? <CircularProgress/> : <SparkLine
 							width={300}
 							data={data?.clusterMetricPods.map(i => Number(i.value)) || []}
+							baseZero
+						/>}
+					/>
+				</ListItem>
+			</Grid>
+			<Grid item xs={6}>
+				<ListItem>
+					<ListItemText
+						secondary="Network traffic received"
+						primary={loading ? <CircularProgress/> : <SparkLine
+							width={300}
+							data={data?.clusterMetricNetReceive.map(i => Number(i.value)) || []}
 							baseZero
 						/>}
 					/>

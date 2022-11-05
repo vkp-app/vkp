@@ -57,6 +57,8 @@ export type Query = {
   cluster: Cluster;
   clusterMetricCPU: Array<MetricValue>;
   clusterMetricMemory: Array<MetricValue>;
+  clusterMetricNetReceive: Array<MetricValue>;
+  clusterMetricNetTransmit: Array<MetricValue>;
   clusterMetricPods: Array<MetricValue>;
   clustersInTenant: Array<Cluster>;
   currentUser: User;
@@ -77,6 +79,18 @@ export type QueryClusterMetricCpuArgs = {
 
 
 export type QueryClusterMetricMemoryArgs = {
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
+export type QueryClusterMetricNetReceiveArgs = {
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
+export type QueryClusterMetricNetTransmitArgs = {
   cluster: Scalars['ID'];
   tenant: Scalars['ID'];
 };
@@ -131,7 +145,7 @@ export type MetricsClusterQueryVariables = Exact<{
 }>;
 
 
-export type MetricsClusterQuery = { __typename?: 'Query', clusterMetricMemory: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricCPU: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricPods: Array<{ __typename?: 'MetricValue', time: number, value: string }> };
+export type MetricsClusterQuery = { __typename?: 'Query', clusterMetricMemory: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricCPU: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricPods: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricNetReceive: Array<{ __typename?: 'MetricValue', time: number, value: string }> };
 
 
 export const ClustersDocument = gql`
@@ -261,6 +275,10 @@ export const MetricsClusterDocument = gql`
     value
   }
   clusterMetricPods(tenant: $tenant, cluster: $cluster) {
+    time
+    value
+  }
+  clusterMetricNetReceive(tenant: $tenant, cluster: $cluster) {
     time
     value
   }
