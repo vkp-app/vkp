@@ -47,6 +47,8 @@ spec:
                   storageClassName:
                     type: string
                 type: object
+              track:
+                type: integer
             type: object
           status:
             description: ClusterStatus defines the observed state of Cluster

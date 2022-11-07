@@ -24,6 +24,11 @@ func (r *clusterResolver) Tenant(ctx context.Context, obj *paasv1alpha1.Cluster)
 	return obj.ObjectMeta.Labels[labelTenant], nil
 }
 
+// Track is the resolver for the track field.
+func (r *clusterResolver) Track(ctx context.Context, obj *paasv1alpha1.Cluster) (model.Track, error) {
+	return model.FromDAO(obj.Spec.Track), nil
+}
+
 // CreateTenant is the resolver for the createTenant field.
 func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paasv1alpha1.Tenant, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", name)
@@ -58,6 +63,29 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paas
 		return nil, err
 	}
 	return tenant, nil
+}
+
+// CreateCluster is the resolver for the createCluster field.
+func (r *mutationResolver) CreateCluster(ctx context.Context, tenant string, input model.NewCluster) (*paasv1alpha1.Cluster, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
+	log.Info("creating cluster")
+	cluster := &paasv1alpha1.Cluster{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      input.Name,
+			Namespace: tenant,
+			Labels: map[string]string{
+				labelTenant: tenant,
+			},
+		},
+		Spec: paasv1alpha1.ClusterSpec{
+			Track: input.Track.ToDAO(),
+		},
+	}
+	if err := r.Create(ctx, cluster); err != nil {
+		log.Error(err, "failed to create cluster")
+		return nil, err
+	}
+	return cluster, nil
 }
 
 // Tenants is the resolver for the tenants field.

@@ -1,6 +1,5 @@
-import * as Apollo from "@apollo/client";
-import {gql} from "@apollo/client";
-
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -21,6 +20,7 @@ export type Cluster = {
   name: Scalars['ID'];
   status: ClusterStatus;
   tenant: Scalars['ID'];
+  track: Track;
 };
 
 export type ClusterStatus = {
@@ -38,7 +38,14 @@ export type MetricValue = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  createCluster: Cluster;
   createTenant: Tenant;
+};
+
+
+export type MutationCreateClusterArgs = {
+  input: NewCluster;
+  tenant: Scalars['ID'];
 };
 
 
@@ -50,6 +57,11 @@ export type NamespacedName = {
   __typename?: 'NamespacedName';
   name: Scalars['String'];
   namespace: Scalars['String'];
+};
+
+export type NewCluster = {
+  name: Scalars['String'];
+  track: Track;
 };
 
 export type Query = {
@@ -113,6 +125,13 @@ export type Tenant = {
   owner: Scalars['String'];
 };
 
+export enum Track {
+  Beta = 'BETA',
+  Rapid = 'RAPID',
+  Regular = 'REGULAR',
+  Stable = 'STABLE'
+}
+
 export type User = {
   __typename?: 'User';
   groups: Array<Scalars['String']>;
@@ -133,6 +152,14 @@ export type ClusterQueryVariables = Exact<{
 
 
 export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string } } };
+
+export type CreateClusterMutationVariables = Exact<{
+  tenant: Scalars['ID'];
+  input: NewCluster;
+}>;
+
+
+export type CreateClusterMutation = { __typename?: 'Mutation', createCluster: { __typename?: 'Cluster', name: string } };
 
 export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -229,6 +256,40 @@ export function useClusterLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Cl
 export type ClusterQueryHookResult = ReturnType<typeof useClusterQuery>;
 export type ClusterLazyQueryHookResult = ReturnType<typeof useClusterLazyQuery>;
 export type ClusterQueryResult = Apollo.QueryResult<ClusterQuery, ClusterQueryVariables>;
+export const CreateClusterDocument = gql`
+    mutation createCluster($tenant: ID!, $input: NewCluster!) {
+  createCluster(tenant: $tenant, input: $input) {
+    name
+  }
+}
+    `;
+export type CreateClusterMutationFn = Apollo.MutationFunction<CreateClusterMutation, CreateClusterMutationVariables>;
+
+/**
+ * __useCreateClusterMutation__
+ *
+ * To run a mutation, you first call `useCreateClusterMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateClusterMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createClusterMutation, { data, loading, error }] = useCreateClusterMutation({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateClusterMutation(baseOptions?: Apollo.MutationHookOptions<CreateClusterMutation, CreateClusterMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateClusterMutation, CreateClusterMutationVariables>(CreateClusterDocument, options);
+      }
+export type CreateClusterMutationHookResult = ReturnType<typeof useCreateClusterMutation>;
+export type CreateClusterMutationResult = Apollo.MutationResult<CreateClusterMutation>;
+export type CreateClusterMutationOptions = Apollo.BaseMutationOptions<CreateClusterMutation, CreateClusterMutationVariables>;
 export const CurrentUserDocument = gql`
     query currentUser {
   currentUser {

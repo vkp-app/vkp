@@ -1,5 +1,12 @@
 directive @hasUser on FIELD_DEFINITION
 
+enum Track {
+  STABLE,
+  REGULAR,
+  RAPID,
+  BETA
+}
+
 type Tenant {
   name: ID!
   owner: String!
@@ -14,6 +21,7 @@ type NamespacedName {
 type Cluster {
   name: ID!
   tenant: ID!
+  track: Track!
 
   status: ClusterStatus!
 }
@@ -41,13 +49,19 @@ type Query {
 
   currentUser: User! @hasUser
 
-  clusterMetricMemory(tenant: ID!, cluster: ID!): [MetricValue!]!
-  clusterMetricCPU(tenant: ID!, cluster: ID!): [MetricValue!]!
-  clusterMetricPods(tenant: ID!, cluster: ID!): [MetricValue!]!
-  clusterMetricNetReceive(tenant: ID!, cluster: ID!): [MetricValue!]!
-  clusterMetricNetTransmit(tenant: ID!, cluster: ID!): [MetricValue!]!
+  clusterMetricMemory(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+  clusterMetricCPU(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+  clusterMetricPods(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+  clusterMetricNetReceive(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+  clusterMetricNetTransmit(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+}
+
+input NewCluster {
+  name: String!
+  track: Track!
 }
 
 type Mutation {
   createTenant(name: String!): Tenant! @hasUser
+  createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasUser
 }

@@ -2,12 +2,68 @@
 
 package model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
 type MetricValue struct {
 	Time  int64  `json:"time"`
 	Value string `json:"value"`
 }
 
+type NewCluster struct {
+	Name  string `json:"name"`
+	Track Track  `json:"track"`
+}
+
 type User struct {
 	Username string   `json:"username"`
 	Groups   []string `json:"groups"`
+}
+
+type Track string
+
+const (
+	TrackStable  Track = "STABLE"
+	TrackRegular Track = "REGULAR"
+	TrackRapid   Track = "RAPID"
+	TrackBeta    Track = "BETA"
+)
+
+var AllTrack = []Track{
+	TrackStable,
+	TrackRegular,
+	TrackRapid,
+	TrackBeta,
+}
+
+func (e Track) IsValid() bool {
+	switch e {
+	case TrackStable, TrackRegular, TrackRapid, TrackBeta:
+		return true
+	}
+	return false
+}
+
+func (e Track) String() string {
+	return string(e)
+}
+
+func (e *Track) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Track(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Track", str)
+	}
+	return nil
+}
+
+func (e Track) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

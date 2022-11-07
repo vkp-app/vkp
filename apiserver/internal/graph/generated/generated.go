@@ -52,6 +52,7 @@ type ComplexityRoot struct {
 		Name   func(childComplexity int) int
 		Status func(childComplexity int) int
 		Tenant func(childComplexity int) int
+		Track  func(childComplexity int) int
 	}
 
 	ClusterStatus struct {
@@ -66,7 +67,8 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateTenant func(childComplexity int, name string) int
+		CreateCluster func(childComplexity int, tenant string, input model.NewCluster) int
+		CreateTenant  func(childComplexity int, name string) int
 	}
 
 	NamespacedName struct {
@@ -100,9 +102,11 @@ type ComplexityRoot struct {
 
 type ClusterResolver interface {
 	Tenant(ctx context.Context, obj *v1alpha1.Cluster) (string, error)
+	Track(ctx context.Context, obj *v1alpha1.Cluster) (model.Track, error)
 }
 type MutationResolver interface {
 	CreateTenant(ctx context.Context, name string) (*v1alpha1.Tenant, error)
+	CreateCluster(ctx context.Context, tenant string, input model.NewCluster) (*v1alpha1.Cluster, error)
 }
 type QueryResolver interface {
 	Tenants(ctx context.Context) ([]v1alpha1.Tenant, error)
@@ -156,6 +160,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Cluster.Tenant(childComplexity), true
 
+	case "Cluster.track":
+		if e.complexity.Cluster.Track == nil {
+			break
+		}
+
+		return e.complexity.Cluster.Track(childComplexity), true
+
 	case "ClusterStatus.kubeURL":
 		if e.complexity.ClusterStatus.KubeURL == nil {
 			break
@@ -190,6 +201,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MetricValue.Value(childComplexity), true
+
+	case "Mutation.createCluster":
+		if e.complexity.Mutation.CreateCluster == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createCluster_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCluster(childComplexity, args["tenant"].(string), args["input"].(model.NewCluster)), true
 
 	case "Mutation.createTenant":
 		if e.complexity.Mutation.CreateTenant == nil {
@@ -357,7 +380,9 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap()
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputNewCluster,
+	)
 	first := true
 
 	switch rc.Operation.Operation {
@@ -419,6 +444,13 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "../schema.graphqls", Input: `directive @hasUser on FIELD_DEFINITION
 
+enum Track {
+  STABLE,
+  REGULAR,
+  RAPID,
+  BETA
+}
+
 type Tenant {
   name: ID!
   owner: String!
@@ -433,6 +465,7 @@ type NamespacedName {
 type Cluster {
   name: ID!
   tenant: ID!
+  track: Track!
 
   status: ClusterStatus!
 }
@@ -460,15 +493,21 @@ type Query {
 
   currentUser: User! @hasUser
 
-  clusterMetricMemory(tenant: ID!, cluster: ID!): [MetricValue!]!
-  clusterMetricCPU(tenant: ID!, cluster: ID!): [MetricValue!]!
-  clusterMetricPods(tenant: ID!, cluster: ID!): [MetricValue!]!
-  clusterMetricNetReceive(tenant: ID!, cluster: ID!): [MetricValue!]!
-  clusterMetricNetTransmit(tenant: ID!, cluster: ID!): [MetricValue!]!
+  clusterMetricMemory(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+  clusterMetricCPU(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+  clusterMetricPods(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+  clusterMetricNetReceive(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+  clusterMetricNetTransmit(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+}
+
+input NewCluster {
+  name: String!
+  track: Track!
 }
 
 type Mutation {
   createTenant(name: String!): Tenant! @hasUser
+  createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasUser
 }
 `, BuiltIn: false},
 }
@@ -477,6 +516,30 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createCluster_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenant"] = arg0
+	var arg1 model.NewCluster
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNNewCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐNewCluster(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createTenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -788,6 +851,50 @@ func (ec *executionContext) fieldContext_Cluster_tenant(ctx context.Context, fie
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Cluster_track(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Cluster) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Cluster_track(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Cluster().Track(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.Track)
+	fc.Result = res
+	return ec.marshalNTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTrack(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Cluster_track(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cluster",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Track does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1148,6 +1255,91 @@ func (ec *executionContext) fieldContext_Mutation_createTenant(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createCluster(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createCluster(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateCluster(rctx, fc.Args["tenant"].(string), fc.Args["input"].(model.NewCluster))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*v1alpha1.Cluster); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Cluster`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*v1alpha1.Cluster)
+	fc.Result = res
+	return ec.marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐCluster(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createCluster(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Cluster_name(ctx, field)
+			case "tenant":
+				return ec.fieldContext_Cluster_tenant(ctx, field)
+			case "track":
+				return ec.fieldContext_Cluster_track(ctx, field)
+			case "status":
+				return ec.fieldContext_Cluster_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cluster", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createCluster_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _NamespacedName_name(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.NamespacedName) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_NamespacedName_name(ctx, field)
 	if err != nil {
@@ -1371,6 +1563,8 @@ func (ec *executionContext) fieldContext_Query_clustersInTenant(ctx context.Cont
 				return ec.fieldContext_Cluster_name(ctx, field)
 			case "tenant":
 				return ec.fieldContext_Cluster_tenant(ctx, field)
+			case "track":
+				return ec.fieldContext_Cluster_track(ctx, field)
 			case "status":
 				return ec.fieldContext_Cluster_status(ctx, field)
 			}
@@ -1454,6 +1648,8 @@ func (ec *executionContext) fieldContext_Query_cluster(ctx context.Context, fiel
 				return ec.fieldContext_Cluster_name(ctx, field)
 			case "tenant":
 				return ec.fieldContext_Cluster_tenant(ctx, field)
+			case "track":
+				return ec.fieldContext_Cluster_track(ctx, field)
 			case "status":
 				return ec.fieldContext_Cluster_status(ctx, field)
 			}
@@ -1557,8 +1753,28 @@ func (ec *executionContext) _Query_clusterMetricMemory(ctx context.Context, fiel
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ClusterMetricMemory(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ClusterMetricMemory(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]model.MetricValue); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model.MetricValue`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1618,8 +1834,28 @@ func (ec *executionContext) _Query_clusterMetricCPU(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ClusterMetricCPU(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ClusterMetricCPU(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]model.MetricValue); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model.MetricValue`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1679,8 +1915,28 @@ func (ec *executionContext) _Query_clusterMetricPods(ctx context.Context, field 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ClusterMetricPods(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ClusterMetricPods(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]model.MetricValue); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model.MetricValue`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1740,8 +1996,28 @@ func (ec *executionContext) _Query_clusterMetricNetReceive(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ClusterMetricNetReceive(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ClusterMetricNetReceive(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]model.MetricValue); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model.MetricValue`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1801,8 +2077,28 @@ func (ec *executionContext) _Query_clusterMetricNetTransmit(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ClusterMetricNetTransmit(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ClusterMetricNetTransmit(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]model.MetricValue); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model.MetricValue`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3977,6 +4273,42 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputNewCluster(ctx context.Context, obj interface{}) (model.NewCluster, error) {
+	var it model.NewCluster
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "track"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "track":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track"))
+			it.Track, err = ec.unmarshalNTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTrack(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4012,6 +4344,26 @@ func (ec *executionContext) _Cluster(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Cluster_tenant(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "track":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Cluster_track(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -4140,6 +4492,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createTenant(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createCluster":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createCluster(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -5064,6 +5425,11 @@ func (ec *executionContext) marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8s�
 	return ret
 }
 
+func (ec *executionContext) unmarshalNNewCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐNewCluster(ctx context.Context, v interface{}) (model.NewCluster, error) {
+	res, err := ec.unmarshalInputNewCluster(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5167,6 +5533,16 @@ func (ec *executionContext) marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkube�
 		return graphql.Null
 	}
 	return ec._Tenant(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTrack(ctx context.Context, v interface{}) (model.Track, error) {
+	var res model.Track
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTrack(ctx context.Context, sel ast.SelectionSet, v model.Track) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNUser2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {

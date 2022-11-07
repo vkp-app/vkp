@@ -19,3 +19,9 @@ query cluster($tenant: ID!, $cluster: ID!) {
         }
     }
 }
+
+mutation createCluster($tenant: ID!, $input: NewCluster!) {
+    createCluster(tenant: $tenant, input: $input) {
+        name
+    }
+}

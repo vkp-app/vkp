@@ -104,7 +104,7 @@ const App: React.FC = (): JSX.Element => {
 								element={<ClusterList/>}
 							/>
 							<Route
-								path="/new/cluster"
+								path="/new/cluster/:tenant"
 								element={<CreateCluster/>}
 							/>
 							<Route

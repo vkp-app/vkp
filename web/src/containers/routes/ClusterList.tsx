@@ -22,10 +22,10 @@ import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 const ClusterList: React.FC = (): JSX.Element => {
 	// hooks
 	const params = useParams();
-	const tenantName = params["tenant"];
+	const tenantName = params["tenant"] || "";
 
 	const {data, loading, error} = useClustersQuery({
-		variables: {tenant: tenantName || ""},
+		variables: {tenant: tenantName},
 		skip: !tenantName
 	});
 
@@ -87,7 +87,7 @@ const ClusterList: React.FC = (): JSX.Element => {
 				sx={{fontFamily: "Manrope", fontSize: 13, fontWeight: 600, height: 24, minHeight: 24, textTransform: "none"}}
 				variant="outlined"
 				component={Link}
-				to="/new/cluster">
+				to={`/new/cluster/${tenantName}`}>
 				Create
 			</Button>
 		</ListSubheader>

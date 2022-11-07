@@ -20,10 +20,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type ReleaseTrack int
+
+const (
+	TrackStable  ReleaseTrack = iota
+	TrackRegular ReleaseTrack = iota
+	TrackRapid   ReleaseTrack = iota
+	TrackBeta    ReleaseTrack = iota
+)
+
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
 	HA      HighAvailability `json:"ha,omitempty"`
 	Storage Storage          `json:"storage,omitempty"`
+
+	Track ReleaseTrack `json:"track,omitempty"`
 }
 
 type HighAvailability struct {
