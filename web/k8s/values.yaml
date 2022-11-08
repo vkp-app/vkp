@@ -1,5 +1,5 @@
 global:
-  imageRegistry: public.ecr.aws
+  imageRegistry: harbor.dcas.dev/public.ecr.aws
 podSecurityContext:
   enabled: true
 containerSecurityContext:
@@ -21,6 +21,8 @@ serverBlock: |
   }
 service:
   type: ClusterIP
+  targetPort:
+    http: public
 ingress:
   enabled: true
   hostname: glass.192-168-49-2.nip.io
@@ -31,3 +33,39 @@ ingress:
     - secretName: tls-apiserver
       hosts:
         - glass.192-168-49-2.nip.io
+sidecars:
+  - name: oauth-proxy
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0-amd64
+    ports:
+      - containerPort: 8079
+        name: public
+    volumeMounts:
+      - name: tls
+        mountPath: /var/run/secrets/dcas.dev/tls
+        readOnly: true
+    args:
+      - --http-address=:8079
+      - --provider=oidc
+      - --client-id=glass
+      - --client-secret=password
+      - --email-domain=*
+      - --oidc-issuer-url=https://dex.192-168-49-2.nip.io
+      - --redirect-url=https://glass.192-168-49-2.nip.io/oauth2/callback
+      - --prefer-email-to-user=true
+      - --cookie-secure=true
+      - --cookie-secret=q4kE_9htyXtMQDgfSkRJcMTxwLCXLjHKFLPGHCbcOgg=
+      - --cookie-refresh=2h
+      - --code-challenge-method=S256
+      - --upstream=http://localhost:8080
+      - --scope=openid profile email groups
+    env:
+      - name: SSL_CERT_FILE
+        value: /var/run/secrets/dcas.dev/tls/ca.crt
+extraVolumes:
+  - name: tls
+    secret:
+      secretName: tls-apiserver
+extraVolumeMounts:
+  - name: tls
+    mountPath: /var/run/secrets/dcas.dev/tls
+    readOnly: true

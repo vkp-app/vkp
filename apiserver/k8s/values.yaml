@@ -51,6 +51,8 @@ sidecars:
       - --prefer-email-to-user=true
       - --cookie-secure=true
       - --cookie-secret=q4kE_9htyXtMQDgfSkRJcMTxwLCXLjHKFLPGHCbcOgg=
+      - --cookie-refresh=2h
+      - --code-challenge-method=S256
       - --upstream=http://localhost:8080
       - --scope=openid profile email groups
     env:

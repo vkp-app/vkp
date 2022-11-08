@@ -29,8 +29,6 @@ import (
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 )
 
-const labelTenant = "paas.dcas.dev/tenant"
-
 // TenantReconciler reconciles a Tenant object
 type TenantReconciler struct {
 	client.Client
