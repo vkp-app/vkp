@@ -7,3 +7,13 @@ query tenants {
         }
     }
 }
+
+query tenant($name: ID!) {
+    tenant(name: $name) {
+        name
+        owner
+        status {
+            phase
+        }
+    }
+}

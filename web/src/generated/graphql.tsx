@@ -1,5 +1,6 @@
-import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
+import {gql} from '@apollo/client';
+
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -80,6 +81,7 @@ export type Query = {
   clusterMetricPods: Array<MetricValue>;
   clustersInTenant: Array<Cluster>;
   currentUser: User;
+  tenant: Tenant;
   tenants: Array<Tenant>;
 };
 
@@ -122,6 +124,11 @@ export type QueryClusterMetricPodsArgs = {
 
 export type QueryClustersInTenantArgs = {
   tenant: Scalars['ID'];
+};
+
+
+export type QueryTenantArgs = {
+  name: Scalars['ID'];
 };
 
 export type Tenant = {
@@ -195,6 +202,13 @@ export type TenantsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type TenantsQuery = { __typename?: 'Query', tenants: Array<{ __typename?: 'Tenant', name: string, owner: string, status: { __typename?: 'TenantStatus', phase: TenantPhase } }> };
+
+export type TenantQueryVariables = Exact<{
+  name: Scalars['ID'];
+}>;
+
+
+export type TenantQuery = { __typename?: 'Query', tenant: { __typename?: 'Tenant', name: string, owner: string, status: { __typename?: 'TenantStatus', phase: TenantPhase } } };
 
 
 export const ClustersDocument = gql`
@@ -435,6 +449,45 @@ export function useTenantsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Te
 export type TenantsQueryHookResult = ReturnType<typeof useTenantsQuery>;
 export type TenantsLazyQueryHookResult = ReturnType<typeof useTenantsLazyQuery>;
 export type TenantsQueryResult = Apollo.QueryResult<TenantsQuery, TenantsQueryVariables>;
+export const TenantDocument = gql`
+    query tenant($name: ID!) {
+  tenant(name: $name) {
+    name
+    owner
+    status {
+      phase
+    }
+  }
+}
+    `;
+
+/**
+ * __useTenantQuery__
+ *
+ * To run a query within a React component, call `useTenantQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTenantQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTenantQuery({
+ *   variables: {
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useTenantQuery(baseOptions: Apollo.QueryHookOptions<TenantQuery, TenantQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TenantQuery, TenantQueryVariables>(TenantDocument, options);
+      }
+export function useTenantLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TenantQuery, TenantQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TenantQuery, TenantQueryVariables>(TenantDocument, options);
+        }
+export type TenantQueryHookResult = ReturnType<typeof useTenantQuery>;
+export type TenantLazyQueryHookResult = ReturnType<typeof useTenantLazyQuery>;
+export type TenantQueryResult = Apollo.QueryResult<TenantQuery, TenantQueryVariables>;
 
       export interface PossibleTypesResultData {
         possibleTypes: {

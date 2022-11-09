@@ -1,8 +1,10 @@
 import React, {useMemo} from "react";
 import {
+	Alert,
 	Box,
 	Button,
 	Card,
+	Collapse,
 	Link as MuiLink,
 	ListSubheader,
 	Skeleton,
@@ -15,7 +17,7 @@ import {
 import {Link, useParams} from "react-router-dom";
 import StandardLayout from "../layout/StandardLayout";
 import InlineNotFound from "../alert/InlineNotFound";
-import {Cluster, useClustersQuery} from "../../generated/graphql";
+import {Cluster, TenantPhase, useClustersQuery, useTenantQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 
@@ -24,15 +26,22 @@ const ClusterList: React.FC = (): JSX.Element => {
 	const params = useParams();
 	const tenantName = params["tenant"] || "";
 
-	const {data, loading, error} = useClustersQuery({
+	const clusters = useClustersQuery({
 		variables: {tenant: tenantName},
 		skip: !tenantName
 	});
 
+	const tenant = useTenantQuery({
+		variables: {name: tenantName},
+		skip: !tenantName
+	});
+
+	const tenantApproved = tenant.data?.tenant.status.phase === TenantPhase.Ready;
+
 	const clusterData = useMemo(() => {
-		if (loading || error || !data)
+		if (clusters.loading || clusters.error || !clusters.data)
 			return [];
-		return (data.clustersInTenant as Cluster[]).map(c => (<TableRow
+		return (clusters.data.clustersInTenant as Cluster[]).map(c => (<TableRow
 			key={c.name}>
 			<TableCell
 				component="th"
@@ -49,7 +58,7 @@ const ClusterList: React.FC = (): JSX.Element => {
 				<ClusterVersionIndicator version={c.status.kubeVersion}/>
 			</TableCell>
 		</TableRow>))
-	}, [data, loading, error]);
+	}, [clusters]);
 
 	const loadingData = (): JSX.Element[] => {
 		const items = [];
@@ -87,12 +96,24 @@ const ClusterList: React.FC = (): JSX.Element => {
 				sx={{fontFamily: "Manrope", fontSize: 13, fontWeight: 600, height: 24, minHeight: 24, textTransform: "none"}}
 				variant="outlined"
 				component={Link}
-				to={`/new/cluster/${tenantName}`}>
+				to={`/new/cluster/${tenantName}`}
+				disabled={tenant.loading || tenant.error != null || !tenantApproved}>
 				Create
 			</Button>
 		</ListSubheader>
 		<Card
 			variant="outlined">
+			{!tenant.loading && tenant.error && <InlineError
+				message="Unable to load tenant"
+				error={tenant.error}
+			/>}
+			<Collapse
+				in={!tenant.loading && !tenantApproved && !tenant.error}>
+				<Alert
+					severity="warning">
+					Kubernetes clusters cannot be provisioned as this tenancy is awaiting approval from an administrator or policy agent.
+				</Alert>
+			</Collapse>
 			<Table>
 				<TableHead>
 					<TableRow>
@@ -101,11 +122,14 @@ const ClusterList: React.FC = (): JSX.Element => {
 					</TableRow>
 				</TableHead>
 				<TableBody>
-					{loading ? loadingData() : clusterData}
+					{clusters.loading ? loadingData() : clusterData}
 				</TableBody>
 			</Table>
-			{!loading && error && <InlineError error={error}/>}
-			{data?.clustersInTenant.length === 0 && <InlineNotFound
+			{!clusters.loading && clusters.error && <InlineError
+				message="Unable to load clusters"
+				error={clusters.error}
+			/>}
+			{clusters.data?.clustersInTenant.length === 0 && <InlineNotFound
 				title="No clusters"
 				subtitle="This tenancy is empty. Create a cluster to get started"
 			/>}

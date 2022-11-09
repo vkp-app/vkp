@@ -110,7 +110,10 @@ const TenantList: React.FC = (): JSX.Element => {
 					{loading ? loadingData() : tenants}
 				</TableBody>
 			</Table>
-			{!loading && error && <InlineError error={error}/>}
+			{!loading && error && <InlineError
+				message={"Unable to load tenants"}
+				error={error}
+			/>}
 			{data?.tenants.length === 0 && <InlineNotFound
 				title="No tenants"
 				subtitle="Create a tenant to get started"

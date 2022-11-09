@@ -148,6 +148,18 @@ func (r *queryResolver) Tenants(ctx context.Context) ([]paasv1alpha1.Tenant, err
 	return tenants.Items, nil
 }
 
+// Tenant is the resolver for the tenant field.
+func (r *queryResolver) Tenant(ctx context.Context, name string) (*paasv1alpha1.Tenant, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", name)
+	log.Info("fetching tenant")
+	tenant := &paasv1alpha1.Tenant{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: name, Name: name}, tenant); err != nil {
+		log.Error(err, "failed to get tenant")
+		return nil, err
+	}
+	return tenant, nil
+}
+
 // ClustersInTenant is the resolver for the clustersInTenant field.
 func (r *queryResolver) ClustersInTenant(ctx context.Context, tenant string) ([]paasv1alpha1.Cluster, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)

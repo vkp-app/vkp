@@ -13,8 +13,8 @@ const Home: React.FC = (): JSX.Element => {
 				You&apos;re probably looking for&nbsp;
 				<MuiLink
 					component={Link}
-					to="/clusters/tenant-sample">
-					/clusters
+					to="/tenants">
+					/tenants
 				</MuiLink>
 			</Typography>
 		</Box>
