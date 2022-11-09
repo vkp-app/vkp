@@ -191,6 +191,11 @@ export type MetricsClusterQueryVariables = Exact<{
 
 export type MetricsClusterQuery = { __typename?: 'Query', clusterMetricMemory: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricCPU: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricPods: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricNetReceive: Array<{ __typename?: 'MetricValue', time: number, value: string }> };
 
+export type TenantsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TenantsQuery = { __typename?: 'Query', tenants: Array<{ __typename?: 'Tenant', name: string, owner: string, status: { __typename?: 'TenantStatus', phase: TenantPhase } }> };
+
 
 export const ClustersDocument = gql`
     query clusters($tenant: ID!) {
@@ -392,6 +397,44 @@ export function useMetricsClusterLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type MetricsClusterQueryHookResult = ReturnType<typeof useMetricsClusterQuery>;
 export type MetricsClusterLazyQueryHookResult = ReturnType<typeof useMetricsClusterLazyQuery>;
 export type MetricsClusterQueryResult = Apollo.QueryResult<MetricsClusterQuery, MetricsClusterQueryVariables>;
+export const TenantsDocument = gql`
+    query tenants {
+  tenants {
+    name
+    owner
+    status {
+      phase
+    }
+  }
+}
+    `;
+
+/**
+ * __useTenantsQuery__
+ *
+ * To run a query within a React component, call `useTenantsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTenantsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTenantsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTenantsQuery(baseOptions?: Apollo.QueryHookOptions<TenantsQuery, TenantsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TenantsQuery, TenantsQueryVariables>(TenantsDocument, options);
+      }
+export function useTenantsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TenantsQuery, TenantsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TenantsQuery, TenantsQueryVariables>(TenantsDocument, options);
+        }
+export type TenantsQueryHookResult = ReturnType<typeof useTenantsQuery>;
+export type TenantsLazyQueryHookResult = ReturnType<typeof useTenantsLazyQuery>;
+export type TenantsQueryResult = Apollo.QueryResult<TenantsQuery, TenantsQueryVariables>;
 
       export interface PossibleTypesResultData {
         possibleTypes: {

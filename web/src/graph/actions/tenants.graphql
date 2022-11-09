@@ -1,0 +1,9 @@
+query tenants {
+    tenants {
+        name
+        owner
+        status {
+            phase
+        }
+    }
+}
