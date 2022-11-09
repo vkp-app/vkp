@@ -8,8 +8,12 @@ import (
 	"k8s.io/utils/pointer"
 )
 
+func getHostname(cr *paasv1alpha1.Cluster) string {
+	return fmt.Sprintf("api.%s.%s", cr.Status.ClusterID, cr.Status.ClusterDomain)
+}
+
 func Ingress(cr *paasv1alpha1.Cluster) *netv1.Ingress {
-	hostname := fmt.Sprintf("api.%s.%s", cr.Status.ClusterID, cr.Status.ClusterDomain)
+	hostname := getHostname(cr)
 	pathType := netv1.PathTypePrefix
 	return &netv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{

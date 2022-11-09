@@ -22,7 +22,7 @@ var valuesTpl = template.Must(template.New("values.yaml").Parse(valuesTemplate))
 
 func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1alpha1.VCluster, error) {
 	log := logging.FromContext(ctx)
-	hostname := fmt.Sprintf("api.%s.%s", cluster.Status.ClusterID, cluster.Status.ClusterDomain)
+	hostname := getHostname(cluster)
 	values := new(bytes.Buffer)
 	valuesConfig := ValuesTemplate{
 		Ingress: ValuesIngress{

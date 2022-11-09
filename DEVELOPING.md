@@ -15,7 +15,7 @@ Install resources:
 # when using a fresh minikube
 ./firstrun.sh
 # otherwise
-skaffold run
+make run
 ```
 
 Install the Operator:

@@ -26,6 +26,10 @@ func Cluster(cluster *paasv1alpha1.Cluster) *capiv1betav1.Cluster {
 			Labels:    Labels(cluster),
 		},
 		Spec: capiv1betav1.ClusterSpec{
+			ControlPlaneEndpoint: capiv1betav1.APIEndpoint{
+				Host: getHostname(cluster),
+				Port: 443,
+			},
 			ControlPlaneRef:   clusterRef,
 			InfrastructureRef: clusterRef,
 		},
