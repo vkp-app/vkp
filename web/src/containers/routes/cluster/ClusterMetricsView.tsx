@@ -28,30 +28,38 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading}): JSX.Element =>
 	 * @param n
 	 */
 	const fmtCPU = (n: number): string => {
+		if (!+n || !Number.isFinite(n)) {
+			return "0m";
+		}
 		const cores = Math.floor(n);
 		const ms = ((n % 1) * 1000).toFixed(1);
 
 		if (cores === 0) {
-			return `${ms} millicores`;
+			return `${ms}m`;
 		}
-		return `${n.toFixed(2)} cores`;
+		return `${n.toFixed(2)} CPU`;
 	}
 
 	/**
 	 * formats a number as-is
 	 */
 	const fmtPlain = (n: number): string => {
+		if (!+n || !Number.isFinite(n)) {
+			return "0";
+		}
 		return `${n}`;
 	}
 
 	const metric = (data: MetricValue[], name: string, bz: boolean, fmt: (n: number) => string): ReactNode => {
+		const numData = data.map(i => Number(i.value));
 		const last = data.length === 0 ? 0 : Number(data[data.length - 1].value);
+		const max = Math.max(...numData);
 		return <ListItem>
 			<ListItemText
-				secondary={`${name} (${fmt(last)})`}
+				secondary={`${name} (${fmt(last)}/${fmt(max)})`}
 				primary={loading ? <CircularProgress/> : <SparkLine
 					width={300}
-					data={data.map(i => Number(i.value))}
+					data={numData}
 					baseZero={bz}
 				/>}
 			/>
