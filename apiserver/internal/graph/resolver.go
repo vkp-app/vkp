@@ -15,6 +15,7 @@ import (
 const labelTenant = "paas.dcas.dev/tenant"
 
 var ErrUnauthorised = errors.New("unauthorised")
+var ErrTenantNotReady = errors.New("tenant is not ready")
 
 // This file will not be regenerated automatically.
 //

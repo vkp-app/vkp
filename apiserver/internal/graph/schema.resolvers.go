@@ -33,10 +33,7 @@ func (r *clusterResolver) Track(ctx context.Context, obj *paasv1alpha1.Cluster) 
 func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paasv1alpha1.Tenant, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", name)
 	log.Info("creating tenant")
-	user, ok := userctx.CtxUser(ctx)
-	if !ok {
-		return nil, ErrUnauthorised
-	}
+	user, _ := userctx.CtxUser(ctx)
 	// create the containing namespace
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -57,6 +54,12 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paas
 			Owner:             user.Username,
 			NamespaceStrategy: paasv1alpha1.StrategySingle,
 		},
+		Status: paasv1alpha1.TenantStatus{
+			// all tenants must be approved by either
+			// a human administrator or some sort of automated approval
+			// (e.g. payment-method verification)
+			Phase: paasv1alpha1.PhasePendingApproval,
+		},
 	}
 	if err := r.Create(ctx, tenant); err != nil {
 		log.Error(err, "failed to create tenant")
@@ -69,6 +72,20 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paas
 func (r *mutationResolver) CreateCluster(ctx context.Context, tenant string, input model.NewCluster) (*paasv1alpha1.Cluster, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
 	log.Info("creating cluster")
+	// validate the tenant
+	tenantResource := &paasv1alpha1.Tenant{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: tenant}, tenantResource); err != nil {
+		log.Error(err, "failed to retrieve tenant information")
+		return nil, err
+	}
+	// reject clusters for tenants that have yet
+	// to be approved
+	if tenantResource.Status.Phase != paasv1alpha1.PhaseReady {
+		log.Info("rejecting cluster creation request for tenant that is not 'Ready'")
+		return nil, ErrTenantNotReady
+	}
+
+	// create the cluster
 	cluster := &paasv1alpha1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      input.Name,
@@ -127,10 +144,7 @@ func (r *queryResolver) Cluster(ctx context.Context, tenant string, name string)
 
 // CurrentUser is the resolver for the currentUser field.
 func (r *queryResolver) CurrentUser(ctx context.Context) (*model.User, error) {
-	user, ok := userctx.CtxUser(ctx)
-	if !ok {
-		return nil, ErrUnauthorised
-	}
+	user, _ := userctx.CtxUser(ctx)
 	return user, nil
 }
 

@@ -27,6 +27,13 @@ const (
 	StrategyMultiple NamespaceStrategy = "Multiple"
 )
 
+type TenantPhase string
+
+const (
+	PhasePendingApproval TenantPhase = "PendingApproval"
+	PhaseReady           TenantPhase = "Ready"
+)
+
 // TenantSpec defines the desired state of Tenant
 type TenantSpec struct {
 	Owner             string            `json:"owner"`
@@ -37,6 +44,7 @@ type TenantSpec struct {
 type TenantStatus struct {
 	ObservedClusters   []NamespacedName `json:"observedClusters,omitempty"`
 	ObservedNamespaces []string         `json:"observedNamespaces,omitempty"`
+	Phase              TenantPhase      `json:"phase,omitempty"`
 }
 
 type NamespacedName struct {
