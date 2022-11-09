@@ -18,6 +18,12 @@ const ClusterMetadataView: React.FC<Props> = ({cluster, loading}): JSX.Element =
 		<List>
 			<ListItem>
 				<ListItemText
+					primary="Release track"
+					secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : cluster?.track || "Unknown"}
+				/>
+			</ListItem>
+			<ListItem>
+				<ListItemText
 					primary="Management API"
 					secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : "VCluster"}
 				/>

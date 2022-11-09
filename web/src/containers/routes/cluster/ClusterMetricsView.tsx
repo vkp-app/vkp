@@ -1,7 +1,8 @@
-import React from "react";
+import React, {ReactNode} from "react";
 import {Card, CircularProgress, Grid, ListItem, ListItemText} from "@mui/material";
 import SparkLine from "../../data/SparkLine";
-import {Cluster, useMetricsClusterQuery} from "../../../generated/graphql";
+import {Cluster, MetricValue, useMetricsClusterQuery} from "../../../generated/graphql";
+import {formatBytes} from "../../../utils/fmt";
 
 interface Props {
 	cluster: Cluster | null;
@@ -14,55 +15,64 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading}): JSX.Element =>
 		skip: !cluster
 	});
 
+	/**
+	 * formats a number as bytes
+	 */
+	const fmtBytes = (n: number): string => {
+		return formatBytes(n, 0);
+	}
+
+	/**
+	 * formats a number in CPU millicores.
+	 * 1 or more cores switches to decimal values
+	 * @param n
+	 */
+	const fmtCPU = (n: number): string => {
+		const cores = Math.floor(n);
+		const ms = ((n % 1) * 1000).toFixed(1);
+
+		if (cores === 0) {
+			return `${ms} millicores`;
+		}
+		return `${n.toFixed(2)} cores`;
+	}
+
+	/**
+	 * formats a number as-is
+	 */
+	const fmtPlain = (n: number): string => {
+		return `${n}`;
+	}
+
+	const metric = (data: MetricValue[], name: string, bz: boolean, fmt: (n: number) => string): ReactNode => {
+		const last = data.length === 0 ? 0 : Number(data[data.length - 1].value);
+		return <ListItem>
+			<ListItemText
+				secondary={`${name} (${fmt(last)})`}
+				primary={loading ? <CircularProgress/> : <SparkLine
+					width={300}
+					data={data.map(i => Number(i.value))}
+					baseZero={bz}
+				/>}
+			/>
+		</ListItem>;
+	}
+
 	return <Card
 		variant="outlined"
 		sx={{p: 2}}>
 		<Grid container>
 			<Grid item xs={6}>
-				<ListItem>
-					<ListItemText
-						secondary="Cluster memory usage"
-						primary={loading ? <CircularProgress/> : <SparkLine
-							width={300}
-							data={data?.clusterMetricMemory.map(i => Number(i.value)) || []}
-						/>}
-					/>
-				</ListItem>
+				{metric(data?.clusterMetricMemory || [], "Memory usage", false, fmtBytes)}
 			</Grid>
 			<Grid item xs={6}>
-				<ListItem>
-					<ListItemText
-						secondary="Cluster CPU usage"
-						primary={loading ? <CircularProgress/> : <SparkLine
-							width={300}
-							data={data?.clusterMetricCPU.map(i => Number(i.value)) || []}
-						/>}
-					/>
-				</ListItem>
+				{metric(data?.clusterMetricCPU || [], "CPU usage", false, fmtCPU)}
 			</Grid>
 			<Grid item xs={6}>
-				<ListItem>
-					<ListItemText
-						secondary="Pod count"
-						primary={loading ? <CircularProgress/> : <SparkLine
-							width={300}
-							data={data?.clusterMetricPods.map(i => Number(i.value)) || []}
-							baseZero
-						/>}
-					/>
-				</ListItem>
+				{metric(data?.clusterMetricPods || [], "Pod count", false, fmtPlain)}
 			</Grid>
 			<Grid item xs={6}>
-				<ListItem>
-					<ListItemText
-						secondary="Network traffic received"
-						primary={loading ? <CircularProgress/> : <SparkLine
-							width={300}
-							data={data?.clusterMetricNetReceive.map(i => Number(i.value)) || []}
-							baseZero
-						/>}
-					/>
-				</ListItem>
+				{metric(data?.clusterMetricNetReceive || [], "Network received", true, fmtBytes)}
 			</Grid>
 		</Grid>
 	</Card>

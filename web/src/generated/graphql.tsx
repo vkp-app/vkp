@@ -38,8 +38,14 @@ export type MetricValue = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  approveTenant: Scalars['Boolean'];
   createCluster: Cluster;
   createTenant: Tenant;
+};
+
+
+export type MutationApproveTenantArgs = {
+  tenant: Scalars['ID'];
 };
 
 
@@ -123,6 +129,17 @@ export type Tenant = {
   name: Scalars['ID'];
   observedClusters: Array<NamespacedName>;
   owner: Scalars['String'];
+  status: TenantStatus;
+};
+
+export enum TenantPhase {
+  PendingApproval = 'PendingApproval',
+  Ready = 'Ready'
+}
+
+export type TenantStatus = {
+  __typename?: 'TenantStatus';
+  phase: TenantPhase;
 };
 
 export enum Track {
@@ -151,7 +168,7 @@ export type ClusterQueryVariables = Exact<{
 }>;
 
 
-export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string } } };
+export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: Track, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string } } };
 
 export type CreateClusterMutationVariables = Exact<{
   tenant: Scalars['ID'];
@@ -220,6 +237,7 @@ export const ClusterDocument = gql`
   cluster(tenant: $tenant, name: $cluster) {
     name
     tenant
+    track
     status {
       kubeVersion
       kubeURL

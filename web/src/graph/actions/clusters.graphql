@@ -13,6 +13,7 @@ query cluster($tenant: ID!, $cluster: ID!) {
     cluster(tenant: $tenant, name: $cluster) {
         name
         tenant
+        track
         status {
             kubeVersion
             kubeURL
