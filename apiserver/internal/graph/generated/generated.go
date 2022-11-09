@@ -44,7 +44,8 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	HasUser func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	HasAdmin func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	HasUser  func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -67,6 +68,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		ApproveTenant func(childComplexity int, tenant string) int
 		CreateCluster func(childComplexity int, tenant string, input model.NewCluster) int
 		CreateTenant  func(childComplexity int, name string) int
 	}
@@ -92,6 +94,11 @@ type ComplexityRoot struct {
 		Name             func(childComplexity int) int
 		ObservedClusters func(childComplexity int) int
 		Owner            func(childComplexity int) int
+		Status           func(childComplexity int) int
+	}
+
+	TenantStatus struct {
+		Phase func(childComplexity int) int
 	}
 
 	User struct {
@@ -107,6 +114,7 @@ type ClusterResolver interface {
 type MutationResolver interface {
 	CreateTenant(ctx context.Context, name string) (*v1alpha1.Tenant, error)
 	CreateCluster(ctx context.Context, tenant string, input model.NewCluster) (*v1alpha1.Cluster, error)
+	ApproveTenant(ctx context.Context, tenant string) (bool, error)
 }
 type QueryResolver interface {
 	Tenants(ctx context.Context) ([]v1alpha1.Tenant, error)
@@ -201,6 +209,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MetricValue.Value(childComplexity), true
+
+	case "Mutation.approveTenant":
+		if e.complexity.Mutation.ApproveTenant == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_approveTenant_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ApproveTenant(childComplexity, args["tenant"].(string)), true
 
 	case "Mutation.createCluster":
 		if e.complexity.Mutation.CreateCluster == nil {
@@ -359,6 +379,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Tenant.Owner(childComplexity), true
 
+	case "Tenant.status":
+		if e.complexity.Tenant.Status == nil {
+			break
+		}
+
+		return e.complexity.Tenant.Status(childComplexity), true
+
+	case "TenantStatus.phase":
+		if e.complexity.TenantStatus.Phase == nil {
+			break
+		}
+
+		return e.complexity.TenantStatus.Phase(childComplexity), true
+
 	case "User.groups":
 		if e.complexity.User.Groups == nil {
 			break
@@ -443,6 +477,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../schema.graphqls", Input: `directive @hasUser on FIELD_DEFINITION
+directive @hasAdmin on FIELD_DEFINITION
 
 enum Track {
   STABLE,
@@ -451,10 +486,21 @@ enum Track {
   BETA
 }
 
+enum TenantPhase {
+  PendingApproval
+  Ready
+}
+
 type Tenant {
   name: ID!
   owner: String!
   observedClusters: [NamespacedName!]!
+
+  status: TenantStatus!
+}
+
+type TenantStatus {
+  phase: TenantPhase!
 }
 
 type NamespacedName {
@@ -508,6 +554,8 @@ input NewCluster {
 type Mutation {
   createTenant(name: String!): Tenant! @hasUser
   createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasUser
+
+  approveTenant(tenant: ID!): Boolean! @hasAdmin
 }
 `, BuiltIn: false},
 }
@@ -516,6 +564,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_approveTenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenant"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createCluster_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1237,6 +1300,8 @@ func (ec *executionContext) fieldContext_Mutation_createTenant(ctx context.Conte
 				return ec.fieldContext_Tenant_owner(ctx, field)
 			case "observedClusters":
 				return ec.fieldContext_Tenant_observedClusters(ctx, field)
+			case "status":
+				return ec.fieldContext_Tenant_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Tenant", field.Name)
 		},
@@ -1334,6 +1399,81 @@ func (ec *executionContext) fieldContext_Mutation_createCluster(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createCluster_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_approveTenant(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_approveTenant(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ApproveTenant(rctx, fc.Args["tenant"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasAdmin == nil {
+				return nil, errors.New("directive hasAdmin is not implemented")
+			}
+			return ec.directives.HasAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_approveTenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_approveTenant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -1493,6 +1633,8 @@ func (ec *executionContext) fieldContext_Query_tenants(ctx context.Context, fiel
 				return ec.fieldContext_Tenant_owner(ctx, field)
 			case "observedClusters":
 				return ec.fieldContext_Tenant_observedClusters(ctx, field)
+			case "status":
+				return ec.fieldContext_Tenant_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Tenant", field.Name)
 		},
@@ -2407,6 +2549,98 @@ func (ec *executionContext) fieldContext_Tenant_observedClusters(ctx context.Con
 				return ec.fieldContext_NamespacedName_namespace(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type NamespacedName", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Tenant_status(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Tenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Tenant_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(v1alpha1.TenantStatus)
+	fc.Result = res
+	return ec.marshalNTenantStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Tenant_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "phase":
+				return ec.fieldContext_TenantStatus_phase(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TenantStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TenantStatus_phase(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.TenantStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TenantStatus_phase(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phase, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(v1alpha1.TenantPhase)
+	fc.Result = res
+	return ec.marshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantPhase(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TenantStatus_phase(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TenantStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type TenantPhase does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4506,6 +4740,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "approveTenant":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_approveTenant(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4858,6 +5101,41 @@ func (ec *executionContext) _Tenant(ctx context.Context, sel ast.SelectionSet, o
 				return innerFunc(ctx)
 
 			})
+		case "status":
+
+			out.Values[i] = ec._Tenant_status(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var tenantStatusImplementors = []string{"TenantStatus"}
+
+func (ec *executionContext) _TenantStatus(ctx context.Context, sel ast.SelectionSet, obj *v1alpha1.TenantStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, tenantStatusImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TenantStatus")
+		case "phase":
+
+			out.Values[i] = ec._TenantStatus_phase(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5533,6 +5811,26 @@ func (ec *executionContext) marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkube�
 		return graphql.Null
 	}
 	return ec._Tenant(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantPhase(ctx context.Context, v interface{}) (v1alpha1.TenantPhase, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := v1alpha1.TenantPhase(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantPhase(ctx context.Context, sel ast.SelectionSet, v v1alpha1.TenantPhase) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNTenantStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantStatus(ctx context.Context, sel ast.SelectionSet, v v1alpha1.TenantStatus) graphql.Marshaler {
+	return ec._TenantStatus(ctx, sel, &v)
 }
 
 func (ec *executionContext) unmarshalNTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTrack(ctx context.Context, v interface{}) (model.Track, error) {

@@ -75,6 +75,9 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if cr.Spec.NamespaceStrategy == paasv1alpha1.StrategySingle {
 		ns = cr.GetNamespace()
 	}
+	if cr.Status.Phase == "" {
+		cr.Status.Phase = paasv1alpha1.PhasePendingApproval
+	}
 	if err := r.List(ctx, clusters, &client.ListOptions{LabelSelector: selector, Namespace: ns}); err != nil {
 		if errors.IsNotFound(err); err != nil {
 			return ctrl.Result{}, nil

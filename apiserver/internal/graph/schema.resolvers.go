@@ -65,6 +65,11 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paas
 		log.Error(err, "failed to create tenant")
 		return nil, err
 	}
+	// ensure that the correct phase is applied
+	if err := r.Status().Update(ctx, tenant); err != nil {
+		log.Error(err, "failed to apply tenant status")
+		return nil, err
+	}
 	return tenant, nil
 }
 
@@ -103,6 +108,32 @@ func (r *mutationResolver) CreateCluster(ctx context.Context, tenant string, inp
 		return nil, err
 	}
 	return cluster, nil
+}
+
+// ApproveTenant is the resolver for the approveTenant field.
+func (r *mutationResolver) ApproveTenant(ctx context.Context, tenant string) (bool, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
+	log.Info("approving tenant")
+	// validate the tenant
+	tenantResource := &paasv1alpha1.Tenant{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: tenant}, tenantResource); err != nil {
+		log.Error(err, "failed to retrieve tenant information")
+		return false, err
+	}
+	// if the tenant doesn't require approval
+	// exit cleanly
+	if tenantResource.Status.Phase != paasv1alpha1.PhasePendingApproval {
+		log.Info("tenant is not awaiting approval")
+		return false, nil
+	}
+	// update the .status.phase field to indicate
+	// that the tenant is ready for use
+	tenantResource.Status.Phase = paasv1alpha1.PhaseReady
+	if err := r.Status().Update(ctx, tenantResource); err != nil {
+		log.Error(err, "failed to update tenant phase")
+		return false, err
+	}
+	return true, nil
 }
 
 // Tenants is the resolver for the tenants field.

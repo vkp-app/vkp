@@ -86,12 +86,14 @@ func main() {
 	}
 
 	// configure graphql
-	c := generated.Config{Resolvers: &graph.Resolver{
+	resolver := &graph.Resolver{
 		Client:     kubeClient,
 		Scheme:     scheme,
 		Prometheus: promv1.NewAPI(promClient),
-	}}
+	}
+	c := generated.Config{Resolvers: resolver}
 	c.Directives.HasUser = graph.HasUser
+	c.Directives.HasAdmin = resolver.HasAdmin
 	srv := handler.New(generated.NewExecutableSchema(c))
 	srv.AddTransport(transport.POST{})
 

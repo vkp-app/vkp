@@ -1,4 +1,5 @@
 directive @hasUser on FIELD_DEFINITION
+directive @hasAdmin on FIELD_DEFINITION
 
 enum Track {
   STABLE,
@@ -7,10 +8,21 @@ enum Track {
   BETA
 }
 
+enum TenantPhase {
+  PendingApproval
+  Ready
+}
+
 type Tenant {
   name: ID!
   owner: String!
   observedClusters: [NamespacedName!]!
+
+  status: TenantStatus!
+}
+
+type TenantStatus {
+  phase: TenantPhase!
 }
 
 type NamespacedName {
@@ -64,4 +76,6 @@ input NewCluster {
 type Mutation {
   createTenant(name: String!): Tenant! @hasUser
   createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasUser
+
+  approveTenant(tenant: ID!): Boolean! @hasAdmin
 }
