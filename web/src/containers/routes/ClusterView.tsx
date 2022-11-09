@@ -2,18 +2,20 @@ import React, {useState} from "react";
 import {Link, useParams} from "react-router-dom";
 import {
 	Button,
-	Card, FormControlLabel,
+	Card,
+	FormControlLabel,
 	IconButton,
 	List,
 	ListItem,
 	ListItemSecondaryAction,
 	ListItemText,
 	ListSubheader,
-	Skeleton, Switch,
+	Skeleton,
+	Switch,
 	Theme
 } from "@mui/material";
 import {makeStyles} from "tss-react/mui";
-import {ArrowLeft, ExternalLink} from "tabler-icons-react";
+import {ArrowLeft, ChevronRight, ExternalLink} from "tabler-icons-react";
 import InlineError from "../alert/InlineError";
 import {Cluster, useClusterQuery} from "../../generated/graphql";
 import StandardLayout from "../layout/StandardLayout";
@@ -95,7 +97,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 				</ListItem>
 				<ListItem>
 					<ListItemText
-						primary="API address"
+						primary="API"
 						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : `https://${data?.cluster.status.kubeURL}:443`}
 					/>
 					<ListItemSecondaryAction>
@@ -114,8 +116,10 @@ const ClusterView: React.FC = (): JSX.Element => {
 				</ListItem>
 				<ListItem>
 					<ListItemText
-						primary="Dashboard address"
-						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : <i>This component has not been enabled.</i>}
+						primary="Dashboard"
+						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : <span>
+							Manage and troubleshoot applications as well as manage the cluster itself through a web-based UI.
+						</span>}
 					/>
 					<ListItemSecondaryAction>
 						<Button
@@ -123,6 +127,25 @@ const ClusterView: React.FC = (): JSX.Element => {
 							disabled
 							variant="outlined"
 							startIcon={<ExternalLink
+								size={18}
+							/>}>
+							Open
+						</Button>
+					</ListItemSecondaryAction>
+				</ListItem>
+				<ListItem>
+					<ListItemText
+						primary="Supply-chain security"
+						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : <span>
+							Verify and enforce container image supply-chain security.
+						</span>}
+					/>
+					<ListItemSecondaryAction>
+						<Button
+							className={classes.button}
+							variant="outlined"
+							disabled
+							endIcon={<ChevronRight
 								size={18}
 							/>}>
 							Open
