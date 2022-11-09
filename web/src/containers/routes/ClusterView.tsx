@@ -1,15 +1,15 @@
-import React from "react";
+import React, {useState} from "react";
 import {Link, useParams} from "react-router-dom";
 import {
 	Button,
-	Card,
+	Card, FormControlLabel,
 	IconButton,
 	List,
 	ListItem,
 	ListItemSecondaryAction,
 	ListItemText,
 	ListSubheader,
-	Skeleton,
+	Skeleton, Switch,
 	Theme
 } from "@mui/material";
 import {makeStyles} from "tss-react/mui";
@@ -46,9 +46,13 @@ const ClusterView: React.FC = (): JSX.Element => {
 	const clusterName = params["name"];
 	const tenantName = params["tenant"];
 
+	// local state
+	const [refresh, setRefresh] = useState<boolean>(false);
+
 	const {data, loading, error} = useClusterQuery({
 		variables: {tenant: tenantName || "", cluster: clusterName || ""},
-		skip: !clusterName || !tenantName
+		skip: !clusterName || !tenantName,
+		pollInterval: refresh ? 30_000 : 0
 	});
 
 	return <StandardLayout>
@@ -79,6 +83,15 @@ const ClusterView: React.FC = (): JSX.Element => {
 						primary={loading ? <Skeleton variant="text" height={30} width="40%"/> : data?.cluster.name}
 						secondary={loading ? <Skeleton variant="text" height={20} width="20%"/> : <ClusterVersionIndicator showLabel version={data?.cluster.status.kubeVersion || ""}/>}
 					/>
+					<ListItemSecondaryAction>
+						<FormControlLabel
+							control={<Switch/>}
+							label="Auto-refresh"
+							labelPlacement="start"
+							checked={refresh}
+							onChange={(e, checked) => setRefresh(() => checked)}
+						/>
+					</ListItemSecondaryAction>
 				</ListItem>
 				<ListItem>
 					<ListItemText
@@ -124,6 +137,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 		<ClusterMetricsView
 			cluster={data?.cluster as Cluster | null}
 			loading={loading}
+			refresh={refresh}
 		/>
 		<ListSubheader>
 			Metadata

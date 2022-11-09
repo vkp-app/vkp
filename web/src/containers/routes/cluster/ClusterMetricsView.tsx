@@ -7,12 +7,14 @@ import {formatBytes} from "../../../utils/fmt";
 interface Props {
 	cluster: Cluster | null;
 	loading: boolean;
+	refresh?: boolean;
 }
 
-const ClusterMetricsView: React.FC<Props> = ({cluster, loading}): JSX.Element => {
+const ClusterMetricsView: React.FC<Props> = ({cluster, loading, refresh}): JSX.Element => {
 	const {data} = useMetricsClusterQuery({
 		variables: {tenant: cluster?.tenant || "", cluster: cluster?.name || ""},
-		skip: !cluster
+		skip: !cluster,
+		pollInterval: refresh ? 10_000 : 0
 	});
 
 	/**
