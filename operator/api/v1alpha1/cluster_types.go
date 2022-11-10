@@ -34,7 +34,8 @@ type ClusterSpec struct {
 	HA      HighAvailability `json:"ha,omitempty"`
 	Storage Storage          `json:"storage,omitempty"`
 
-	Track ReleaseTrack `json:"track,omitempty"`
+	Track  ReleaseTrack     `json:"track,omitempty"`
+	Addons []NamespacedName `json:"addons,omitempty"`
 }
 
 type HighAvailability struct {

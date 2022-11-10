@@ -8,5 +8,6 @@ import (
 func main() {
 	_ = plugin.MustInit()
 	plugin.MustRegister(syncers.NewRBACSyncer())
+	plugin.MustRegister(syncers.NewAddonSyncer())
 	plugin.MustStart()
 }

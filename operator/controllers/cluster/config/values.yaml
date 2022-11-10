@@ -44,9 +44,12 @@ plugin:
   glass-sync:
     image: dev.local/kube-glass/vcluster-plugin-sync:latest
     imagePullPolicy: Never
+    env:
+      - name: VCLUSTER_CLUSTER_NAME
+        value: "{{ .Name }}"
     rbac:
       role:
         extraRules:
           - apiGroups: ["paas.dcas.dev"]
-            resources: ["tenants", "clusters"]
+            resources: ["tenants", "clusters", "clusteraddons"]
             verbs: ["get", "list", "watch"]

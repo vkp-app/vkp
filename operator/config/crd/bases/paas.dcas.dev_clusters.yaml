@@ -35,6 +35,18 @@ spec:
           spec:
             description: ClusterSpec defines the desired state of Cluster
             properties:
+              addons:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  type: object
+                type: array
               ha:
                 properties:
                   enabled:

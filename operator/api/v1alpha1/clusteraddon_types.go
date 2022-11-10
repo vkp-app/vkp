@@ -25,8 +25,7 @@ import (
 
 // ClusterAddonSpec defines the desired state of ClusterAddon
 type ClusterAddonSpec struct {
-	Manifests       []string             `json:"manifests,omitempty"`
-	ClusterSelector metav1.LabelSelector `json:"clusterSelector,omitempty"`
+	Manifests []string `json:"manifests,omitempty"`
 }
 
 // ClusterAddonStatus defines the observed state of ClusterAddon

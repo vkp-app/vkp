@@ -9,4 +9,5 @@ metadata:
     app.kubernetes.io/created-by: operator
   name: clusteraddon-sample
 spec:
-  # TODO(user): Add fields here
+  manifests:
+    - https://github.com/kubernetes-sigs/kustomize//examples/helloWorld/?ref=v3.3.1

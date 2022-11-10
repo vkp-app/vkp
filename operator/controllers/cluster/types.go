@@ -18,6 +18,7 @@ const (
 )
 
 type ValuesTemplate struct {
+	Name    string
 	Ingress ValuesIngress
 	IDP     ValuesIDP
 	Storage paasv1alpha1.Storage

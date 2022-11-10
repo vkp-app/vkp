@@ -25,6 +25,7 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1al
 	hostname := getHostname(cluster)
 	values := new(bytes.Buffer)
 	valuesConfig := ValuesTemplate{
+		Name: cluster.GetName(),
 		Ingress: ValuesIngress{
 			ClassName:     getEnv(EnvIngressClass, "nginx"),
 			Issuer:        getEnv(EnvIngressIssuer, ""),
