@@ -44,6 +44,12 @@ storage:
   className: {{ .Storage.StorageClassName }}
   {{- end }}
 plugin:
+  glass-hook:
+    image: dev.local/kube-glass/vcluster-plugin-hooks:latest
+    imagePullPolicy: Never
+    env:
+      - name: VCLUSTER_CLUSTER_DOMAIN
+        value: "{{ .Ingress.Host }}"
   glass-sync:
     image: dev.local/kube-glass/vcluster-plugin-sync:latest
     imagePullPolicy: Never

@@ -21,6 +21,17 @@ build:
           - ../vcluster-plugin-sync/internal/
           - ../vcluster-plugin-sync/go.mod
           - ../vcluster-plugin-sync/go.sum
+  - image: dev.local/kube-glass/vcluster-plugin-hooks
+    ko:
+      fromImage: harbor.dcas.dev/gcr.io/distroless/static:nonroot
+      main: ../vcluster-plugin-hooks/cmd/hooks/
+      dir: ../vcluster-plugin-hooks
+      dependencies:
+        paths:
+          - ../vcluster-plugin-hooks/cmd/
+          - ../vcluster-plugin-hooks/internal/
+          - ../vcluster-plugin-hooks/go.mod
+          - ../vcluster-plugin-hooks/go.sum
   - image: controller
     ko:
       fromImage: harbor.dcas.dev/gcr.io/distroless/static:nonroot
