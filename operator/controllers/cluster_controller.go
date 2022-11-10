@@ -18,17 +18,23 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"github.com/dexidp/dex/api/v2"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"os"
 	"reflect"
 	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
 
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
@@ -66,6 +72,18 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	if cr.DeletionTimestamp != nil {
 		log.Info("skipping cluster that has been marked for deletion")
+		if controllerutil.ContainsFinalizer(cr, finalizer) {
+			if err := r.finalizeDexClient(ctx, cr); err != nil {
+				return ctrl.Result{}, err
+			}
+			// remove the finalizer since we were
+			// able to successfully delete external
+			// resources
+			controllerutil.RemoveFinalizer(cr, finalizer)
+			if err := r.Update(ctx, cr); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 		return ctrl.Result{}, nil
 	}
 
@@ -84,10 +102,23 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.reconcileIngress(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
+	if err := r.reconcileDexClient(ctx, cr); err != nil {
+		return ctrl.Result{}, err
+	}
 	if err := r.Status().Update(ctx, cr); err != nil {
 		log.Error(err, "failed to update status")
 		return ctrl.Result{}, err
 	}
+
+	// add our finalizer
+	if !controllerutil.ContainsFinalizer(cr, finalizer) {
+		controllerutil.AddFinalizer(cr, finalizer)
+		if err := r.Update(ctx, cr); err != nil {
+			log.Error(err, "failed to add finalizer")
+			return ctrl.Result{}, err
+		}
+	}
+
 	return ctrl.Result{}, nil
 }
 
@@ -218,6 +249,54 @@ func (r *ClusterReconciler) reconcileIngress(ctx context.Context, cr *paasv1alph
 	// any changes
 	if !reflect.DeepEqual(ing.Spec, found.Spec) {
 		return r.SafeUpdate(ctx, found, ing)
+	}
+	return nil
+}
+
+func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+	log := logging.FromContext(ctx)
+	log.Info("reconciling dex client")
+	// establish a connection to the Dex API
+	conn, err := grpc.DialContext(ctx, os.Getenv(EnvIDPURL), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Error(err, "failed to establish gRPC connection to Dex")
+		return err
+	}
+	dexClient := api.NewDexClient(conn)
+	// create the client
+	_, err = dexClient.CreateClient(ctx, &api.CreateClientReq{
+		Client: &api.Client{
+			Id:     string(cr.GetUID()),
+			Name:   fmt.Sprintf("%s/%s", cr.GetNamespace(), cr.GetName()),
+			Secret: string(uuid.NewUUID()),
+			RedirectUris: []string{
+				fmt.Sprintf("console.%s.%s", cr.Status.ClusterID, cr.Status.ClusterDomain),
+			},
+		},
+	})
+	if err != nil {
+		log.Error(err, "failed to create Dex client")
+		return err
+	}
+	return nil
+}
+
+func (r *ClusterReconciler) finalizeDexClient(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+	log := logging.FromContext(ctx)
+	log.Info("finalizing dex client")
+	// establish a connection to the Dex API
+	conn, err := grpc.DialContext(ctx, os.Getenv(EnvIDPURL), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Error(err, "failed to establish gRPC connection to Dex")
+		return err
+	}
+	dexClient := api.NewDexClient(conn)
+	_, err = dexClient.DeleteClient(ctx, &api.DeleteClientReq{
+		Id: string(cr.GetUID()),
+	})
+	if err != nil {
+		log.Error(err, "failed to delete Dex client")
+		return err
 	}
 	return nil
 }

@@ -50,6 +50,8 @@ spec:
             value: https://dex.192-168-49-2.nip.io
           - name: PAAS_IDP_CLIENT_ID
             value: glass
+          - name: PAAS_IDP_GRPC_URL
+            value: dex.glass-system.svc.cluster.local:5557
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

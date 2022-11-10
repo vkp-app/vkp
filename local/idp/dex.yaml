@@ -17,6 +17,13 @@ config:
     - id: mock
       type: mockCallback
       name: Mock
+  grpc:
+    addr: 0.0.0.0:5557
+    tlsCert: ""
+    tlsKey: ""
+    reflection: true
+grpc:
+  enabled: true
 ingress:
   enabled: true
   className: nginx
