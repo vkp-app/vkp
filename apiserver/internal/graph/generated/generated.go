@@ -50,6 +50,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Cluster struct {
+		Addons func(childComplexity int) int
 		Name   func(childComplexity int) int
 		Status func(childComplexity int) int
 		Tenant func(childComplexity int) int
@@ -111,6 +112,7 @@ type ComplexityRoot struct {
 type ClusterResolver interface {
 	Tenant(ctx context.Context, obj *v1alpha1.Cluster) (string, error)
 	Track(ctx context.Context, obj *v1alpha1.Cluster) (model.Track, error)
+	Addons(ctx context.Context, obj *v1alpha1.Cluster) ([]v1alpha1.NamespacedName, error)
 }
 type MutationResolver interface {
 	CreateTenant(ctx context.Context, name string) (*v1alpha1.Tenant, error)
@@ -148,6 +150,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Cluster.addons":
+		if e.complexity.Cluster.Addons == nil {
+			break
+		}
+
+		return e.complexity.Cluster.Addons(childComplexity), true
 
 	case "Cluster.name":
 		if e.complexity.Cluster.Name == nil {
@@ -526,6 +535,7 @@ type Cluster {
   name: ID!
   tenant: ID!
   track: Track!
+  addons: [NamespacedName!]!
 
   status: ClusterStatus!
 }
@@ -994,6 +1004,56 @@ func (ec *executionContext) fieldContext_Cluster_track(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Cluster_addons(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Cluster) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Cluster_addons(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Cluster().Addons(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]v1alpha1.NamespacedName)
+	fc.Result = res
+	return ec.marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedNameᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Cluster_addons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cluster",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_NamespacedName_name(ctx, field)
+			case "namespace":
+				return ec.fieldContext_NamespacedName_namespace(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type NamespacedName", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Cluster_status(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Cluster) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Cluster_status(ctx, field)
 	if err != nil {
@@ -1416,6 +1476,8 @@ func (ec *executionContext) fieldContext_Mutation_createCluster(ctx context.Cont
 				return ec.fieldContext_Cluster_tenant(ctx, field)
 			case "track":
 				return ec.fieldContext_Cluster_track(ctx, field)
+			case "addons":
+				return ec.fieldContext_Cluster_addons(ctx, field)
 			case "status":
 				return ec.fieldContext_Cluster_status(ctx, field)
 			}
@@ -1823,6 +1885,8 @@ func (ec *executionContext) fieldContext_Query_clustersInTenant(ctx context.Cont
 				return ec.fieldContext_Cluster_tenant(ctx, field)
 			case "track":
 				return ec.fieldContext_Cluster_track(ctx, field)
+			case "addons":
+				return ec.fieldContext_Cluster_addons(ctx, field)
 			case "status":
 				return ec.fieldContext_Cluster_status(ctx, field)
 			}
@@ -1908,6 +1972,8 @@ func (ec *executionContext) fieldContext_Query_cluster(ctx context.Context, fiel
 				return ec.fieldContext_Cluster_tenant(ctx, field)
 			case "track":
 				return ec.fieldContext_Cluster_track(ctx, field)
+			case "addons":
+				return ec.fieldContext_Cluster_addons(ctx, field)
 			case "status":
 				return ec.fieldContext_Cluster_status(ctx, field)
 			}
@@ -4714,6 +4780,26 @@ func (ec *executionContext) _Cluster(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Cluster_track(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "addons":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Cluster_addons(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

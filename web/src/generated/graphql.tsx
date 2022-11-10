@@ -18,6 +18,7 @@ export type Scalars = {
 
 export type Cluster = {
   __typename?: 'Cluster';
+  addons: Array<NamespacedName>;
   name: Scalars['ID'];
   status: ClusterStatus;
   tenant: Scalars['ID'];
@@ -175,7 +176,7 @@ export type ClusterQueryVariables = Exact<{
 }>;
 
 
-export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: Track, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string } } };
+export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: Track, addons: Array<{ __typename?: 'NamespacedName', name: string, namespace: string }>, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string } } };
 
 export type CreateClusterMutationVariables = Exact<{
   tenant: Scalars['ID'];
@@ -257,9 +258,14 @@ export const ClusterDocument = gql`
     name
     tenant
     track
+    addons {
+      name
+      namespace
+    }
     status {
       kubeVersion
       kubeURL
+      webURL
     }
   }
 }

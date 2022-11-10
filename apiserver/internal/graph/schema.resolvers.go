@@ -29,6 +29,11 @@ func (r *clusterResolver) Track(ctx context.Context, obj *paasv1alpha1.Cluster) 
 	return model.FromDAO(obj.Spec.Track), nil
 }
 
+// Addons is the resolver for the addons field.
+func (r *clusterResolver) Addons(ctx context.Context, obj *paasv1alpha1.Cluster) ([]paasv1alpha1.NamespacedName, error) {
+	return obj.Spec.Addons, nil
+}
+
 // CreateTenant is the resolver for the createTenant field.
 func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paasv1alpha1.Tenant, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", name)

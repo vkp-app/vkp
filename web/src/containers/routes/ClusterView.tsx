@@ -124,11 +124,13 @@ const ClusterView: React.FC = (): JSX.Element => {
 					<ListItemSecondaryAction>
 						<Button
 							className={classes.button}
-							disabled
+							disabled={loading || !data?.cluster.status.webURL}
 							variant="outlined"
 							startIcon={<ExternalLink
 								size={18}
-							/>}>
+							/>}
+							href={`https://${data?.cluster.status.webURL}`}
+							target="_blank">
 							Open
 						</Button>
 					</ListItemSecondaryAction>

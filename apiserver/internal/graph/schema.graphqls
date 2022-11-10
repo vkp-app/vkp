@@ -34,6 +34,7 @@ type Cluster {
   name: ID!
   tenant: ID!
   track: Track!
+  addons: [NamespacedName!]!
 
   status: ClusterStatus!
 }
