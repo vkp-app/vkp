@@ -9,5 +9,21 @@ metadata:
     app.kubernetes.io/created-by: operator
   name: clusteraddon-sample
 spec:
-  manifests:
-    - https://github.com/kubernetes-sigs/kustomize//examples/helloWorld/?ref=v3.3.1
+  resources:
+    - url: https://github.com/kubernetes-sigs/kustomize//examples/helloWorld/?ref=v3.3.1
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterAddon
+metadata:
+  labels:
+    app.kubernetes.io/name: clusteraddon
+    app.kubernetes.io/instance: dashboard-okd
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: dashboard-okd
+  namespace: alpha
+spec:
+  resources:
+    - configMap:
+        name: glass-addon-dashboard-okd

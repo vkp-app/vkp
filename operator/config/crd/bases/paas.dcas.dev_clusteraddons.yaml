@@ -35,9 +35,32 @@ spec:
           spec:
             description: ClusterAddonSpec defines the desired state of ClusterAddon
             properties:
-              manifests:
+              resources:
                 items:
-                  type: string
+                  properties:
+                    configMap:
+                      description: LocalObjectReference contains enough information
+                        to let you locate the referenced object inside the same namespace.
+                      properties:
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    secret:
+                      description: LocalObjectReference contains enough information
+                        to let you locate the referenced object inside the same namespace.
+                      properties:
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    url:
+                      type: string
+                  type: object
                 type: array
             type: object
           status:

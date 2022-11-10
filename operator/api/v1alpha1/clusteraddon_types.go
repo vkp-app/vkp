@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,7 +26,13 @@ import (
 
 // ClusterAddonSpec defines the desired state of ClusterAddon
 type ClusterAddonSpec struct {
-	Manifests []string `json:"manifests,omitempty"`
+	Resources []RemoteRef `json:"resources,omitempty"`
+}
+
+type RemoteRef struct {
+	URL       string                      `json:"url,omitempty"`
+	ConfigMap corev1.LocalObjectReference `json:"configMap,omitempty"`
+	Secret    corev1.LocalObjectReference `json:"secret,omitempty"`
 }
 
 // ClusterAddonStatus defines the observed state of ClusterAddon

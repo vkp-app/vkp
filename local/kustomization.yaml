@@ -1,4 +1,5 @@
 resources:
+  - addons
   - clusterapi
   - idp
   - prometheus

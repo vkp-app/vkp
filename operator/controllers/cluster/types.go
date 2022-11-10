@@ -13,8 +13,7 @@ const (
 	EnvIngressClass  = "PAAS_INGRESS_CLASS"
 	EnvIngressIssuer = "PAAS_INGRESS_ISSUER"
 
-	EnvIDPURL      = "PAAS_IDP_URL"
-	EnvIDPClientID = "PAAS_IDP_CLIENT_ID"
+	EnvIDPURL = "PAAS_IDP_URL"
 )
 
 type ValuesTemplate struct {
@@ -25,13 +24,10 @@ type ValuesTemplate struct {
 }
 
 type ValuesIngress struct {
-	ClassName     string
-	Issuer        string
 	Host          string
 	TLSSecretName string
 }
 
 type ValuesIDP struct {
-	URL      string
-	ClientID string
+	URL string
 }

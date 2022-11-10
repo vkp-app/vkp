@@ -1,0 +1,46 @@
+resources:
+  - namespace.yaml
+  - secret.yaml
+patchesStrategicMerge:
+  - patch-test.yaml
+helmCharts:
+  - name: openshift-console
+    namespace: openshift-console
+    version: 0.3.6
+    releaseName: openshift-console
+    repo: https://av1o.gitlab.io/charts
+    valuesInline:
+      image:
+        registry: harbor.dcas.dev/quay.io
+      console:
+        dex:
+          host: __GLASS_DEX_URL__
+        baseUrl: https://console.__GLASS_CLUSTER_URL__
+        oidc:
+          issuerUrl: __GLASS_DEX_URL__
+          clientId: __GLASS_DEX_CLIENT_ID__
+          clientSecret: __GLASS_DEX_CLIENT_SECRET__
+      ingress:
+        enabled: true
+        className: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: iss-kube
+        hosts:
+          - host: console.__GLASS_CLUSTER_URL__
+            paths: ["/"]
+        tls:
+          - secretName: console-tls
+            hosts:
+              - console.__GLASS_CLUSTER_URL__
+      extraEnv:
+        BRIDGE_USER_AUTH_OIDC_CA_FILE: /var/run/secrets/dcas.dev/tls/ca.crt
+        BRIDGE_K8S_MODE: off-cluster
+        BRIDGE_K8S_MODE_OFF_CLUSTER_ENDPOINT: https://api.__GLASS_CLUSTER_URL__
+        BRIDGE_K8S_MODE_OFF_CLUSTER_SKIP_VERIFY_TLS: "true"
+        BRIDGE_K8S_PUBLIC_ENDPOINT: https://api.__GLASS_CLUSTER_URL__
+      volumes:
+        - name: tls
+          mountPath: /var/run/secrets/dcas.dev/tls
+          config:
+            secret:
+              secretName: tls-ca.crt

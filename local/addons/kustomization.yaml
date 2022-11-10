@@ -1,0 +1,10 @@
+namespace: alpha
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: glass-addon-dashboard-okd
+    files:
+      - dashboard-okd/namespace.yaml
+      - dashboard-okd/secret.yaml
+      - dashboard-okd/patch-test.yaml
+      - dashboard-okd/kustomization.yaml

@@ -24,11 +24,11 @@ import (
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/uuid"
 	"os"
 	"reflect"
 	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
@@ -52,6 +52,7 @@ type ClusterReconciler struct {
 //+kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=vclusters,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -93,6 +94,9 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.reconcileDomain(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
+	if err := r.reconcileDexSecret(ctx, cr); err != nil {
+		return ctrl.Result{}, err
+	}
 	if err := r.reconcileVCluster(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -129,6 +133,7 @@ func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&vclusterv1alpha1.VCluster{}).
 		Owns(&capiv1betav1.Cluster{}).
 		Owns(&netv1.Ingress{}).
+		Owns(&corev1.Secret{}).
 		Complete(r)
 }
 
@@ -253,30 +258,102 @@ func (r *ClusterReconciler) reconcileIngress(ctx context.Context, cr *paasv1alph
 	return nil
 }
 
+func (r *ClusterReconciler) reconcileDexSecret(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+	log := logging.FromContext(ctx)
+	log.Info("reconciling dex secret")
+
+	sec := cluster.DexSecret(cr)
+
+	found := &corev1.Secret{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: sec.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			if err := ctrl.SetControllerReference(cr, sec, r.Scheme); err != nil {
+				log.Error(err, "failed to set controller reference")
+				return err
+			}
+			if err := r.Create(ctx, sec); err != nil {
+				log.Error(err, "failed to create dex secret")
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	if found.Data == nil {
+		log.Info("skipping dex secret as .data is nil")
+		found.Data = sec.Data
+		return nil
+	}
+	// validate that the client id exists
+	if val, ok := found.Data[cluster.DexKeyID]; !ok || val == nil {
+		found.Data[cluster.DexKeyID] = sec.Data[cluster.DexKeyID]
+		if err := r.Update(ctx, found); err != nil {
+			log.Error(err, "failed to update dex secret")
+			return err
+		}
+	}
+	// validate that the client secret exists
+	if val, ok := found.Data[cluster.DexKeySecret]; !ok || val == nil {
+		found.Data[cluster.DexKeySecret] = sec.Data[cluster.DexKeySecret]
+		if err := r.Update(ctx, found); err != nil {
+			log.Error(err, "failed to update dex secret")
+			return err
+		}
+	}
+	return nil
+}
+
 func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling dex client")
+
+	// fetch the secret
+	sc := &corev1.Secret{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: fmt.Sprintf("%s-dex", cr.GetName())}, sc); err != nil {
+		log.Error(err, "failed to fetch dex secret")
+		return err
+	}
+
 	// establish a connection to the Dex API
 	conn, err := grpc.DialContext(ctx, os.Getenv(EnvIDPURL), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error(err, "failed to establish gRPC connection to Dex")
 		return err
 	}
+	defer conn.Close()
 	dexClient := api.NewDexClient(conn)
-	// create the client
-	_, err = dexClient.CreateClient(ctx, &api.CreateClientReq{
-		Client: &api.Client{
-			Id:     string(cr.GetUID()),
-			Name:   fmt.Sprintf("%s/%s", cr.GetNamespace(), cr.GetName()),
-			Secret: string(uuid.NewUUID()),
-			RedirectUris: []string{
-				fmt.Sprintf("console.%s.%s", cr.Status.ClusterID, cr.Status.ClusterDomain),
-			},
+	oauthClient := &api.Client{
+		Id:     string(sc.Data[cluster.DexKeyID]),
+		Name:   fmt.Sprintf("%s/%s", cr.GetNamespace(), cr.GetName()),
+		Secret: string(sc.Data[cluster.DexKeySecret]),
+		RedirectUris: []string{
+			fmt.Sprintf("https://console.%s.%s/auth/callback", cr.Status.ClusterID, cr.Status.ClusterDomain),
+			fmt.Sprintf("https://console.%s.%s/oauth2/callback", cr.Status.ClusterID, cr.Status.ClusterDomain),
 		},
-	})
+	}
+	// create the client
+	resp, err := dexClient.CreateClient(ctx, &api.CreateClientReq{Client: oauthClient})
 	if err != nil {
 		log.Error(err, "failed to create Dex client")
 		return err
+	}
+	if !resp.AlreadyExists || resp.Client == nil {
+		return nil
+	}
+	// reconcile the client
+	if !reflect.DeepEqual(oauthClient.RedirectUris, resp.Client.RedirectUris) {
+		log.Info("patching Dex client")
+		_, err = dexClient.UpdateClient(ctx, &api.UpdateClientReq{
+			Id:           oauthClient.Id,
+			RedirectUris: oauthClient.RedirectUris,
+			TrustedPeers: oauthClient.TrustedPeers,
+			Name:         oauthClient.Name,
+			LogoUrl:      oauthClient.LogoUrl,
+		})
+		if err != nil {
+			log.Error(err, "failed to update Dex client")
+			return err
+		}
 	}
 	return nil
 }
@@ -290,6 +367,7 @@ func (r *ClusterReconciler) finalizeDexClient(ctx context.Context, cr *paasv1alp
 		log.Error(err, "failed to establish gRPC connection to Dex")
 		return err
 	}
+	defer conn.Close()
 	dexClient := api.NewDexClient(conn)
 	_, err = dexClient.DeleteClient(ctx, &api.DeleteClientReq{
 		Id: string(cr.GetUID()),

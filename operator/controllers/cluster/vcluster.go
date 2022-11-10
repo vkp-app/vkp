@@ -12,6 +12,7 @@ import (
 	"os"
 	"sigs.k8s.io/cluster-api/api/v1beta1"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
+	"strings"
 	"text/template"
 )
 
@@ -27,14 +28,11 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1al
 	valuesConfig := ValuesTemplate{
 		Name: cluster.GetName(),
 		Ingress: ValuesIngress{
-			ClassName:     getEnv(EnvIngressClass, "nginx"),
-			Issuer:        getEnv(EnvIngressIssuer, ""),
-			Host:          hostname,
+			Host:          strings.TrimPrefix(hostname, "api."),
 			TLSSecretName: fmt.Sprintf("tls-kubeapi-%s", cluster.GetName()),
 		},
 		IDP: ValuesIDP{
-			URL:      getEnv(EnvIDPURL, ""),
-			ClientID: getEnv(EnvIDPClientID, ""),
+			URL: getEnv(EnvIDPURL, ""),
 		},
 		Storage: cluster.Spec.Storage,
 	}

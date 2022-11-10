@@ -5,9 +5,13 @@ import (
 	"github.com/loft-sh/vcluster-sdk/syncer"
 	synccontext "github.com/loft-sh/vcluster-sdk/syncer/context"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"os"
+	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
@@ -25,8 +29,10 @@ type AddonSyncer struct {
 	namespace   string
 }
 
-func NewAddonSyncer() *AddonSyncer {
-	return &AddonSyncer{}
+func NewAddonSyncer(clusterName string) *AddonSyncer {
+	return &AddonSyncer{
+		ClusterName: clusterName,
+	}
 }
 
 func (*AddonSyncer) Name() string {
@@ -51,13 +57,6 @@ func (r *AddonSyncer) Register(ctx *synccontext.RegisterContext) error {
 func (r *AddonSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logging.FromContext(ctx, "namespace", req.Namespace, "name", req.Name)
 	log.Info("reconciling addon")
-
-	// get the cluster
-	//cr := &paasv1alpha1.Cluster{}
-	//if err := r.pClient.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: req.Name}, cr); err != nil {
-	//	log.Error(err, "failed to retrieve cluster resource")
-	//	return ctrl.Result{}, err
-	//}
 
 	// skip resources that don't match
 	// our namespace
@@ -86,23 +85,33 @@ func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.Clust
 	log.Info("reconciling nested addon")
 
 	// apply it
-	for _, manifest := range cr.Spec.Manifests {
+	for _, manifest := range cr.Spec.Resources {
 		log.Info("applying manifest", "ManifestURL", manifest)
-		// skip non-remote URLs
-		if !strings.HasPrefix(manifest, "https://") {
-			log.Info("skipping non-HTTPS manifest")
-			continue
+		var kustomizePath string
+		// figure out where we get our resources from
+		if manifest.URL != "" {
+			// skip non-remote URLs
+			if !strings.HasPrefix(manifest.URL, "https://") {
+				log.Info("skipping non-HTTPS manifest")
+				continue
+			}
+			kustomizePath = manifest.URL
+		} else if manifest.ConfigMap.Name != "" {
+			dir, err := r.manifestsFromConfigMap(ctx, manifest.ConfigMap.Name)
+			if err != nil {
+				return err
+			}
+			kustomizePath = dir
 		}
-		// apply the manifests using kustomize
-		allResources, err := krusty.MakeKustomizer(&krusty.Options{
-			AddManagedbyLabel: true,
-			DoPrune:           true,
-			PluginConfig: &ktypes.PluginConfig{
-				HelmConfig: ktypes.HelmConfig{
-					Enabled: true,
-				},
-			},
-		}).Run(filesys.MakeFsOnDisk(), manifest)
+		// configure kustomize so we can
+		// inflate helm charts
+		opt := krusty.MakeDefaultOptions()
+		opt.PluginConfig = ktypes.MakePluginConfig(ktypes.PluginRestrictionsNone, ktypes.BploLoadFromFileSys)
+		opt.PluginConfig.FnpLoadingOptions.EnableStar = true
+		opt.PluginConfig.HelmConfig.Enabled = true
+		opt.PluginConfig.HelmConfig.Command = "helm"
+		// render the manifests using kustomize
+		allResources, err := krusty.MakeKustomizer(opt).Run(filesys.MakeFsOnDisk(), kustomizePath)
 		if err != nil {
 			log.Error(err, "failed to kustomize addon")
 			return err
@@ -120,7 +129,7 @@ func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.Clust
 				return err
 			}
 			decoder := clientgoscheme.Codecs.UniversalDeserializer()
-			obj, _, err := decoder.Decode(yaml, nil, nil)
+			obj, _, err := decoder.Decode([]byte(r.mangleYAML(string(yaml))), nil, nil)
 			if err != nil {
 				log.Error(err, "failed to decode resource YAML")
 				return err
@@ -141,6 +150,41 @@ func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.Clust
 		}
 	}
 	return nil
+}
+
+func (r *AddonSyncer) manifestsFromConfigMap(ctx context.Context, name string) (string, error) {
+	log := logging.FromContext(ctx).WithValues("configmap", name)
+	log.Info("fetching addon manifests from ConfigMap")
+
+	cm := &corev1.ConfigMap{}
+	if err := r.pClient.Get(ctx, types.NamespacedName{Namespace: r.namespace, Name: name}, cm); err != nil {
+		log.Error(err, "failed to retrieve ConfigMap")
+		return "", err
+	}
+	dir, err := os.MkdirTemp("", "addon-*")
+	if err != nil {
+		log.Error(err, "failed to allocate temporary directory")
+		return "", err
+	}
+	// write all the data to our temp directory
+	for k, v := range cm.Data {
+		if err := os.WriteFile(filepath.Join(dir, k), []byte(v), 0644); err != nil {
+			log.Error(err, "failed to write file")
+			return "", err
+		}
+	}
+	return dir, nil
+}
+
+// mangleYAML does a simple find-and-replace, so we can inject
+// per-cluster configuration values (e.g. URLs and OAuth information)
+func (*AddonSyncer) mangleYAML(s string) string {
+	s = strings.ReplaceAll(s, MagicDexURL, os.Getenv(MagicDexURL))
+	s = strings.ReplaceAll(s, MagicClusterURL, os.Getenv(MagicClusterURL))
+	s = strings.ReplaceAll(s, MagicDexClientID, os.Getenv(MagicDexClientID))
+	s = strings.ReplaceAll(s, MagicDexClientSecret, os.Getenv(MagicDexClientSecret))
+
+	return s
 }
 
 var _ syncer.Base = &AddonSyncer{}

@@ -1,11 +1,5 @@
 ingress:
   enabled: false
-  ingressClassName: {{ .Ingress.ClassName }}
-  host: {{ .Ingress.Host }}
-  {{- if .Ingress.Issuer }}
-  annotations:
-    cert-manager.io/cluster-issuer: {{ .Ingress.Issuer }}
-  {{- end }}
 securityContext:
   allowPrivilegeEscalation: false
   capabilities:
@@ -14,10 +8,13 @@ securityContext:
   readOnlyRootFilesystem: true
   runAsNonRoot: true
   runAsUser: 12345
+sync:
+  ingresses:
+    enabled: true
 vcluster:
   extraArgs:
     - --kube-apiserver-arg="--oidc-issuer-url={{ .IDP.URL }}"
-    - --kube-apiserver-arg="--oidc-client-id={{ .IDP.ClientID }}"
+    - --kube-apiserver-arg="--oidc-client-id=$(DEX_CLIENT_ID)"
     - --kube-apiserver-arg="--oidc-username-claim=email"
     - --kube-apiserver-arg="--oidc-username-prefix=-"
     - --kube-apiserver-arg="--oidc-groups-prefix=oidc:"
@@ -28,6 +25,12 @@ vcluster:
     - name: tls
       mountPath: /var/run/secrets/dcas.dev/tls
       readOnly: true
+  env:
+    - name: DEX_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Name }}-dex"
+          key: client_id
 volumes:
   - name: tls
     secret:
@@ -47,6 +50,20 @@ plugin:
     env:
       - name: VCLUSTER_CLUSTER_NAME
         value: "{{ .Name }}"
+      - name: __GLASS_CLUSTER_URL__
+        value: "{{ .Ingress.Host }}"
+      - name: __GLASS_DEX_URL__
+        value: "{{ .IDP.URL }}"
+      - name: __GLASS_DEX_CLIENT_ID__
+        valueFrom:
+          secretKeyRef:
+            name: "{{ .Name }}-dex"
+            key: client_id
+      - name: __GLASS_DEX_CLIENT_SECRET__
+        valueFrom:
+          secretKeyRef:
+            name: "{{ .Name }}-dex"
+            key: client_secret
     rbac:
       role:
         extraRules:
