@@ -102,6 +102,12 @@ func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.Clust
 				return err
 			}
 			kustomizePath = dir
+		} else if manifest.Secret.Name != "" {
+			dir, err := r.manifestsFromSecret(ctx, manifest.Secret.Name)
+			if err != nil {
+				return err
+			}
+			kustomizePath = dir
 		}
 		// configure kustomize so we can
 		// inflate helm charts
@@ -152,6 +158,9 @@ func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.Clust
 	return nil
 }
 
+// manifestsFromSecret downloads all kubernetes manifests from a corev1.ConfigMap
+// and stores them in a temporary directory so that they can be consumed by
+// Kustomize.
 func (r *AddonSyncer) manifestsFromConfigMap(ctx context.Context, name string) (string, error) {
 	log := logging.FromContext(ctx).WithValues("configmap", name)
 	log.Info("fetching addon manifests from ConfigMap")
@@ -169,6 +178,36 @@ func (r *AddonSyncer) manifestsFromConfigMap(ctx context.Context, name string) (
 	// write all the data to our temp directory
 	for k, v := range cm.Data {
 		if err := os.WriteFile(filepath.Join(dir, k), []byte(v), 0644); err != nil {
+			log.Error(err, "failed to write file")
+			return "", err
+		}
+	}
+	return dir, nil
+}
+
+// manifestsFromSecret downloads all kubernetes manifests from a corev1.Secret
+// and stores them in a temporary directory so that they can be consumed by
+// Kustomize.
+//
+// Almost duplicate of manifestsFromConfigMap and could no doubt
+// be improved down-the-line.
+func (r *AddonSyncer) manifestsFromSecret(ctx context.Context, name string) (string, error) {
+	log := logging.FromContext(ctx).WithValues("secret", name)
+	log.Info("fetching addon manifests from Secret")
+
+	sec := &corev1.Secret{}
+	if err := r.pClient.Get(ctx, types.NamespacedName{Namespace: r.namespace, Name: name}, sec); err != nil {
+		log.Error(err, "failed to retrieve Secret")
+		return "", err
+	}
+	dir, err := os.MkdirTemp("", "addon-*")
+	if err != nil {
+		log.Error(err, "failed to allocate temporary directory")
+		return "", err
+	}
+	// write all the data to our temp directory
+	for k, v := range sec.Data {
+		if err := os.WriteFile(filepath.Join(dir, k), v, 0644); err != nil {
 			log.Error(err, "failed to write file")
 			return "", err
 		}
