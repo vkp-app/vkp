@@ -2,8 +2,25 @@ apiVersion: skaffold/v2beta29
 kind: Config
 metadata:
   name: operator
+#requires:
+#  - path: ../vcluster-plugin-sync/skaffold.yaml
+#    configs:
+#      - vcluster-plugin-sync
 build:
+  tagPolicy:
+    sha256: {}
   artifacts:
+  - image: dev.local/kube-glass/vcluster-plugin-sync
+    ko:
+      fromImage: harbor.dcas.dev/gcr.io/distroless/static:nonroot
+      main: ../vcluster-plugin-sync/cmd/sync/
+      dir: ../vcluster-plugin-sync
+      dependencies:
+        paths:
+          - ../vcluster-plugin-sync/cmd/
+          - ../vcluster-plugin-sync/internal/
+          - ../vcluster-plugin-sync/go.mod
+          - ../vcluster-plugin-sync/go.sum
   - image: controller
     ko:
       dependencies:
@@ -18,40 +35,4 @@ build:
 deploy:
   kustomize:
     paths:
-    - config/crd
-profiles:
-- name: default
-  deploy:
-    kustomize:
-      paths:
-      - config/default
-- name: manager
-  deploy:
-    kustomize:
-      paths:
-      - config/manager
-- name: manifests
-  deploy:
-    kustomize:
-      paths:
-      - config/manifests
-- name: prometheus
-  deploy:
-    kustomize:
-      paths:
-      - config/prometheus
-- name: rbac
-  deploy:
-    kustomize:
-      paths:
-      - config/rbac
-- name: samples
-  deploy:
-    kustomize:
-      paths:
-      - config/samples
-- name: scorecard
-  deploy:
-    kustomize:
-      paths:
-      - config/scorecard
+    - config/default

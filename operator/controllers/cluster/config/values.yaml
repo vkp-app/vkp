@@ -40,3 +40,13 @@ storage:
   {{- if .Storage.StorageClassName }}
   className: {{ .Storage.StorageClassName }}
   {{- end }}
+plugin:
+  glass-sync:
+    image: dev.local/kube-glass/vcluster-plugin-sync:latest
+    imagePullPolicy: Never
+    rbac:
+      role:
+        extraRules:
+          - apiGroups: ["paas.dcas.dev"]
+            resources: ["tenants", "clusters"]
+            verbs: ["get", "list", "watch"]
