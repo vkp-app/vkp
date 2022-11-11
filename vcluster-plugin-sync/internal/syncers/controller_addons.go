@@ -77,6 +77,8 @@ func (r *AddonSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Res
 		return ctrl.Result{}, err
 	}
 
+	// todo place a finalizer so we can delete resources if the addon is removed
+
 	return ctrl.Result{}, nil
 }
 

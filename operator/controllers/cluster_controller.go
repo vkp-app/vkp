@@ -227,6 +227,10 @@ func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *paasv1alph
 	// reconcile by forcibly overwriting
 	// any changes
 	if !reflect.DeepEqual(capiCluster.Spec, found.Spec) {
+		if err := ctrl.SetControllerReference(cr, capiCluster, r.Scheme); err != nil {
+			log.Error(err, "failed to set controller reference")
+			return err
+		}
 		return r.SafeUpdate(ctx, found, capiCluster)
 	}
 	return nil
@@ -256,6 +260,10 @@ func (r *ClusterReconciler) reconcileIngress(ctx context.Context, cr *paasv1alph
 	// reconcile by forcibly overwriting
 	// any changes
 	if !reflect.DeepEqual(ing.Spec, found.Spec) {
+		if err := ctrl.SetControllerReference(cr, ing, r.Scheme); err != nil {
+			log.Error(err, "failed to set controller reference")
+			return err
+		}
 		return r.SafeUpdate(ctx, found, ing)
 	}
 	return nil
@@ -280,6 +288,10 @@ func (r *ClusterReconciler) reconcileDexSecret(ctx context.Context, cr *paasv1al
 			}
 			return nil
 		}
+		return err
+	}
+	if err := ctrl.SetControllerReference(cr, sec, r.Scheme); err != nil {
+		log.Error(err, "failed to set controller reference")
 		return err
 	}
 	if found.Data == nil {
