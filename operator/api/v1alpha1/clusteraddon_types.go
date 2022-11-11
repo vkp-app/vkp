@@ -37,8 +37,19 @@ type RemoteRef struct {
 
 // ClusterAddonStatus defines the observed state of ClusterAddon
 type ClusterAddonStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	ResourceDigests map[string]string `json:"resourceDigests,omitempty"`
+}
+
+func ConfigMapDigestKey(name string) string {
+	return "cm:" + name
+}
+
+func SecretDigestKey(name string) string {
+	return "cm:" + name
+}
+
+func UriDigestKey(name string) string {
+	return "uri:" + name
 }
 
 //+kubebuilder:object:root=true

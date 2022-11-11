@@ -65,6 +65,11 @@ spec:
             type: object
           status:
             description: ClusterAddonStatus defines the observed state of ClusterAddon
+            properties:
+              resourceDigests:
+                additionalProperties:
+                  type: string
+                type: object
             type: object
         type: object
     served: true

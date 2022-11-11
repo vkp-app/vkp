@@ -86,7 +86,7 @@ func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.Clust
 
 	// apply it
 	for _, manifest := range cr.Spec.Resources {
-		log.Info("applying manifest", "ManifestURL", manifest)
+		log.Info("applying remote resource", "resource", manifest)
 		var kustomizePath string
 		// figure out where we get our resources from
 		if manifest.URL != "" {
@@ -123,8 +123,7 @@ func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.Clust
 			return err
 		}
 		for _, resource := range allResources.Resources() {
-			log = log.WithValues("resourceName", resource.GetName(), "resourceKind", resource.GetKind(), "resourceNamespace", resource.GetNamespace())
-			log.Info("applying resource")
+			log.Info("applying resource", "resourceName", resource.GetName(), "resourceKind", resource.GetKind(), "resourceNamespace", resource.GetNamespace())
 			// set the namespace if one is not set
 			if resource.GetNamespace() == "" {
 				_ = resource.SetNamespace("default")

@@ -12,6 +12,7 @@ helmCharts:
     valuesInline:
       image:
         registry: harbor.dcas.dev/quay.io
+        tag: 4.12.0
       console:
         dex:
           host: __GLASS_DEX_URL__
