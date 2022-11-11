@@ -6,6 +6,7 @@ import (
 	"github.com/loft-sh/vcluster-sdk/hook"
 	netv1 "k8s.io/api/networking/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	logging "sigs.k8s.io/controller-runtime/pkg/log"
 	"strings"
 )
 
@@ -21,7 +22,8 @@ func (h *IngressHook) Resource() client.Object {
 	return &netv1.Ingress{}
 }
 
-func (h *IngressHook) MutateCreatePhysical(_ context.Context, obj client.Object) (client.Object, error) {
+func (h *IngressHook) MutateCreatePhysical(ctx context.Context, obj client.Object) (client.Object, error) {
+	log := logging.FromContext(ctx)
 	ing, ok := obj.(*netv1.Ingress)
 	if !ok {
 		return nil, fmt.Errorf("object %+v is not an Ingress", obj)
@@ -33,6 +35,7 @@ func (h *IngressHook) MutateCreatePhysical(_ context.Context, obj client.Object)
 		}
 		flat := strings.ReplaceAll(r.Host, ".", "-")
 		ing.Spec.Rules[i].Host = fmt.Sprintf("%s.%s", flat, h.ClusterDomain)
+		log.Info("rewriting networking.k8s.io/Ingress hostname", "old", r.Host, "new", ing.Spec.Rules[i].Host)
 	}
 	return ing, nil
 }

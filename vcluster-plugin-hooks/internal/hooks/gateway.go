@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/loft-sh/vcluster-sdk/hook"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	logging "sigs.k8s.io/controller-runtime/pkg/log"
 	gatewayv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 	"strings"
 )
@@ -21,14 +22,15 @@ func (h *GatewayHook) Resource() client.Object {
 	return &gatewayv1beta1.Gateway{}
 }
 
-func (h *GatewayHook) MutateCreatePhysical(_ context.Context, obj client.Object) (client.Object, error) {
-	route, ok := obj.(*gatewayv1beta1.Gateway)
+func (h *GatewayHook) MutateCreatePhysical(ctx context.Context, obj client.Object) (client.Object, error) {
+	log := logging.FromContext(ctx)
+	gateway, ok := obj.(*gatewayv1beta1.Gateway)
 	if !ok {
 		return nil, fmt.Errorf("object %+v is not a Gateway", obj)
 	}
 	// collect all the hosts
 	var r string
-	for i, l := range route.Spec.Listeners {
+	for i, l := range gateway.Spec.Listeners {
 		// skip gateways that don't specify
 		// a hostname
 		if l.Hostname == nil {
@@ -40,9 +42,10 @@ func (h *GatewayHook) MutateCreatePhysical(_ context.Context, obj client.Object)
 		}
 		flat := strings.ReplaceAll(r, ".", "-")
 		hostname := gatewayv1beta1.Hostname(fmt.Sprintf("%s.%s", flat, h.ClusterDomain))
-		route.Spec.Listeners[i].Hostname = &hostname
+		gateway.Spec.Listeners[i].Hostname = &hostname
+		log.Info("rewriting gateway.networking.k8s.io/Gateway hostname", "old", r, "new", hostname)
 	}
-	return route, nil
+	return gateway, nil
 }
 
 func (h *GatewayHook) MutateUpdatePhysical(ctx context.Context, obj client.Object) (client.Object, error) {
