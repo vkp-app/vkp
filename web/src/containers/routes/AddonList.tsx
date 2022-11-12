@@ -1,22 +1,12 @@
 import React, {useMemo} from "react";
-import {
-	Avatar,
-	Box,
-	Card,
-	CardContent,
-	CardHeader,
-	IconButton,
-	ListSubheader,
-	Skeleton,
-	Typography
-} from "@mui/material";
+import {Card, IconButton, ListSubheader} from "@mui/material";
 import {Link, useParams} from "react-router-dom";
 import {ArrowLeft} from "tabler-icons-react";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import StandardLayout from "../layout/StandardLayout";
 import {ClusterAddon, useAllAddonsQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
-import AddonSourceChip from "./addon/AddonSourceChip";
+import AddonItem from "./addon/AddonItem";
 
 const AddonList: React.FC = (): JSX.Element => {
 	// hooks
@@ -33,65 +23,13 @@ const AddonList: React.FC = (): JSX.Element => {
 	const addonData = useMemo(() => {
 		if (addons.loading || addons.error || !addons.data)
 			return [];
-		return (addons.data.clusterAddons as ClusterAddon[]).map(c => (<Grid2
-			xs={4}
-			key={c.name}>
-			<Box>
-				<CardHeader
-					title={c.displayName}
-					subheader={<span>
-						{c.maintainer}
-						<AddonSourceChip source={c.source}/>
-					</span>}
-					subheaderTypographyProps={{fontSize: 14}}
-					avatar={<Avatar
-						src={c.logo}
-						alt={`${c.displayName} logo`}
-						variant="square"
-					/>}
-				/>
-				<CardContent>
-					<Typography
-						variant="body2"
-						color="text.secondary">
-						{c.description || <i>No description provided.</i>}
-					</Typography>
-				</CardContent>
-			</Box>
-		</Grid2>));
+		return (addons.data.clusterAddons as ClusterAddon[]).map(c => <AddonItem key={c.name} item={c}/>);
 	}, [addons]);
 
 	const loadingData = (): JSX.Element[] => {
 		const items = [];
 		for (let i = 0; i < 9; i++) {
-			items.push(<Grid2
-				xs={4}
-				key={i}>
-				<Box>
-					<CardHeader
-						disableTypography
-						title={<Skeleton
-							variant="text"
-							width="40%"
-						/>}
-						subheader={<Skeleton
-							variant="text"
-							width="60%"
-						/>}
-						avatar={<Skeleton
-							variant="circular"
-							width={48}
-							height={48}
-						/>}
-					/>
-					<CardContent>
-						<Skeleton
-							variant="text"
-							width="40%"
-						/>
-					</CardContent>
-				</Box>
-			</Grid2>);
+			items.push(<AddonItem key={i} item={null}/>);
 		}
 		return items;
 	}
