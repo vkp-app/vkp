@@ -221,7 +221,7 @@ export type ClusterQueryVariables = Exact<{
 }>;
 
 
-export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: Track, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string } } };
+export type ClusterQuery = { __typename?: 'Query', clusterInstalledAddons: Array<string>, cluster: { __typename?: 'Cluster', name: string, tenant: string, track: Track, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string } } };
 
 export type CreateClusterMutationVariables = Exact<{
   tenant: Scalars['ID'];
@@ -360,6 +360,7 @@ export const ClusterDocument = gql`
       webURL
     }
   }
+  clusterInstalledAddons(tenant: $tenant, cluster: $cluster)
 }
     `;
 

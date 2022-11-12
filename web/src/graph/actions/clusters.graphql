@@ -20,6 +20,7 @@ query cluster($tenant: ID!, $cluster: ID!) {
             webURL
         }
     }
+    clusterInstalledAddons(tenant: $tenant, cluster: $cluster)
 }
 
 mutation createCluster($tenant: ID!, $input: NewCluster!) {

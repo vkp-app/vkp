@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import {Link, useParams} from "react-router-dom";
 import {
 	Button,
@@ -59,6 +59,12 @@ const ClusterView: React.FC = (): JSX.Element => {
 		skip: !clusterName || !tenantName,
 		pollInterval: refresh ? 30_000 : 0
 	});
+
+	const installedAddons: string[] = useMemo(() => {
+		if (data == null)
+			return [];
+		return [...data.clusterInstalledAddons];
+	}, [data]);
 
 	const [renderKubeConfig, kubeConfig] = useKubeConfigLazyQuery();
 
@@ -130,13 +136,13 @@ const ClusterView: React.FC = (): JSX.Element => {
 					<ListItemText
 						primary="Dashboard"
 						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : <span>
-							Manage and troubleshoot applications as well as manage the cluster itself through a web-based UI.
+							Manage and troubleshoot applications as well as manage the cluster itself through a web-based UI (requires installing a Dashboard addon).
 						</span>}
 					/>
 					<ListItemSecondaryAction>
 						<Button
 							className={classes.button}
-							disabled={loading || !data?.cluster.status.webURL}
+							disabled={loading || !data?.cluster.status.webURL || !installedAddons.find(i => i.startsWith("dashboard-")) == null}
 							variant="outlined"
 							startIcon={<ExternalLink
 								size={18}
