@@ -57,10 +57,10 @@ type MetricValue {
 
 type Query {
   tenants: [Tenant!]! @hasUser
-  tenant(name: ID!): Tenant! @hasUser
+  tenant(tenant: ID!): Tenant! @hasUser
 
   clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
-  cluster(tenant: ID!, name: ID!): Cluster! @hasUser
+  cluster(tenant: ID!, cluster: ID!): Cluster! @hasUser
 
   currentUser: User! @hasUser
 
@@ -69,6 +69,8 @@ type Query {
   clusterMetricPods(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
   clusterMetricNetReceive(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
   clusterMetricNetTransmit(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+
+  renderKubeconfig(tenant: ID!, cluster: ID!): String! @hasUser
 }
 
 input NewCluster {
@@ -77,7 +79,7 @@ input NewCluster {
 }
 
 type Mutation {
-  createTenant(name: String!): Tenant! @hasUser
+  createTenant(tenant: String!): Tenant! @hasUser
   createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasUser
 
   approveTenant(tenant: ID!): Boolean! @hasAdmin

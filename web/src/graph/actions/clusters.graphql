@@ -10,7 +10,7 @@ query clusters($tenant: ID!) {
 }
 
 query cluster($tenant: ID!, $cluster: ID!) {
-    cluster(tenant: $tenant, name: $cluster) {
+    cluster(tenant: $tenant, cluster: $cluster) {
         name
         tenant
         track
@@ -30,4 +30,8 @@ mutation createCluster($tenant: ID!, $input: NewCluster!) {
     createCluster(tenant: $tenant, input: $input) {
         name
     }
+}
+
+query kubeConfig($tenant: ID!, $cluster: ID!) {
+    renderKubeconfig(tenant: $tenant, cluster: $cluster)
 }

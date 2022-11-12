@@ -71,7 +71,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		ApproveTenant func(childComplexity int, tenant string) int
 		CreateCluster func(childComplexity int, tenant string, input model.NewCluster) int
-		CreateTenant  func(childComplexity int, name string) int
+		CreateTenant  func(childComplexity int, tenant string) int
 	}
 
 	NamespacedName struct {
@@ -80,7 +80,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Cluster                  func(childComplexity int, tenant string, name string) int
+		Cluster                  func(childComplexity int, tenant string, cluster string) int
 		ClusterMetricCPU         func(childComplexity int, tenant string, cluster string) int
 		ClusterMetricMemory      func(childComplexity int, tenant string, cluster string) int
 		ClusterMetricNetReceive  func(childComplexity int, tenant string, cluster string) int
@@ -88,7 +88,8 @@ type ComplexityRoot struct {
 		ClusterMetricPods        func(childComplexity int, tenant string, cluster string) int
 		ClustersInTenant         func(childComplexity int, tenant string) int
 		CurrentUser              func(childComplexity int) int
-		Tenant                   func(childComplexity int, name string) int
+		RenderKubeconfig         func(childComplexity int, tenant string, cluster string) int
+		Tenant                   func(childComplexity int, tenant string) int
 		Tenants                  func(childComplexity int) int
 	}
 
@@ -115,21 +116,22 @@ type ClusterResolver interface {
 	Addons(ctx context.Context, obj *v1alpha1.Cluster) ([]v1alpha1.NamespacedName, error)
 }
 type MutationResolver interface {
-	CreateTenant(ctx context.Context, name string) (*v1alpha1.Tenant, error)
+	CreateTenant(ctx context.Context, tenant string) (*v1alpha1.Tenant, error)
 	CreateCluster(ctx context.Context, tenant string, input model.NewCluster) (*v1alpha1.Cluster, error)
 	ApproveTenant(ctx context.Context, tenant string) (bool, error)
 }
 type QueryResolver interface {
 	Tenants(ctx context.Context) ([]v1alpha1.Tenant, error)
-	Tenant(ctx context.Context, name string) (*v1alpha1.Tenant, error)
+	Tenant(ctx context.Context, tenant string) (*v1alpha1.Tenant, error)
 	ClustersInTenant(ctx context.Context, tenant string) ([]v1alpha1.Cluster, error)
-	Cluster(ctx context.Context, tenant string, name string) (*v1alpha1.Cluster, error)
+	Cluster(ctx context.Context, tenant string, cluster string) (*v1alpha1.Cluster, error)
 	CurrentUser(ctx context.Context) (*model.User, error)
 	ClusterMetricMemory(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
 	ClusterMetricCPU(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
 	ClusterMetricPods(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
 	ClusterMetricNetReceive(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
 	ClusterMetricNetTransmit(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
+	RenderKubeconfig(ctx context.Context, tenant string, cluster string) (string, error)
 }
 type TenantResolver interface {
 	Owner(ctx context.Context, obj *v1alpha1.Tenant) (string, error)
@@ -255,7 +257,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTenant(childComplexity, args["name"].(string)), true
+		return e.complexity.Mutation.CreateTenant(childComplexity, args["tenant"].(string)), true
 
 	case "NamespacedName.name":
 		if e.complexity.NamespacedName.Name == nil {
@@ -281,7 +283,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Cluster(childComplexity, args["tenant"].(string), args["name"].(string)), true
+		return e.complexity.Query.Cluster(childComplexity, args["tenant"].(string), args["cluster"].(string)), true
 
 	case "Query.clusterMetricCPU":
 		if e.complexity.Query.ClusterMetricCPU == nil {
@@ -362,6 +364,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CurrentUser(childComplexity), true
 
+	case "Query.renderKubeconfig":
+		if e.complexity.Query.RenderKubeconfig == nil {
+			break
+		}
+
+		args, err := ec.field_Query_renderKubeconfig_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.RenderKubeconfig(childComplexity, args["tenant"].(string), args["cluster"].(string)), true
+
 	case "Query.tenant":
 		if e.complexity.Query.Tenant == nil {
 			break
@@ -372,7 +386,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Tenant(childComplexity, args["name"].(string)), true
+		return e.complexity.Query.Tenant(childComplexity, args["tenant"].(string)), true
 
 	case "Query.tenants":
 		if e.complexity.Query.Tenants == nil {
@@ -558,10 +572,10 @@ type MetricValue {
 
 type Query {
   tenants: [Tenant!]! @hasUser
-  tenant(name: ID!): Tenant! @hasUser
+  tenant(tenant: ID!): Tenant! @hasUser
 
   clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
-  cluster(tenant: ID!, name: ID!): Cluster! @hasUser
+  cluster(tenant: ID!, cluster: ID!): Cluster! @hasUser
 
   currentUser: User! @hasUser
 
@@ -570,6 +584,8 @@ type Query {
   clusterMetricPods(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
   clusterMetricNetReceive(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
   clusterMetricNetTransmit(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+
+  renderKubeconfig(tenant: ID!, cluster: ID!): String! @hasUser
 }
 
 input NewCluster {
@@ -578,7 +594,7 @@ input NewCluster {
 }
 
 type Mutation {
-  createTenant(name: String!): Tenant! @hasUser
+  createTenant(tenant: String!): Tenant! @hasUser
   createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasUser
 
   approveTenant(tenant: ID!): Boolean! @hasAdmin
@@ -634,14 +650,14 @@ func (ec *executionContext) field_Mutation_createTenant_args(ctx context.Context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["name"] = arg0
+	args["tenant"] = arg0
 	return args, nil
 }
 
@@ -793,14 +809,14 @@ func (ec *executionContext) field_Query_cluster_args(ctx context.Context, rawArg
 	}
 	args["tenant"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+	if tmp, ok := rawArgs["cluster"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
 		arg1, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["name"] = arg1
+	args["cluster"] = arg1
 	return args, nil
 }
 
@@ -819,18 +835,42 @@ func (ec *executionContext) field_Query_clustersInTenant_args(ctx context.Contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_tenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_renderKubeconfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
 		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["name"] = arg0
+	args["tenant"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["cluster"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cluster"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_tenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenant"] = arg0
 	return args, nil
 }
 
@@ -1341,7 +1381,7 @@ func (ec *executionContext) _Mutation_createTenant(ctx context.Context, field gr
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateTenant(rctx, fc.Args["name"].(string))
+			return ec.resolvers.Mutation().CreateTenant(rctx, fc.Args["tenant"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.HasUser == nil {
@@ -1750,7 +1790,7 @@ func (ec *executionContext) _Query_tenant(ctx context.Context, field graphql.Col
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Tenant(rctx, fc.Args["name"].(string))
+			return ec.resolvers.Query().Tenant(rctx, fc.Args["tenant"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.HasUser == nil {
@@ -1922,7 +1962,7 @@ func (ec *executionContext) _Query_cluster(ctx context.Context, field graphql.Co
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Cluster(rctx, fc.Args["tenant"].(string), fc.Args["name"].(string))
+			return ec.resolvers.Query().Cluster(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.HasUser == nil {
@@ -2463,6 +2503,81 @@ func (ec *executionContext) fieldContext_Query_clusterMetricNetTransmit(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_clusterMetricNetTransmit_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_renderKubeconfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_renderKubeconfig(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().RenderKubeconfig(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_renderKubeconfig(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_renderKubeconfig_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -5233,6 +5348,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_clusterMetricNetTransmit(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "renderKubeconfig":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_renderKubeconfig(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

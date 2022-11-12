@@ -3,6 +3,7 @@ import {Link, useParams} from "react-router-dom";
 import {
 	Button,
 	Card,
+	CircularProgress,
 	FormControlLabel,
 	IconButton,
 	List,
@@ -17,11 +18,12 @@ import {
 import {makeStyles} from "tss-react/mui";
 import {ArrowLeft, ChevronRight, ExternalLink} from "tabler-icons-react";
 import InlineError from "../alert/InlineError";
-import {Cluster, useClusterQuery} from "../../generated/graphql";
+import {Cluster, useClusterQuery, useKubeConfigLazyQuery} from "../../generated/graphql";
 import StandardLayout from "../layout/StandardLayout";
 import ClusterMetadataView from "./cluster/ClusterMetadataView";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 import ClusterMetricsView from "./cluster/ClusterMetricsView";
+import KubeConfigDialog from "./cluster/KubeConfigDialog";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	title: {
@@ -45,17 +47,28 @@ const ClusterView: React.FC = (): JSX.Element => {
 	const params = useParams();
 	const {classes} = useStyles();
 
-	const clusterName = params["name"];
-	const tenantName = params["tenant"];
+	const clusterName = params["name"] || "";
+	const tenantName = params["tenant"] || "";
 
 	// local state
 	const [refresh, setRefresh] = useState<boolean>(false);
+	const [config, setConfig] = useState<string>("");
 
 	const {data, loading, error} = useClusterQuery({
-		variables: {tenant: tenantName || "", cluster: clusterName || ""},
+		variables: {tenant: tenantName, cluster: clusterName},
 		skip: !clusterName || !tenantName,
 		pollInterval: refresh ? 30_000 : 0
 	});
+
+	const [renderKubeConfig, kubeConfig] = useKubeConfigLazyQuery({
+		onCompleted: d => setConfig(() => d.renderKubeconfig)
+	});
+
+	const onRenderConfig = (): void => {
+		void renderKubeConfig({
+			variables: {cluster: clusterName, tenant: tenantName}
+		});
+	}
 
 	return <StandardLayout>
 		<ListSubheader
@@ -103,14 +116,11 @@ const ClusterView: React.FC = (): JSX.Element => {
 					<ListItemSecondaryAction>
 						<Button
 							className={classes.button}
-							disabled={loading}
+							disabled={loading || kubeConfig.loading}
 							variant="outlined"
-							startIcon={<ExternalLink
-								size={18}
-							/>}
-							href={`https://${data?.cluster.status.kubeURL}`}
-							target="_blank">
-							Open
+							startIcon={kubeConfig.loading ? <CircularProgress size={14}/> : undefined}
+							onClick={onRenderConfig}>
+							Kubeconfig
 						</Button>
 					</ListItemSecondaryAction>
 				</ListItem>
@@ -170,6 +180,11 @@ const ClusterView: React.FC = (): JSX.Element => {
 		<ClusterMetadataView
 			cluster={data?.cluster as Cluster | null}
 			loading={loading}
+		/>
+		<KubeConfigDialog
+			open={config !== ""}
+			config={config}
+			onClose={() => setConfig(() => "")}
 		/>
 	</StandardLayout>
 }

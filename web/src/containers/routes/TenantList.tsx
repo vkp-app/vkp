@@ -111,7 +111,7 @@ const TenantList: React.FC = (): JSX.Element => {
 				</TableBody>
 			</Table>
 			{!loading && error && <InlineError
-				message={"Unable to load tenants"}
+				message="Unable to load tenants"
 				error={error}
 			/>}
 			{data?.tenants.length === 0 && <InlineNotFound

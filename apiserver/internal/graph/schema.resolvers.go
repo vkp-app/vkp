@@ -6,6 +6,9 @@ package graph
 import (
 	"context"
 	"fmt"
+	cmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
+	"sigs.k8s.io/yaml"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
@@ -35,14 +38,14 @@ func (r *clusterResolver) Addons(ctx context.Context, obj *paasv1alpha1.Cluster)
 }
 
 // CreateTenant is the resolver for the createTenant field.
-func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paasv1alpha1.Tenant, error) {
-	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", name)
+func (r *mutationResolver) CreateTenant(ctx context.Context, tenant string) (*paasv1alpha1.Tenant, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
 	log.Info("creating tenant")
 	user, _ := userctx.CtxUser(ctx)
 	// create the containing namespace
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name: tenant,
 		},
 	}
 	if err := r.Create(ctx, ns); err != nil {
@@ -50,10 +53,10 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paas
 		return nil, err
 	}
 	// create the tenant
-	tenant := &paasv1alpha1.Tenant{
+	tr := &paasv1alpha1.Tenant{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: name,
+			Name:      tenant,
+			Namespace: tenant,
 		},
 		Spec: paasv1alpha1.TenantSpec{
 			Owner:             user.Username,
@@ -66,16 +69,16 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, name string) (*paas
 			Phase: paasv1alpha1.PhasePendingApproval,
 		},
 	}
-	if err := r.Create(ctx, tenant); err != nil {
+	if err := r.Create(ctx, tr); err != nil {
 		log.Error(err, "failed to create tenant")
 		return nil, err
 	}
 	// ensure that the correct phase is applied
-	if err := r.Status().Update(ctx, tenant); err != nil {
+	if err := r.Status().Update(ctx, tr); err != nil {
 		log.Error(err, "failed to apply tenant status")
 		return nil, err
 	}
-	return tenant, nil
+	return tr, nil
 }
 
 // CreateCluster is the resolver for the createCluster field.
@@ -154,15 +157,15 @@ func (r *queryResolver) Tenants(ctx context.Context) ([]paasv1alpha1.Tenant, err
 }
 
 // Tenant is the resolver for the tenant field.
-func (r *queryResolver) Tenant(ctx context.Context, name string) (*paasv1alpha1.Tenant, error) {
-	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", name)
+func (r *queryResolver) Tenant(ctx context.Context, tenant string) (*paasv1alpha1.Tenant, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
 	log.Info("fetching tenant")
-	tenant := &paasv1alpha1.Tenant{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: name, Name: name}, tenant); err != nil {
+	tr := &paasv1alpha1.Tenant{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: tenant}, tr); err != nil {
 		log.Error(err, "failed to get tenant")
 		return nil, err
 	}
-	return tenant, nil
+	return tr, nil
 }
 
 // ClustersInTenant is the resolver for the clustersInTenant field.
@@ -179,15 +182,15 @@ func (r *queryResolver) ClustersInTenant(ctx context.Context, tenant string) ([]
 }
 
 // Cluster is the resolver for the cluster field.
-func (r *queryResolver) Cluster(ctx context.Context, tenant string, name string) (*paasv1alpha1.Cluster, error) {
-	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", name)
+func (r *queryResolver) Cluster(ctx context.Context, tenant string, cluster string) (*paasv1alpha1.Cluster, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster)
 	log.Info("fetching cluster")
-	cluster := &paasv1alpha1.Cluster{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: name}, cluster); err != nil {
+	cr := &paasv1alpha1.Cluster{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: cluster}, cr); err != nil {
 		log.Error(err, "failed to retrieve cluster")
 		return nil, err
 	}
-	return cluster, nil
+	return cr, nil
 }
 
 // CurrentUser is the resolver for the currentUser field.
@@ -219,6 +222,74 @@ func (r *queryResolver) ClusterMetricNetReceive(ctx context.Context, tenant stri
 // ClusterMetricNetTransmit is the resolver for the clusterMetricNetTransmit field.
 func (r *queryResolver) ClusterMetricNetTransmit(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
 	return r.GetMetric(ctx, fmt.Sprintf(`sum by (namespace) (irate(node_network_transmit_bytes_total{namespace="%s", pod=~".*-%s|%s-.+"}[2m]))`, tenant, cluster, cluster))
+}
+
+// RenderKubeconfig is the resolver for the renderKubeconfig field.
+func (r *queryResolver) RenderKubeconfig(ctx context.Context, tenant string, cluster string) (string, error) {
+	log := logr.FromContextOrDiscard(ctx)
+	user, _ := userctx.CtxUser(ctx)
+
+	// fetch the cluster resource
+	cr, err := r.Cluster(ctx, tenant, cluster)
+	if err != nil {
+		return "", err
+	}
+
+	username := strings.Split(user.Username, "@")[0]
+	clusterName := fmt.Sprintf("%s-%s", tenant, cluster)
+	contextName := fmt.Sprintf("%s@%s", username, clusterName)
+	cfg := cmdv1.Config{
+		Kind:           "Config",
+		APIVersion:     "v1",
+		CurrentContext: contextName,
+		Clusters: []cmdv1.NamedCluster{
+			{
+				Name: clusterName,
+				Cluster: cmdv1.Cluster{
+					Server:                   fmt.Sprintf("https://%s:443", cr.Status.KubeURL),
+					CertificateAuthorityData: nil,
+				},
+			},
+		},
+		Contexts: []cmdv1.NamedContext{
+			{
+				Name: contextName,
+				Context: cmdv1.Context{
+					Cluster:   clusterName,
+					AuthInfo:  username,
+					Namespace: "default",
+				},
+			},
+		},
+		AuthInfos: []cmdv1.NamedAuthInfo{
+			{
+				Name: username,
+				AuthInfo: cmdv1.AuthInfo{
+					Exec: &cmdv1.ExecConfig{
+						APIVersion: "client.authentication.k8s.io/v1beta1",
+						Command:    "kubectl",
+						Args: []string{
+							"oidc-login",
+							"get-login",
+							"--oidc-issuer-url=https://todo",
+							"--oidc-client-id=todo",
+							"--oidc-client-secret=todo",
+							"--oidc-extra-scope=profile",
+							"--oidc-extra-scope=email",
+							"--oidc-extra-scope=groups",
+						},
+					},
+				},
+			},
+		},
+	}
+	// convert the struct to YAML
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		log.Error(err, "failed to convert cmdv1.Config to YAML")
+		return "", err
+	}
+	return string(data), nil
 }
 
 // Owner is the resolver for the owner field.

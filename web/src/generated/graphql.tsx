@@ -58,7 +58,7 @@ export type MutationCreateClusterArgs = {
 
 
 export type MutationCreateTenantArgs = {
-  name: Scalars['String'];
+  tenant: Scalars['String'];
 };
 
 export type NamespacedName = {
@@ -82,13 +82,14 @@ export type Query = {
   clusterMetricPods: Array<MetricValue>;
   clustersInTenant: Array<Cluster>;
   currentUser: User;
+  renderKubeconfig: Scalars['String'];
   tenant: Tenant;
   tenants: Array<Tenant>;
 };
 
 
 export type QueryClusterArgs = {
-  name: Scalars['ID'];
+  cluster: Scalars['ID'];
   tenant: Scalars['ID'];
 };
 
@@ -128,8 +129,14 @@ export type QueryClustersInTenantArgs = {
 };
 
 
+export type QueryRenderKubeconfigArgs = {
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
 export type QueryTenantArgs = {
-  name: Scalars['ID'];
+  tenant: Scalars['ID'];
 };
 
 export type Tenant = {
@@ -186,6 +193,14 @@ export type CreateClusterMutationVariables = Exact<{
 
 export type CreateClusterMutation = { __typename?: 'Mutation', createCluster: { __typename?: 'Cluster', name: string } };
 
+export type KubeConfigQueryVariables = Exact<{
+  tenant: Scalars['ID'];
+  cluster: Scalars['ID'];
+}>;
+
+
+export type KubeConfigQuery = { __typename?: 'Query', renderKubeconfig: string };
+
 export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -205,7 +220,7 @@ export type TenantsQueryVariables = Exact<{ [key: string]: never; }>;
 export type TenantsQuery = { __typename?: 'Query', tenants: Array<{ __typename?: 'Tenant', name: string, owner: string, status: { __typename?: 'TenantStatus', phase: TenantPhase } }> };
 
 export type TenantQueryVariables = Exact<{
-  name: Scalars['ID'];
+  tenant: Scalars['ID'];
 }>;
 
 
@@ -254,7 +269,7 @@ export type ClustersLazyQueryHookResult = ReturnType<typeof useClustersLazyQuery
 export type ClustersQueryResult = Apollo.QueryResult<ClustersQuery, ClustersQueryVariables>;
 export const ClusterDocument = gql`
     query cluster($tenant: ID!, $cluster: ID!) {
-  cluster(tenant: $tenant, name: $cluster) {
+  cluster(tenant: $tenant, cluster: $cluster) {
     name
     tenant
     track
@@ -333,6 +348,40 @@ export function useCreateClusterMutation(baseOptions?: Apollo.MutationHookOption
 export type CreateClusterMutationHookResult = ReturnType<typeof useCreateClusterMutation>;
 export type CreateClusterMutationResult = Apollo.MutationResult<CreateClusterMutation>;
 export type CreateClusterMutationOptions = Apollo.BaseMutationOptions<CreateClusterMutation, CreateClusterMutationVariables>;
+export const KubeConfigDocument = gql`
+    query kubeConfig($tenant: ID!, $cluster: ID!) {
+  renderKubeconfig(tenant: $tenant, cluster: $cluster)
+}
+    `;
+
+/**
+ * __useKubeConfigQuery__
+ *
+ * To run a query within a React component, call `useKubeConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useKubeConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useKubeConfigQuery({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      cluster: // value for 'cluster'
+ *   },
+ * });
+ */
+export function useKubeConfigQuery(baseOptions: Apollo.QueryHookOptions<KubeConfigQuery, KubeConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<KubeConfigQuery, KubeConfigQueryVariables>(KubeConfigDocument, options);
+      }
+export function useKubeConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<KubeConfigQuery, KubeConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<KubeConfigQuery, KubeConfigQueryVariables>(KubeConfigDocument, options);
+        }
+export type KubeConfigQueryHookResult = ReturnType<typeof useKubeConfigQuery>;
+export type KubeConfigLazyQueryHookResult = ReturnType<typeof useKubeConfigLazyQuery>;
+export type KubeConfigQueryResult = Apollo.QueryResult<KubeConfigQuery, KubeConfigQueryVariables>;
 export const CurrentUserDocument = gql`
     query currentUser {
   currentUser {
@@ -456,8 +505,8 @@ export type TenantsQueryHookResult = ReturnType<typeof useTenantsQuery>;
 export type TenantsLazyQueryHookResult = ReturnType<typeof useTenantsLazyQuery>;
 export type TenantsQueryResult = Apollo.QueryResult<TenantsQuery, TenantsQueryVariables>;
 export const TenantDocument = gql`
-    query tenant($name: ID!) {
-  tenant(name: $name) {
+    query tenant($tenant: ID!) {
+  tenant(tenant: $tenant) {
     name
     owner
     status {
@@ -479,7 +528,7 @@ export const TenantDocument = gql`
  * @example
  * const { data, loading, error } = useTenantQuery({
  *   variables: {
- *      name: // value for 'name'
+ *      tenant: // value for 'tenant'
  *   },
  * });
  */

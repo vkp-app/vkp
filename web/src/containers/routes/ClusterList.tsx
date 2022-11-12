@@ -32,7 +32,7 @@ const ClusterList: React.FC = (): JSX.Element => {
 	});
 
 	const tenant = useTenantQuery({
-		variables: {name: tenantName},
+		variables: {tenant: tenantName},
 		skip: !tenantName
 	});
 

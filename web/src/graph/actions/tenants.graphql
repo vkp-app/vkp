@@ -8,8 +8,8 @@ query tenants {
     }
 }
 
-query tenant($name: ID!) {
-    tenant(name: $name) {
+query tenant($tenant: ID!) {
+    tenant(tenant: $tenant) {
         name
         owner
         status {
