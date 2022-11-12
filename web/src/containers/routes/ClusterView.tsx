@@ -60,13 +60,15 @@ const ClusterView: React.FC = (): JSX.Element => {
 		pollInterval: refresh ? 30_000 : 0
 	});
 
-	const [renderKubeConfig, kubeConfig] = useKubeConfigLazyQuery({
-		onCompleted: d => setConfig(() => d.renderKubeconfig)
-	});
+	const [renderKubeConfig, kubeConfig] = useKubeConfigLazyQuery();
 
 	const onRenderConfig = (): void => {
-		void renderKubeConfig({
+		renderKubeConfig({
 			variables: {cluster: clusterName, tenant: tenantName}
+		}).then(r => {
+			if (r.data != null) {
+				setConfig(() => r.data?.renderKubeconfig || "");
+			}
 		});
 	}
 
@@ -110,8 +112,8 @@ const ClusterView: React.FC = (): JSX.Element => {
 				</ListItem>
 				<ListItem>
 					<ListItemText
-						primary="API"
-						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : `https://${data?.cluster.status.kubeURL}:443`}
+						primary="Client setup"
+						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : "Generate a Kubeconfig that can be used to access the cluster."}
 					/>
 					<ListItemSecondaryAction>
 						<Button
@@ -120,7 +122,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 							variant="outlined"
 							startIcon={kubeConfig.loading ? <CircularProgress size={14}/> : undefined}
 							onClick={onRenderConfig}>
-							Kubeconfig
+							Open
 						</Button>
 					</ListItemSecondaryAction>
 				</ListItem>

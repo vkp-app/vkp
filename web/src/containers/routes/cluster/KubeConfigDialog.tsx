@@ -1,5 +1,6 @@
-import React from "react";
+import React, {useState} from "react";
 import {
+	Alert,
 	Box,
 	Button,
 	Card,
@@ -18,8 +19,15 @@ interface Props {
 }
 
 const KubeConfigDialog: React.FC<Props> = ({open, config, onClose}): JSX.Element => {
+	// local state
+	const [data, setData] = useState<string>("");
+
 	return <Dialog
 		open={open}
+		TransitionProps={{
+			onEnter: () => setData(() => config),
+			onExited: () => setData(() => "")
+		}}
 		onClose={onClose}
 		scroll="paper">
 		<DialogTitle>
@@ -28,6 +36,11 @@ const KubeConfigDialog: React.FC<Props> = ({open, config, onClose}): JSX.Element
 		<DialogContent
 			dividers>
 			<DialogContentText>
+				<Alert
+					severity="info">
+					This kubeconfig is intended for use by a human operator.
+					For automated interaction, create a Service Account inside the cluster.
+				</Alert>
 				<Card
 					variant="outlined"
 					sx={{
@@ -38,7 +51,7 @@ const KubeConfigDialog: React.FC<Props> = ({open, config, onClose}): JSX.Element
 					}}
 					component="pre">
 					<code>
-						{config}
+						{data}
 					</code>
 				</Card>
 				<Box>
