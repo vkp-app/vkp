@@ -16,6 +16,13 @@ export type Scalars = {
   Float: number;
 };
 
+export enum AddonSource {
+  Community = 'Community',
+  Official = 'Official',
+  Platform = 'Platform',
+  Unknown = 'Unknown'
+}
+
 export type Cluster = {
   __typename?: 'Cluster';
   addons: Array<NamespacedName>;
@@ -32,6 +39,7 @@ export type ClusterAddon = {
   logo: Scalars['String'];
   maintainer: Scalars['String'];
   name: Scalars['String'];
+  source: AddonSource;
 };
 
 export type ClusterStatus = {
@@ -190,7 +198,7 @@ export type AllAddonsQueryVariables = Exact<{
 }>;
 
 
-export type AllAddonsQuery = { __typename?: 'Query', clusterAddons: Array<{ __typename?: 'ClusterAddon', name: string, displayName: string, maintainer: string, description: string, logo: string }> };
+export type AllAddonsQuery = { __typename?: 'Query', clusterAddons: Array<{ __typename?: 'ClusterAddon', name: string, displayName: string, maintainer: string, source: AddonSource, description: string, logo: string }> };
 
 export type ClustersQueryVariables = Exact<{
   tenant: Scalars['ID'];
@@ -255,6 +263,7 @@ export const AllAddonsDocument = gql`
     name
     displayName
     maintainer
+    source
     description
     logo
   }

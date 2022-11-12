@@ -3,6 +3,7 @@ query allAddons($tenant: ID!) {
         name
         displayName
         maintainer
+        source
 
         description
         logo

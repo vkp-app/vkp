@@ -64,6 +64,7 @@ type ComplexityRoot struct {
 		Logo        func(childComplexity int) int
 		Maintainer  func(childComplexity int) int
 		Name        func(childComplexity int) int
+		Source      func(childComplexity int) int
 	}
 
 	ClusterStatus struct {
@@ -130,6 +131,7 @@ type ClusterAddonResolver interface {
 	Description(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
 	Maintainer(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
 	Logo(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
+	Source(ctx context.Context, obj *v1alpha1.ClusterAddon) (v1alpha1.AddonSource, error)
 }
 type MutationResolver interface {
 	CreateTenant(ctx context.Context, tenant string) (*v1alpha1.Tenant, error)
@@ -239,6 +241,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ClusterAddon.Name(childComplexity), true
+
+	case "ClusterAddon.source":
+		if e.complexity.ClusterAddon.Source == nil {
+			break
+		}
+
+		return e.complexity.ClusterAddon.Source(childComplexity), true
 
 	case "ClusterStatus.kubeURL":
 		if e.complexity.ClusterStatus.KubeURL == nil {
@@ -630,6 +639,14 @@ type ClusterAddon {
   description: String!
   maintainer: String!
   logo: String!
+  source: AddonSource!
+}
+
+enum AddonSource {
+  Official,
+  Platform,
+  Community,
+  Unknown
 }
 
 type User {
@@ -1449,6 +1466,50 @@ func (ec *executionContext) fieldContext_ClusterAddon_logo(ctx context.Context, 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterAddon_source(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.ClusterAddon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClusterAddon_source(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ClusterAddon().Source(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(v1alpha1.AddonSource)
+	fc.Result = res
+	return ec.marshalNAddonSource2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonSource(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClusterAddon_source(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterAddon",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type AddonSource does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2411,6 +2472,8 @@ func (ec *executionContext) fieldContext_Query_clusterAddons(ctx context.Context
 				return ec.fieldContext_ClusterAddon_maintainer(ctx, field)
 			case "logo":
 				return ec.fieldContext_ClusterAddon_logo(ctx, field)
+			case "source":
+				return ec.fieldContext_ClusterAddon_source(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClusterAddon", field.Name)
 		},
@@ -5435,6 +5498,26 @@ func (ec *executionContext) _ClusterAddon(ctx context.Context, sel ast.Selection
 				return innerFunc(ctx)
 
 			})
+		case "source":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ClusterAddon_source(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6388,6 +6471,22 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) unmarshalNAddonSource2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonSource(ctx context.Context, v interface{}) (v1alpha1.AddonSource, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := v1alpha1.AddonSource(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAddonSource2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonSource(ctx context.Context, sel ast.SelectionSet, v v1alpha1.AddonSource) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)

@@ -149,9 +149,9 @@ const ClusterView: React.FC = (): JSX.Element => {
 				</ListItem>
 				<ListItem>
 					<ListItemText
-						primary="Supply-chain security"
+						primary="Addons"
 						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : <span>
-							Verify and enforce container image supply-chain security.
+							Pre-packaged applications, configuration and capability provided by us, your administrators and the community.
 						</span>}
 					/>
 					<ListItemSecondaryAction>

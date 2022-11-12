@@ -51,6 +51,14 @@ type ClusterAddon {
   description: String!
   maintainer: String!
   logo: String!
+  source: AddonSource!
+}
+
+enum AddonSource {
+  Official,
+  Platform,
+  Community,
+  Unknown
 }
 
 type User {

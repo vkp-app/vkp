@@ -21,6 +21,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type AddonSource string
+
+const (
+	SourceOfficial  AddonSource = "Official"
+	SourcePlatform  AddonSource = "Platform"
+	SourceCommunity AddonSource = "Community"
+	SourceUnknown   AddonSource = "Unknown"
+)
+
 // ClusterAddonSpec defines the desired state of ClusterAddon
 type ClusterAddonSpec struct {
 	Resources []RemoteRef `json:"resources"`
@@ -28,8 +37,9 @@ type ClusterAddonSpec struct {
 	DisplayName string `json:"displayName"`
 	Maintainer  string `json:"maintainer"`
 
-	Logo        string `json:"logo,omitempty"`
-	Description string `json:"description,omitempty"`
+	Logo        string      `json:"logo,omitempty"`
+	Description string      `json:"description,omitempty"`
+	Source      AddonSource `json:"source,omitempty"`
 }
 
 type RemoteRef struct {

@@ -47,6 +47,11 @@ const App: React.FC = (): JSX.Element => {
 				mode: prefersDarkMode ? "dark" : "light"
 			},
 			components: {
+				MuiSkeleton: {
+					defaultProps: {
+						animation: "wave"
+					}
+				},
 				MuiTooltip: {
 					styleOverrides: {
 						tooltip: {
