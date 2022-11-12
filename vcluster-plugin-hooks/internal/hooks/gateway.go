@@ -37,7 +37,7 @@ func (h *GatewayHook) MutateCreatePhysical(ctx context.Context, obj client.Objec
 			continue
 		}
 		r = string(*l.Hostname)
-		if strings.HasSuffix(r, "."+h.ClusterDomain) {
+		if strings.HasSuffix(r, "."+h.ClusterDomain) || r == h.ClusterDomain {
 			continue
 		}
 		flat := strings.ReplaceAll(r, ".", "-")
