@@ -5,4 +5,5 @@ resources:
 - paas_v1alpha1_tenant.yaml
 - namespace.yaml
 - paas_v1alpha1_clusteraddon.yaml
+- paas_v1alpha1_clusteraddonbinding.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

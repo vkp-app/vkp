@@ -2,7 +2,6 @@ package syncers
 
 import (
 	"context"
-	"fmt"
 	"github.com/loft-sh/vcluster-sdk/syncer"
 	synccontext "github.com/loft-sh/vcluster-sdk/syncer/context"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
@@ -15,6 +14,7 @@ import (
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/kustomize/api/krusty"
 	ktypes "sigs.k8s.io/kustomize/api/types"
@@ -41,7 +41,7 @@ func (*AddonSyncer) Name() string {
 }
 
 func (*AddonSyncer) Resource() client.Object {
-	return &paasv1alpha1.ClusterAddon{}
+	return &paasv1alpha1.ClusterAddonBinding{}
 }
 
 func (r *AddonSyncer) Register(ctx *synccontext.RegisterContext) error {
@@ -51,7 +51,7 @@ func (r *AddonSyncer) Register(ctx *synccontext.RegisterContext) error {
 	r.namespace = ctx.CurrentNamespace
 
 	return ctrl.NewControllerManagedBy(ctx.PhysicalManager).
-		For(&paasv1alpha1.ClusterAddon{}).
+		For(&paasv1alpha1.ClusterAddonBinding{}).
 		Complete(r)
 }
 
@@ -67,23 +67,46 @@ func (r *AddonSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Res
 	}
 
 	// fetch the addon
-	car := &paasv1alpha1.ClusterAddon{}
-	if err := r.pClient.Get(ctx, req.NamespacedName, car); err != nil {
-		log.Error(err, "failed to retrieve addon resource")
+	br := &paasv1alpha1.ClusterAddonBinding{}
+	if err := r.pClient.Get(ctx, req.NamespacedName, br); err != nil {
+		if errors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		log.Error(err, "failed to retrieve binding resource")
 		return ctrl.Result{}, err
+	}
+
+	if br.Spec.ClusterRef.Name != r.ClusterName {
+		log.Info("skipping addon that references a different cluster")
+		return ctrl.Result{}, nil
 	}
 
 	// check whether we should apply the addon
 	cr := &paasv1alpha1.Cluster{}
-	if err := r.pClient.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: r.ClusterName}, cr); err != nil {
+	if err := r.pClient.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: br.Spec.ClusterRef.Name}, cr); err != nil {
 		log.Error(err, "failed to retrieve cluster resource")
 		return ctrl.Result{}, err
 	}
+	car := &paasv1alpha1.ClusterAddon{}
+	if err := r.pClient.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: br.Spec.ClusterAddonRef.Name}, car); err != nil {
+		log.Error(err, "failed to retrieve addon resource")
+		return ctrl.Result{}, err
+	}
 
-	ok := r.validateAddon(ctx, car, cr)
-	if !ok {
-		log.Info("skipping addon")
-		return ctrl.Result{}, nil
+	if br.DeletionTimestamp != nil {
+		log.Info("skipping addon that has been marked for deletion")
+		if controllerutil.ContainsFinalizer(br, finalizer) {
+			if err := r.finalizeAddon(ctx, car); err != nil {
+				return ctrl.Result{}, err
+			}
+			// remove the finalizer since we were
+			// able to clean up our virtual resources
+			controllerutil.RemoveFinalizer(br, finalizer)
+			if err := r.pClient.Update(ctx, br); err != nil {
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{}, nil
+		}
 	}
 
 	// reconcile the addon
@@ -91,25 +114,20 @@ func (r *AddonSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Res
 		return ctrl.Result{}, err
 	}
 
-	// todo place a finalizer so we can delete resources if the addon is removed
+	// add our finalizer
+	if !controllerutil.ContainsFinalizer(br, finalizer) {
+		controllerutil.AddFinalizer(br, finalizer)
+		if err := r.pClient.Update(ctx, br); err != nil {
+			log.Error(err, "failed to add finalizer")
+			return ctrl.Result{}, err
+		}
+	}
 
 	return ctrl.Result{}, nil
 }
 
-func (r *AddonSyncer) validateAddon(ctx context.Context, car *paasv1alpha1.ClusterAddon, cr *paasv1alpha1.Cluster) bool {
+func (r *AddonSyncer) kustomizeResources(ctx context.Context, cr *paasv1alpha1.ClusterAddon, onRendered func(v client.Object) error) error {
 	log := logging.FromContext(ctx)
-	label := fmt.Sprintf("paas.dcas.dev/%s", car.GetName())
-	val := cr.GetLabels()[label]
-	if val == "" {
-		log.V(1).Info("cluster is missing expected label", "label", label)
-	}
-	return val != ""
-}
-
-func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.ClusterAddon) error {
-	log := logging.FromContext(ctx).WithValues("namespace", cr.Namespace, "name", cr.Name)
-	log.Info("reconciling nested addon")
-
 	// apply it
 	for _, manifest := range cr.Spec.Resources {
 		log.Info("applying remote resource", "resource", manifest)
@@ -167,20 +185,52 @@ func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.Clust
 			}
 			// update or create the resource
 			res := obj.(client.Object)
-			if err := r.vClient.Update(ctx, res); err != nil {
-				if errors.IsNotFound(err) {
-					if err := r.vClient.Create(ctx, res); err != nil {
-						log.Error(err, "failed to create resource")
-						return err
-					}
-					continue
-				}
-				log.Error(err, "failed to update resource")
+			if err := onRendered(res); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.ClusterAddon) error {
+	log := logging.FromContext(ctx).WithValues("namespace", cr.Namespace, "name", cr.Name)
+	log.Info("reconciling nested addon")
+
+	return r.kustomizeResources(ctx, cr, func(v client.Object) error {
+		if err := r.vClient.Update(ctx, v); err != nil {
+			if errors.IsNotFound(err) {
+				log.V(1).Info("creating resource", "resourceName", v.GetName(), "resourceKind", v.GetObjectKind().GroupVersionKind().String())
+				if err := r.vClient.Create(ctx, v); err != nil {
+					log.Error(err, "failed to create resource")
+					return err
+				}
+				return nil
+			}
+			log.Error(err, "failed to update resource")
+			return err
+		}
+		log.V(1).Info("updating resource", "resourceName", v.GetName(), "resourceKind", v.GetObjectKind().GroupVersionKind().String())
+		return nil
+	})
+}
+
+func (r *AddonSyncer) finalizeAddon(ctx context.Context, cr *paasv1alpha1.ClusterAddon) error {
+	log := logging.FromContext(ctx).WithValues("namespace", cr.Namespace, "name", cr.Name)
+	log.Info("finalizing nested addon")
+
+	return r.kustomizeResources(ctx, cr, func(v client.Object) error {
+		log.V(1).Info("deleting resource", "resourceName", v.GetName(), "resourceKind", v.GetObjectKind().GroupVersionKind().String())
+		if err := r.vClient.Delete(ctx, v); err != nil {
+			if errors.IsNotFound(err) {
+				log.V(1).Info("unable to delete resource as that does not exist")
+				return nil
+			}
+			log.Error(err, "failed to delete resource")
+			return err
+		}
+		return nil
+	})
 }
 
 // manifestsFromSecret downloads all kubernetes manifests from a corev1.ConfigMap

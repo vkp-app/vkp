@@ -77,6 +77,32 @@ rules:
 - apiGroups:
   - paas.dcas.dev
   resources:
+  - clusteraddonbindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - clusteraddonbindings/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - clusteraddonbindings/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - paas.dcas.dev
+  resources:
   - clusteraddons
   verbs:
   - create

@@ -8,3 +8,5 @@ const (
 
 	EnvClusterName = "VCLUSTER_CLUSTER_NAME"
 )
+
+const finalizer = "addon.paas.dcas.dev"

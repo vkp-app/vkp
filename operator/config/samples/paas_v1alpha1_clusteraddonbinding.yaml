@@ -1,0 +1,16 @@
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterAddonBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: clusteraddonbinding
+    app.kubernetes.io/instance: clusteraddonbinding-sample
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: dashboard-okd
+  namespace: alpha
+spec:
+  clusterAddonRef:
+    name: dashboard-okd
+  clusterRef:
+    name: sample

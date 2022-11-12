@@ -51,6 +51,9 @@ func (r *RoleBindingSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// get the tenant
 	tr := &paasv1alpha1.Tenant{}
 	if err := r.pClient.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: req.Namespace}, tr); err != nil {
+		if errors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
 		log.Error(err, "failed to retrieve tenant resource")
 		return ctrl.Result{}, err
 	}
