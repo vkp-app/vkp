@@ -7,10 +7,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	cluster2 "gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
-	cmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 	"os"
-	"sigs.k8s.io/yaml"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -18,11 +15,13 @@ import (
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/userctx"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	cluster2 "gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	cmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 )
 
 // Tenant is the resolver for the tenant field.
@@ -38,6 +37,26 @@ func (r *clusterResolver) Track(ctx context.Context, obj *paasv1alpha1.Cluster) 
 // Addons is the resolver for the addons field.
 func (r *clusterResolver) Addons(ctx context.Context, obj *paasv1alpha1.Cluster) ([]paasv1alpha1.NamespacedName, error) {
 	return obj.Spec.Addons, nil
+}
+
+// DisplayName is the resolver for the displayName field.
+func (r *clusterAddonResolver) DisplayName(ctx context.Context, obj *paasv1alpha1.ClusterAddon) (string, error) {
+	return obj.Spec.DisplayName, nil
+}
+
+// Description is the resolver for the description field.
+func (r *clusterAddonResolver) Description(ctx context.Context, obj *paasv1alpha1.ClusterAddon) (string, error) {
+	return obj.Spec.Description, nil
+}
+
+// Maintainer is the resolver for the maintainer field.
+func (r *clusterAddonResolver) Maintainer(ctx context.Context, obj *paasv1alpha1.ClusterAddon) (string, error) {
+	return obj.Spec.Maintainer, nil
+}
+
+// Logo is the resolver for the logo field.
+func (r *clusterAddonResolver) Logo(ctx context.Context, obj *paasv1alpha1.ClusterAddon) (string, error) {
+	return obj.Spec.Logo, nil
 }
 
 // CreateTenant is the resolver for the createTenant field.
@@ -176,8 +195,7 @@ func (r *queryResolver) ClustersInTenant(ctx context.Context, tenant string) ([]
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
 	log.Info("fetching clusters in tenant")
 	clusters := &paasv1alpha1.ClusterList{}
-	selector := labels.SelectorFromSet(labels.Set{labelTenant: tenant})
-	if err := r.List(ctx, clusters, &client.ListOptions{LabelSelector: selector}); err != nil {
+	if err := r.List(ctx, clusters, client.MatchingLabels{labelTenant: tenant}); err != nil {
 		log.Error(err, "failed to list clusters in tenant")
 		return nil, err
 	}
@@ -194,6 +212,19 @@ func (r *queryResolver) Cluster(ctx context.Context, tenant string, cluster stri
 		return nil, err
 	}
 	return cr, nil
+}
+
+// ClusterAddons is the resolver for the clusterAddons field.
+func (r *queryResolver) ClusterAddons(ctx context.Context, tenant string) ([]paasv1alpha1.ClusterAddon, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
+	log.Info("listing addons")
+
+	addons := &paasv1alpha1.ClusterAddonList{}
+	if err := r.List(ctx, addons, client.InNamespace(tenant)); err != nil {
+		log.Error(err, "failed to list addons")
+		return nil, err
+	}
+	return addons.Items, nil
 }
 
 // CurrentUser is the resolver for the currentUser field.
@@ -328,6 +359,9 @@ func (r *tenantResolver) ObservedClusters(ctx context.Context, obj *paasv1alpha1
 // Cluster returns generated.ClusterResolver implementation.
 func (r *Resolver) Cluster() generated.ClusterResolver { return &clusterResolver{r} }
 
+// ClusterAddon returns generated.ClusterAddonResolver implementation.
+func (r *Resolver) ClusterAddon() generated.ClusterAddonResolver { return &clusterAddonResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -338,6 +372,7 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 func (r *Resolver) Tenant() generated.TenantResolver { return &tenantResolver{r} }
 
 type clusterResolver struct{ *Resolver }
+type clusterAddonResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type tenantResolver struct{ *Resolver }

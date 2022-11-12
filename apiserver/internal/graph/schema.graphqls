@@ -45,6 +45,14 @@ type ClusterStatus {
   webURL: String!
 }
 
+type ClusterAddon {
+  name: String!
+  displayName: String!
+  description: String!
+  maintainer: String!
+  logo: String!
+}
+
 type User {
   username: String!
   groups: [String!]!
@@ -61,6 +69,7 @@ type Query {
 
   clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
   cluster(tenant: ID!, cluster: ID!): Cluster! @hasUser
+  clusterAddons(tenant: ID!): [ClusterAddon!]! @hasUser
 
   currentUser: User! @hasUser
 

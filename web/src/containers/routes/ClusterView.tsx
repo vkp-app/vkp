@@ -16,7 +16,7 @@ import {
 	Theme
 } from "@mui/material";
 import {makeStyles} from "tss-react/mui";
-import {ArrowLeft, ChevronRight, ExternalLink} from "tabler-icons-react";
+import {ArrowLeft, ExternalLink} from "tabler-icons-react";
 import InlineError from "../alert/InlineError";
 import {Cluster, useClusterQuery, useKubeConfigLazyQuery} from "../../generated/graphql";
 import StandardLayout from "../layout/StandardLayout";
@@ -158,10 +158,8 @@ const ClusterView: React.FC = (): JSX.Element => {
 						<Button
 							className={classes.button}
 							variant="outlined"
-							disabled
-							endIcon={<ChevronRight
-								size={18}
-							/>}>
+							component={Link}
+							to={`/clusters/${tenantName}/cluster/${clusterName}/-/addons`}>
 							Open
 						</Button>
 					</ListItemSecondaryAction>

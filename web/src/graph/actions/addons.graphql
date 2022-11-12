@@ -1,0 +1,10 @@
+query allAddons($tenant: ID!) {
+    clusterAddons(tenant: $tenant) {
+        name
+        displayName
+        maintainer
+
+        description
+        logo
+    }
+}

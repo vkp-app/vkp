@@ -25,6 +25,15 @@ export type Cluster = {
   track: Track;
 };
 
+export type ClusterAddon = {
+  __typename?: 'ClusterAddon';
+  description: Scalars['String'];
+  displayName: Scalars['String'];
+  logo: Scalars['String'];
+  maintainer: Scalars['String'];
+  name: Scalars['String'];
+};
+
 export type ClusterStatus = {
   __typename?: 'ClusterStatus';
   kubeURL: Scalars['String'];
@@ -75,6 +84,7 @@ export type NewCluster = {
 export type Query = {
   __typename?: 'Query';
   cluster: Cluster;
+  clusterAddons: Array<ClusterAddon>;
   clusterMetricCPU: Array<MetricValue>;
   clusterMetricMemory: Array<MetricValue>;
   clusterMetricNetReceive: Array<MetricValue>;
@@ -90,6 +100,11 @@ export type Query = {
 
 export type QueryClusterArgs = {
   cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
+export type QueryClusterAddonsArgs = {
   tenant: Scalars['ID'];
 };
 
@@ -170,6 +185,13 @@ export type User = {
   username: Scalars['String'];
 };
 
+export type AllAddonsQueryVariables = Exact<{
+  tenant: Scalars['ID'];
+}>;
+
+
+export type AllAddonsQuery = { __typename?: 'Query', clusterAddons: Array<{ __typename?: 'ClusterAddon', name: string, displayName: string, maintainer: string, description: string, logo: string }> };
+
 export type ClustersQueryVariables = Exact<{
   tenant: Scalars['ID'];
 }>;
@@ -227,6 +249,45 @@ export type TenantQueryVariables = Exact<{
 export type TenantQuery = { __typename?: 'Query', tenant: { __typename?: 'Tenant', name: string, owner: string, status: { __typename?: 'TenantStatus', phase: TenantPhase } } };
 
 
+export const AllAddonsDocument = gql`
+    query allAddons($tenant: ID!) {
+  clusterAddons(tenant: $tenant) {
+    name
+    displayName
+    maintainer
+    description
+    logo
+  }
+}
+    `;
+
+/**
+ * __useAllAddonsQuery__
+ *
+ * To run a query within a React component, call `useAllAddonsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAllAddonsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAllAddonsQuery({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *   },
+ * });
+ */
+export function useAllAddonsQuery(baseOptions: Apollo.QueryHookOptions<AllAddonsQuery, AllAddonsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AllAddonsQuery, AllAddonsQueryVariables>(AllAddonsDocument, options);
+      }
+export function useAllAddonsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllAddonsQuery, AllAddonsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AllAddonsQuery, AllAddonsQueryVariables>(AllAddonsDocument, options);
+        }
+export type AllAddonsQueryHookResult = ReturnType<typeof useAllAddonsQuery>;
+export type AllAddonsLazyQueryHookResult = ReturnType<typeof useAllAddonsLazyQuery>;
+export type AllAddonsQueryResult = Apollo.QueryResult<AllAddonsQuery, AllAddonsQueryVariables>;
 export const ClustersDocument = gql`
     query clusters($tenant: ID!) {
   clustersInTenant(tenant: $tenant) {

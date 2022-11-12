@@ -12,6 +12,7 @@ import ClusterView from "./containers/routes/ClusterView";
 import Home from "./containers/routes/Home";
 import CreateCluster from "./containers/routes/CreateCluster";
 import TenantList from "./containers/routes/TenantList";
+import AddonList from "./containers/routes/AddonList";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -97,8 +98,12 @@ const App: React.FC = (): JSX.Element => {
 								element={<Home/>}
 							/>
 							<Route
-								path={"/tenants"}
+								path="/tenants"
 								element={<TenantList/>}
+							/>
+							<Route
+								path="/clusters/:tenant/cluster/:name/-/addons"
+								element={<AddonList/>}
 							/>
 							<Route
 								path="/clusters/:tenant/cluster/:name"

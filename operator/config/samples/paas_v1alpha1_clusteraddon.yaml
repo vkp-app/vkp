@@ -9,6 +9,8 @@ metadata:
     app.kubernetes.io/created-by: operator
   name: clusteraddon-sample
 spec:
+  displayName: "Hello World"
+  maintainer: "Kustomize maintainers"
   resources:
     - url: https://github.com/kubernetes-sigs/kustomize//examples/helloWorld/?ref=v3.3.1
 ---
@@ -24,6 +26,9 @@ metadata:
   name: dashboard-okd
   namespace: alpha
 spec:
+  displayName: "OpenShift Console"
+  maintainer: "OpenShift Maintainers"
+  logo: https://upload.wikimedia.org/wikipedia/commons/3/3a/OpenShift-LogoType.svg
   resources:
     - configMap:
         name: glass-addon-dashboard-okd

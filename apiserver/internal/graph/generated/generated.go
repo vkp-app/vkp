@@ -38,6 +38,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Cluster() ClusterResolver
+	ClusterAddon() ClusterAddonResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Tenant() TenantResolver
@@ -55,6 +56,14 @@ type ComplexityRoot struct {
 		Status func(childComplexity int) int
 		Tenant func(childComplexity int) int
 		Track  func(childComplexity int) int
+	}
+
+	ClusterAddon struct {
+		Description func(childComplexity int) int
+		DisplayName func(childComplexity int) int
+		Logo        func(childComplexity int) int
+		Maintainer  func(childComplexity int) int
+		Name        func(childComplexity int) int
 	}
 
 	ClusterStatus struct {
@@ -81,6 +90,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Cluster                  func(childComplexity int, tenant string, cluster string) int
+		ClusterAddons            func(childComplexity int, tenant string) int
 		ClusterMetricCPU         func(childComplexity int, tenant string, cluster string) int
 		ClusterMetricMemory      func(childComplexity int, tenant string, cluster string) int
 		ClusterMetricNetReceive  func(childComplexity int, tenant string, cluster string) int
@@ -115,6 +125,12 @@ type ClusterResolver interface {
 	Track(ctx context.Context, obj *v1alpha1.Cluster) (model.Track, error)
 	Addons(ctx context.Context, obj *v1alpha1.Cluster) ([]v1alpha1.NamespacedName, error)
 }
+type ClusterAddonResolver interface {
+	DisplayName(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
+	Description(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
+	Maintainer(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
+	Logo(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
+}
 type MutationResolver interface {
 	CreateTenant(ctx context.Context, tenant string) (*v1alpha1.Tenant, error)
 	CreateCluster(ctx context.Context, tenant string, input model.NewCluster) (*v1alpha1.Cluster, error)
@@ -125,6 +141,7 @@ type QueryResolver interface {
 	Tenant(ctx context.Context, tenant string) (*v1alpha1.Tenant, error)
 	ClustersInTenant(ctx context.Context, tenant string) ([]v1alpha1.Cluster, error)
 	Cluster(ctx context.Context, tenant string, cluster string) (*v1alpha1.Cluster, error)
+	ClusterAddons(ctx context.Context, tenant string) ([]v1alpha1.ClusterAddon, error)
 	CurrentUser(ctx context.Context) (*model.User, error)
 	ClusterMetricMemory(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
 	ClusterMetricCPU(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
@@ -187,6 +204,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Cluster.Track(childComplexity), true
+
+	case "ClusterAddon.description":
+		if e.complexity.ClusterAddon.Description == nil {
+			break
+		}
+
+		return e.complexity.ClusterAddon.Description(childComplexity), true
+
+	case "ClusterAddon.displayName":
+		if e.complexity.ClusterAddon.DisplayName == nil {
+			break
+		}
+
+		return e.complexity.ClusterAddon.DisplayName(childComplexity), true
+
+	case "ClusterAddon.logo":
+		if e.complexity.ClusterAddon.Logo == nil {
+			break
+		}
+
+		return e.complexity.ClusterAddon.Logo(childComplexity), true
+
+	case "ClusterAddon.maintainer":
+		if e.complexity.ClusterAddon.Maintainer == nil {
+			break
+		}
+
+		return e.complexity.ClusterAddon.Maintainer(childComplexity), true
+
+	case "ClusterAddon.name":
+		if e.complexity.ClusterAddon.Name == nil {
+			break
+		}
+
+		return e.complexity.ClusterAddon.Name(childComplexity), true
 
 	case "ClusterStatus.kubeURL":
 		if e.complexity.ClusterStatus.KubeURL == nil {
@@ -284,6 +336,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Cluster(childComplexity, args["tenant"].(string), args["cluster"].(string)), true
+
+	case "Query.clusterAddons":
+		if e.complexity.Query.ClusterAddons == nil {
+			break
+		}
+
+		args, err := ec.field_Query_clusterAddons_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ClusterAddons(childComplexity, args["tenant"].(string)), true
 
 	case "Query.clusterMetricCPU":
 		if e.complexity.Query.ClusterMetricCPU == nil {
@@ -560,6 +624,14 @@ type ClusterStatus {
   webURL: String!
 }
 
+type ClusterAddon {
+  name: String!
+  displayName: String!
+  description: String!
+  maintainer: String!
+  logo: String!
+}
+
 type User {
   username: String!
   groups: [String!]!
@@ -576,6 +648,7 @@ type Query {
 
   clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
   cluster(tenant: ID!, cluster: ID!): Cluster! @hasUser
+  clusterAddons(tenant: ID!): [ClusterAddon!]! @hasUser
 
   currentUser: User! @hasUser
 
@@ -673,6 +746,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_clusterAddons_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenant"] = arg0
 	return args, nil
 }
 
@@ -1141,6 +1229,226 @@ func (ec *executionContext) fieldContext_Cluster_status(ctx context.Context, fie
 				return ec.fieldContext_ClusterStatus_webURL(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClusterStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterAddon_name(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.ClusterAddon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClusterAddon_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClusterAddon_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterAddon",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterAddon_displayName(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.ClusterAddon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClusterAddon_displayName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ClusterAddon().DisplayName(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClusterAddon_displayName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterAddon",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterAddon_description(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.ClusterAddon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClusterAddon_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ClusterAddon().Description(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClusterAddon_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterAddon",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterAddon_maintainer(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.ClusterAddon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClusterAddon_maintainer(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ClusterAddon().Maintainer(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClusterAddon_maintainer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterAddon",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterAddon_logo(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.ClusterAddon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClusterAddon_logo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ClusterAddon().Logo(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClusterAddon_logo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterAddon",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2028,6 +2336,93 @@ func (ec *executionContext) fieldContext_Query_cluster(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_cluster_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_clusterAddons(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_clusterAddons(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ClusterAddons(rctx, fc.Args["tenant"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]v1alpha1.ClusterAddon); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.ClusterAddon`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]v1alpha1.ClusterAddon)
+	fc.Result = res
+	return ec.marshalNClusterAddon2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterAddonᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_clusterAddons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_ClusterAddon_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_ClusterAddon_displayName(ctx, field)
+			case "description":
+				return ec.fieldContext_ClusterAddon_description(ctx, field)
+			case "maintainer":
+				return ec.fieldContext_ClusterAddon_maintainer(ctx, field)
+			case "logo":
+				return ec.fieldContext_ClusterAddon_logo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ClusterAddon", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_clusterAddons_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -4943,6 +5338,114 @@ func (ec *executionContext) _Cluster(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var clusterAddonImplementors = []string{"ClusterAddon"}
+
+func (ec *executionContext) _ClusterAddon(ctx context.Context, sel ast.SelectionSet, obj *v1alpha1.ClusterAddon) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, clusterAddonImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ClusterAddon")
+		case "name":
+
+			out.Values[i] = ec._ClusterAddon_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "displayName":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ClusterAddon_displayName(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "description":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ClusterAddon_description(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "maintainer":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ClusterAddon_maintainer(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "logo":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ClusterAddon_logo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var clusterStatusImplementors = []string{"ClusterStatus"}
 
 func (ec *executionContext) _ClusterStatus(ctx context.Context, sel ast.SelectionSet, obj *v1alpha1.ClusterStatus) graphql.Marshaler {
@@ -5210,6 +5713,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_cluster(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "clusterAddons":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_clusterAddons(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -5934,6 +6460,54 @@ func (ec *executionContext) marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkube�
 		return graphql.Null
 	}
 	return ec._Cluster(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNClusterAddon2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterAddon(ctx context.Context, sel ast.SelectionSet, v v1alpha1.ClusterAddon) graphql.Marshaler {
+	return ec._ClusterAddon(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNClusterAddon2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterAddonᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.ClusterAddon) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNClusterAddon2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterAddon(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNClusterStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterStatus(ctx context.Context, sel ast.SelectionSet, v v1alpha1.ClusterStatus) graphql.Marshaler {

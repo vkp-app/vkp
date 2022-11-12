@@ -16,6 +16,14 @@ rules:
   - apiGroups:
       - paas.dcas.dev
     resources:
+      - clusteraddons
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - paas.dcas.dev
+    resources:
       - tenants
       - tenants/status
     verbs:

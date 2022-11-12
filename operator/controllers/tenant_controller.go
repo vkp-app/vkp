@@ -20,7 +20,6 @@ import (
 	"context"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -68,7 +67,6 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	// collect a list of managed clusters
 	clusters := &paasv1alpha1.ClusterList{}
-	selector := labels.SelectorFromSet(labels.Set{labelTenant: cr.GetName()})
 	var ns string
 	// if the tenant uses a single namespace, we can limit
 	// our search to just that namespace
@@ -78,7 +76,7 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if cr.Status.Phase == "" {
 		cr.Status.Phase = paasv1alpha1.PhasePendingApproval
 	}
-	if err := r.List(ctx, clusters, &client.ListOptions{LabelSelector: selector, Namespace: ns}); err != nil {
+	if err := r.List(ctx, clusters, client.MatchingLabels{labelTenant: cr.GetName()}, client.InNamespace(ns)); err != nil {
 		if errors.IsNotFound(err); err != nil {
 			return ctrl.Result{}, nil
 		}
