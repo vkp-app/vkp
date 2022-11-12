@@ -145,6 +145,55 @@ func (r *mutationResolver) CreateCluster(ctx context.Context, tenant string, inp
 	return cluster, nil
 }
 
+// InstallAddon is the resolver for the installAddon field.
+func (r *mutationResolver) InstallAddon(ctx context.Context, tenant string, cluster string, addon string) (bool, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster, "addon", addon)
+	log.Info("installing addon")
+
+	// todo validate that the cluster is ready
+
+	// create the binding
+	br := &paasv1alpha1.ClusterAddonBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s", cluster, addon),
+			Namespace: tenant,
+		},
+		Spec: paasv1alpha1.ClusterAddonBindingSpec{
+			ClusterRef: corev1.LocalObjectReference{
+				Name: cluster,
+			},
+			ClusterAddonRef: corev1.LocalObjectReference{
+				Name: addon,
+			},
+		},
+	}
+	if err := r.Create(ctx, br); err != nil {
+		log.Error(err, "failed to create ClusterAddonBinding")
+		return false, err
+	}
+	return true, nil
+}
+
+// UninstallAddon is the resolver for the uninstallAddon field.
+func (r *mutationResolver) UninstallAddon(ctx context.Context, tenant string, cluster string, addon string) (bool, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster, "addon", addon)
+	log.Info("uninstalling addon")
+
+	// create a shell
+	br := &paasv1alpha1.ClusterAddonBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s", cluster, addon),
+			Namespace: tenant,
+		},
+	}
+	if err := r.Delete(ctx, br); err != nil {
+		log.Error(err, "failed to delete ClusterAddonBinding")
+		return false, err
+	}
+	log.Info("completed addon uninstallation")
+	return true, nil
+}
+
 // ApproveTenant is the resolver for the approveTenant field.
 func (r *mutationResolver) ApproveTenant(ctx context.Context, tenant string) (bool, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)

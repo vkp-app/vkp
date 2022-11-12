@@ -142,7 +142,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 					<ListItemSecondaryAction>
 						<Button
 							className={classes.button}
-							disabled={loading || !data?.cluster.status.webURL || !installedAddons.find(i => i.startsWith("dashboard-")) == null}
+							disabled={loading || !data?.cluster.status.webURL || installedAddons.find(i => i.startsWith(`${clusterName}-dashboard-`)) == null}
 							variant="outlined"
 							startIcon={<ExternalLink
 								size={18}

@@ -8,3 +8,8 @@ configMapGenerator:
       - dashboard-okd/secret.yaml
       - dashboard-okd/patch-test.yaml
       - dashboard-okd/kustomization.yaml
+  - name: glass-addon-podinfo
+    files:
+      - podinfo/namespace.yaml
+      - podinfo/ingress.yaml
+      - podinfo/kustomization.yaml

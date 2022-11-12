@@ -101,5 +101,8 @@ type Mutation {
   createTenant(tenant: String!): Tenant! @hasUser
   createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasUser
 
+  installAddon(tenant: ID!, cluster: ID!, addon: String!): Boolean! @hasUser
+  uninstallAddon(tenant: ID!, cluster: ID!, addon: String!): Boolean! @hasUser
+
   approveTenant(tenant: ID!): Boolean! @hasAdmin
 }

@@ -79,3 +79,26 @@ spec:
   description: |
     General-purpose web UI for Kubernetes clusters.
   resources: []
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterAddon
+metadata:
+  labels:
+    app.kubernetes.io/name: clusteraddon
+    app.kubernetes.io/instance: podinfo
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: podinfo
+  namespace: alpha
+spec:
+  displayName: "Podinfo"
+  maintainer: "KubeGlass"
+  description: |
+    Go microservice template for Kubernetes
+  source: Official
+  sourceURL: https://github.com/stefanprodan/podinfo
+  logo: https://raw.githubusercontent.com/stefanprodan/podinfo/gh-pages/cuddle_clap.gif
+  resources:
+    - configMap:
+        name: glass-addon-podinfo

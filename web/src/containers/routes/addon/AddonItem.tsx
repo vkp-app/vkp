@@ -1,5 +1,15 @@
 import React from "react";
-import {Avatar, Box, Button, CardActions, CardContent, CardHeader, Skeleton, Typography} from "@mui/material";
+import {
+	Avatar,
+	Box,
+	Button,
+	CardActions,
+	CardContent,
+	CardHeader,
+	CircularProgress,
+	Skeleton,
+	Typography
+} from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import {makeStyles} from "tss-react/mui";
 import {AddonSource, ClusterAddon} from "../../../generated/graphql";
@@ -20,11 +30,22 @@ const useStyles = makeStyles()(() => ({
 interface Props {
 	item: ClusterAddon | null;
 	installed?: boolean;
+	loading?: boolean;
+	onInstall: () => void;
+	onUninstall: () => void;
 }
 
-const AddonItem: React.FC<Props> = ({item, installed}): JSX.Element => {
+const AddonItem: React.FC<Props> = ({item, installed, loading, onInstall, onUninstall}): JSX.Element => {
 	// hooks
 	const {classes} = useStyles();
+
+	const handleClick = (): void => {
+		if (installed) {
+			onUninstall();
+			return;
+		}
+		onInstall();
+	}
 
 	return <Grid2
 		xs={6}>
@@ -48,7 +69,7 @@ const AddonItem: React.FC<Props> = ({item, installed}): JSX.Element => {
 				avatar={item != null ? <Avatar
 					src={item.logo}
 					alt={`${item.displayName} logo`}
-					variant="square"
+					variant={item.logo !== "" ? "square" : "circular"}
 				/> : <Skeleton
 					variant="circular"
 					width={48}
@@ -57,8 +78,10 @@ const AddonItem: React.FC<Props> = ({item, installed}): JSX.Element => {
 				action={item != null ? <Button
 					className={classes.button}
 					variant="outlined"
-					disabled={installed}>
-					Install
+					disabled={loading}
+					startIcon={loading ? <CircularProgress size={14}/> : undefined}
+					onClick={handleClick}>
+					{installed ? "Uninstall" : "Install"}
 				</Button> : undefined}
 			/>
 			<CardContent>

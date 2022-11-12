@@ -4,7 +4,12 @@ import {Link, useParams} from "react-router-dom";
 import {ArrowLeft} from "tabler-icons-react";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import StandardLayout from "../layout/StandardLayout";
-import {ClusterAddon, useAllAddonsQuery} from "../../generated/graphql";
+import {
+	ClusterAddon,
+	useAllAddonsQuery,
+	useInstallAddonMutation,
+	useUninstallAddonMutation
+} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import AddonItem from "./addon/AddonItem";
 
@@ -19,6 +24,28 @@ const AddonList: React.FC = (): JSX.Element => {
 		variables: {tenant: tenantName, cluster: clusterName},
 		skip: !tenantName
 	});
+	const [installAddon, installData] = useInstallAddonMutation();
+	const [uninstallAddon, uninstallData] = useUninstallAddonMutation();
+
+	const onInstallAddon = (name: string): void => {
+		installAddon({
+			variables: {tenant: tenantName, cluster: clusterName, addon: name}
+		}).then(r => {
+			if (r.data != null) {
+				void addons.refetch();
+			}
+		});
+	}
+
+	const onUninstallAddon = (name: string): void => {
+		void uninstallAddon({
+			variables: {tenant: tenantName, cluster: clusterName, addon: name}
+		}).then(r => {
+			if (r.data != null) {
+				void addons.refetch();
+			}
+		});
+	}
 
 	const addonData = useMemo(() => {
 		if (addons.loading || addons.error || !addons.data)
@@ -26,14 +53,22 @@ const AddonList: React.FC = (): JSX.Element => {
 		return (addons.data.clusterAddons as ClusterAddon[]).map(c => <AddonItem
 			key={c.name}
 			item={c}
-			installed={addons.data?.clusterInstalledAddons.find(i => i === c.name) != null}
+			installed={addons.data?.clusterInstalledAddons.find(i => i === `${clusterName}-${c.name}`) != null}
+			loading={installData.loading || uninstallData.loading}
+			onInstall={() => onInstallAddon(c.name)}
+			onUninstall={() => onUninstallAddon(c.name)}
 		/>);
-	}, [addons]);
+	}, [addons, installData, uninstallData]);
 
 	const loadingData = (): JSX.Element[] => {
 		const items = [];
 		for (let i = 0; i < 6; i++) {
-			items.push(<AddonItem key={i} item={null}/>);
+			items.push(<AddonItem
+				key={i}
+				item={null}
+				onInstall={() => {}}
+				onUninstall={() => {}}
+			/>);
 		}
 		return items;
 	}

@@ -1,0 +1,15 @@
+namespace: podinfo
+resources:
+  - namespace.yaml
+  - ingress.yaml
+  - https://github.com/stefanprodan/podinfo//kustomize?ref=master
+images:
+  - name: ghcr.io/stefanprodan/podinfo
+    newName: harbor.dcas.dev/ghcr.io/stefanprodan/podinfo
+patches:
+  - target:
+      kind: Deployment
+      name: podinfo
+    patch: |
+      - op: remove
+        path: /spec/template/spec/containers/0/resources/limits

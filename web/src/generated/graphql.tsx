@@ -60,6 +60,8 @@ export type Mutation = {
   approveTenant: Scalars['Boolean'];
   createCluster: Cluster;
   createTenant: Tenant;
+  installAddon: Scalars['Boolean'];
+  uninstallAddon: Scalars['Boolean'];
 };
 
 
@@ -76,6 +78,20 @@ export type MutationCreateClusterArgs = {
 
 export type MutationCreateTenantArgs = {
   tenant: Scalars['String'];
+};
+
+
+export type MutationInstallAddonArgs = {
+  addon: Scalars['String'];
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
+export type MutationUninstallAddonArgs = {
+  addon: Scalars['String'];
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
 };
 
 export type NamespacedName = {
@@ -208,6 +224,24 @@ export type AllAddonsQueryVariables = Exact<{
 
 export type AllAddonsQuery = { __typename?: 'Query', clusterInstalledAddons: Array<string>, clusterAddons: Array<{ __typename?: 'ClusterAddon', name: string, displayName: string, maintainer: string, source: AddonSource, sourceURL: string, description: string, logo: string }> };
 
+export type InstallAddonMutationVariables = Exact<{
+  tenant: Scalars['ID'];
+  cluster: Scalars['ID'];
+  addon: Scalars['String'];
+}>;
+
+
+export type InstallAddonMutation = { __typename?: 'Mutation', installAddon: boolean };
+
+export type UninstallAddonMutationVariables = Exact<{
+  tenant: Scalars['ID'];
+  cluster: Scalars['ID'];
+  addon: Scalars['String'];
+}>;
+
+
+export type UninstallAddonMutation = { __typename?: 'Mutation', uninstallAddon: boolean };
+
 export type ClustersQueryVariables = Exact<{
   tenant: Scalars['ID'];
 }>;
@@ -308,6 +342,72 @@ export function useAllAddonsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
 export type AllAddonsQueryHookResult = ReturnType<typeof useAllAddonsQuery>;
 export type AllAddonsLazyQueryHookResult = ReturnType<typeof useAllAddonsLazyQuery>;
 export type AllAddonsQueryResult = Apollo.QueryResult<AllAddonsQuery, AllAddonsQueryVariables>;
+export const InstallAddonDocument = gql`
+    mutation installAddon($tenant: ID!, $cluster: ID!, $addon: String!) {
+  installAddon(tenant: $tenant, cluster: $cluster, addon: $addon)
+}
+    `;
+export type InstallAddonMutationFn = Apollo.MutationFunction<InstallAddonMutation, InstallAddonMutationVariables>;
+
+/**
+ * __useInstallAddonMutation__
+ *
+ * To run a mutation, you first call `useInstallAddonMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInstallAddonMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [installAddonMutation, { data, loading, error }] = useInstallAddonMutation({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      cluster: // value for 'cluster'
+ *      addon: // value for 'addon'
+ *   },
+ * });
+ */
+export function useInstallAddonMutation(baseOptions?: Apollo.MutationHookOptions<InstallAddonMutation, InstallAddonMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InstallAddonMutation, InstallAddonMutationVariables>(InstallAddonDocument, options);
+      }
+export type InstallAddonMutationHookResult = ReturnType<typeof useInstallAddonMutation>;
+export type InstallAddonMutationResult = Apollo.MutationResult<InstallAddonMutation>;
+export type InstallAddonMutationOptions = Apollo.BaseMutationOptions<InstallAddonMutation, InstallAddonMutationVariables>;
+export const UninstallAddonDocument = gql`
+    mutation uninstallAddon($tenant: ID!, $cluster: ID!, $addon: String!) {
+  uninstallAddon(tenant: $tenant, cluster: $cluster, addon: $addon)
+}
+    `;
+export type UninstallAddonMutationFn = Apollo.MutationFunction<UninstallAddonMutation, UninstallAddonMutationVariables>;
+
+/**
+ * __useUninstallAddonMutation__
+ *
+ * To run a mutation, you first call `useUninstallAddonMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUninstallAddonMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [uninstallAddonMutation, { data, loading, error }] = useUninstallAddonMutation({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      cluster: // value for 'cluster'
+ *      addon: // value for 'addon'
+ *   },
+ * });
+ */
+export function useUninstallAddonMutation(baseOptions?: Apollo.MutationHookOptions<UninstallAddonMutation, UninstallAddonMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UninstallAddonMutation, UninstallAddonMutationVariables>(UninstallAddonDocument, options);
+      }
+export type UninstallAddonMutationHookResult = ReturnType<typeof useUninstallAddonMutation>;
+export type UninstallAddonMutationResult = Apollo.MutationResult<UninstallAddonMutation>;
+export type UninstallAddonMutationOptions = Apollo.BaseMutationOptions<UninstallAddonMutation, UninstallAddonMutationVariables>;
 export const ClustersDocument = gql`
     query clusters($tenant: ID!) {
   clustersInTenant(tenant: $tenant) {

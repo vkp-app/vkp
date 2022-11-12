@@ -11,3 +11,11 @@ query allAddons($tenant: ID!, $cluster: ID!) {
     }
     clusterInstalledAddons(tenant: $tenant, cluster: $cluster)
 }
+
+mutation installAddon($tenant: ID!, $cluster: ID!, $addon: String!) {
+    installAddon(tenant: $tenant, cluster: $cluster, addon: $addon)
+}
+
+mutation uninstallAddon($tenant: ID!, $cluster: ID!, $addon: String!) {
+    uninstallAddon(tenant: $tenant, cluster: $cluster, addon: $addon)
+}
