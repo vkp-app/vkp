@@ -22,6 +22,7 @@ import (
 
 type NamespaceStrategy string
 
+//goland:noinspection GoUnusedConst
 const (
 	StrategySingle   NamespaceStrategy = "Single"
 	StrategyMultiple NamespaceStrategy = "Multiple"

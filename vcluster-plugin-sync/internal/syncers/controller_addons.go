@@ -2,6 +2,7 @@ package syncers
 
 import (
 	"context"
+	"fmt"
 	"github.com/loft-sh/vcluster-sdk/syncer"
 	synccontext "github.com/loft-sh/vcluster-sdk/syncer/context"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
@@ -72,6 +73,19 @@ func (r *AddonSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Res
 		return ctrl.Result{}, err
 	}
 
+	// check whether we should apply the addon
+	cr := &paasv1alpha1.Cluster{}
+	if err := r.pClient.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: r.ClusterName}, cr); err != nil {
+		log.Error(err, "failed to retrieve cluster resource")
+		return ctrl.Result{}, err
+	}
+
+	ok := r.validateAddon(ctx, car, cr)
+	if !ok {
+		log.Info("skipping addon")
+		return ctrl.Result{}, nil
+	}
+
 	// reconcile the addon
 	if err := r.reconcileAddon(ctx, car); err != nil {
 		return ctrl.Result{}, err
@@ -80,6 +94,16 @@ func (r *AddonSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Res
 	// todo place a finalizer so we can delete resources if the addon is removed
 
 	return ctrl.Result{}, nil
+}
+
+func (r *AddonSyncer) validateAddon(ctx context.Context, car *paasv1alpha1.ClusterAddon, cr *paasv1alpha1.Cluster) bool {
+	log := logging.FromContext(ctx)
+	label := fmt.Sprintf("paas.dcas.dev/%s", car.GetName())
+	val := cr.GetLabels()[label]
+	if val == "" {
+		log.V(1).Info("cluster is missing expected label", "label", label)
+	}
+	return val != ""
 }
 
 func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.ClusterAddon) error {

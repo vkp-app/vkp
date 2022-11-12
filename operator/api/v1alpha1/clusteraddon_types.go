@@ -23,6 +23,7 @@ import (
 
 type AddonSource string
 
+//goland:noinspection GoUnusedConst
 const (
 	SourceOfficial  AddonSource = "Official"
 	SourcePlatform  AddonSource = "Platform"
