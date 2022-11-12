@@ -51,6 +51,7 @@ type ClusterAddon {
   maintainer: String!
   logo: String!
   source: AddonSource!
+  sourceURL: String!
 }
 
 enum AddonSource {

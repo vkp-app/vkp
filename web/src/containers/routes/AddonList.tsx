@@ -32,7 +32,7 @@ const AddonList: React.FC = (): JSX.Element => {
 
 	const loadingData = (): JSX.Element[] => {
 		const items = [];
-		for (let i = 0; i < 9; i++) {
+		for (let i = 0; i < 6; i++) {
 			items.push(<AddonItem key={i} item={null}/>);
 		}
 		return items;

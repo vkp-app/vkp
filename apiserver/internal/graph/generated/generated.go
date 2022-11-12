@@ -64,6 +64,7 @@ type ComplexityRoot struct {
 		Maintainer  func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Source      func(childComplexity int) int
+		SourceURL   func(childComplexity int) int
 	}
 
 	ClusterStatus struct {
@@ -131,6 +132,7 @@ type ClusterAddonResolver interface {
 	Maintainer(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
 	Logo(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
 	Source(ctx context.Context, obj *v1alpha1.ClusterAddon) (v1alpha1.AddonSource, error)
+	SourceURL(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
 }
 type MutationResolver interface {
 	CreateTenant(ctx context.Context, tenant string) (*v1alpha1.Tenant, error)
@@ -241,6 +243,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ClusterAddon.Source(childComplexity), true
+
+	case "ClusterAddon.sourceURL":
+		if e.complexity.ClusterAddon.SourceURL == nil {
+			break
+		}
+
+		return e.complexity.ClusterAddon.SourceURL(childComplexity), true
 
 	case "ClusterStatus.kubeURL":
 		if e.complexity.ClusterStatus.KubeURL == nil {
@@ -644,6 +653,7 @@ type ClusterAddon {
   maintainer: String!
   logo: String!
   source: AddonSource!
+  sourceURL: String!
 }
 
 enum AddonSource {
@@ -1490,6 +1500,50 @@ func (ec *executionContext) fieldContext_ClusterAddon_source(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type AddonSource does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClusterAddon_sourceURL(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.ClusterAddon) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClusterAddon_sourceURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ClusterAddon().SourceURL(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClusterAddon_sourceURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClusterAddon",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2448,6 +2502,8 @@ func (ec *executionContext) fieldContext_Query_clusterAddons(ctx context.Context
 				return ec.fieldContext_ClusterAddon_logo(ctx, field)
 			case "source":
 				return ec.fieldContext_ClusterAddon_source(ctx, field)
+			case "sourceURL":
+				return ec.fieldContext_ClusterAddon_sourceURL(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClusterAddon", field.Name)
 		},
@@ -5537,6 +5593,26 @@ func (ec *executionContext) _ClusterAddon(ctx context.Context, sel ast.Selection
 					}
 				}()
 				res = ec._ClusterAddon_source(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "sourceURL":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ClusterAddon_sourceURL(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

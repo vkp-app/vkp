@@ -41,6 +41,7 @@ type ClusterAddonSpec struct {
 	Logo        string      `json:"logo,omitempty"`
 	Description string      `json:"description,omitempty"`
 	Source      AddonSource `json:"source,omitempty"`
+	SourceURL   string      `json:"sourceURL,omitempty"`
 }
 
 type RemoteRef struct {

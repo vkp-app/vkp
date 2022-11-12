@@ -59,6 +59,11 @@ func (r *clusterAddonResolver) Source(ctx context.Context, obj *paasv1alpha1.Clu
 	return obj.Spec.Source, nil
 }
 
+// SourceURL is the resolver for the sourceURL field.
+func (r *clusterAddonResolver) SourceURL(ctx context.Context, obj *paasv1alpha1.ClusterAddon) (string, error) {
+	return obj.Spec.SourceURL, nil
+}
+
 // CreateTenant is the resolver for the createTenant field.
 func (r *mutationResolver) CreateTenant(ctx context.Context, tenant string) (*paasv1alpha1.Tenant, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)

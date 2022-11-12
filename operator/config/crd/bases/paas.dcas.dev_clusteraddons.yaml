@@ -72,6 +72,8 @@ spec:
                 type: array
               source:
                 type: string
+              sourceURL:
+                type: string
             required:
             - displayName
             - maintainer

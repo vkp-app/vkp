@@ -4,6 +4,7 @@ query allAddons($tenant: ID!, $cluster: ID!) {
         displayName
         maintainer
         source
+        sourceURL
 
         description
         logo

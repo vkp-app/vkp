@@ -1,9 +1,21 @@
 import React from "react";
-import {Avatar, Box, CardContent, CardHeader, Skeleton, Typography} from "@mui/material";
+import {Avatar, Box, Button, CardActions, CardContent, CardHeader, Skeleton, Typography} from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
+import {makeStyles} from "tss-react/mui";
 import {AddonSource, ClusterAddon} from "../../../generated/graphql";
 import AddonSourceChip from "./AddonSourceChip";
 import AddonChip from "./AddonChip";
+
+const useStyles = makeStyles()(() => ({
+	button: {
+		fontFamily: "Manrope",
+		fontWeight: 600,
+		fontSize: 13,
+		textTransform: "none",
+		minHeight: 24,
+		height: 24
+	}
+}));
 
 interface Props {
 	item: ClusterAddon | null;
@@ -11,8 +23,11 @@ interface Props {
 }
 
 const AddonItem: React.FC<Props> = ({item, installed}): JSX.Element => {
+	// hooks
+	const {classes} = useStyles();
+
 	return <Grid2
-		xs={4}>
+		xs={6}>
 		<Box>
 			<CardHeader
 				disableTypography={item == null}
@@ -39,6 +54,12 @@ const AddonItem: React.FC<Props> = ({item, installed}): JSX.Element => {
 					width={48}
 					height={48}
 				/>}
+				action={item != null ? <Button
+					className={classes.button}
+					variant="outlined"
+					disabled={installed}>
+					Install
+				</Button> : undefined}
 			/>
 			<CardContent>
 				{item != null ? <Typography
@@ -50,6 +71,17 @@ const AddonItem: React.FC<Props> = ({item, installed}): JSX.Element => {
 					width="40%"
 				/>}
 			</CardContent>
+			{(item == null || item?.sourceURL !== "") && <CardActions>
+				{item != null ? <Button
+					className={classes.button}
+					variant="text"
+					href={item?.sourceURL || ""}
+					target="_blank">
+					View source
+				</Button> : <Skeleton
+					width="20%"
+				/>}
+			</CardActions>}
 		</Box>
 	</Grid2>
 }
