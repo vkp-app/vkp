@@ -1,3 +1,4 @@
+namespace: openshift-console
 resources:
   - namespace.yaml
   - secret.yaml

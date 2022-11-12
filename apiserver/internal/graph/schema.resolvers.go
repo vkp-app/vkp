@@ -291,9 +291,15 @@ func (r *queryResolver) ClusterInstalledAddons(ctx context.Context, tenant strin
 		log.Error(err, "failed to list addon bindings")
 	}
 	// collect the list of names
-	names := make([]string, len(addons.Items))
+	//goland:noinspection GoPreferNilSlice
+	names := []string{}
 	for i := range addons.Items {
-		names[i] = addons.Items[i].GetName()
+		// skip binding that are actively
+		// being finalized
+		if addons.Items[i].DeletionTimestamp != nil {
+			continue
+		}
+		names = append(names, addons.Items[i].GetName())
 	}
 	return names, nil
 }

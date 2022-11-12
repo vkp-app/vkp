@@ -31,7 +31,7 @@ spec:
   logo: https://upload.wikimedia.org/wikipedia/commons/3/3a/OpenShift-LogoType.svg
   description: |
     The console is a more friendly kubectl in the form of a single page webapp. It also integrates with other services like monitoring, chargeback, and OLM.
-    (OpenShift features will not work).
+    (OpenShift-specific features such as Projects or Routes will not work).
   source: Official
   sourceURL: https://github.com/openshift/console
   resources:
