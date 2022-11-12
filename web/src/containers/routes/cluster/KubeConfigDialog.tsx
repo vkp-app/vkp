@@ -47,7 +47,8 @@ const KubeConfigDialog: React.FC<Props> = ({open, config, onClose}): JSX.Element
 						fontSize: 12,
 						p: 1,
 						pl: 2,
-						color: "text.primary"
+						color: "text.primary",
+						overflowX: "auto"
 					}}
 					component="pre">
 					<code>
