@@ -14,10 +14,6 @@ query cluster($tenant: ID!, $cluster: ID!) {
         name
         tenant
         track
-        addons {
-            name
-            namespace
-        }
         status {
             kubeVersion
             kubeURL

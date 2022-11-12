@@ -34,7 +34,6 @@ type Cluster {
   name: ID!
   tenant: ID!
   track: Track!
-  addons: [NamespacedName!]!
 
   status: ClusterStatus!
 }
@@ -77,7 +76,9 @@ type Query {
 
   clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
   cluster(tenant: ID!, cluster: ID!): Cluster! @hasUser
+
   clusterAddons(tenant: ID!): [ClusterAddon!]! @hasUser
+  clusterInstalledAddons(tenant: ID!, cluster: ID!): [String!]! @hasUser
 
   currentUser: User! @hasUser
 

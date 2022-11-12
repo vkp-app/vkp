@@ -27,8 +27,11 @@ metadata:
   namespace: alpha
 spec:
   displayName: "OpenShift Console"
-  maintainer: "OpenShift Maintainers"
+  maintainer: "KubeGlass"
   logo: https://upload.wikimedia.org/wikipedia/commons/3/3a/OpenShift-LogoType.svg
+  description: |
+    The console is a more friendly kubectl in the form of a single page webapp. It also integrates with other services like monitoring, chargeback, and OLM.
+    (OpenShift features will not work).
   resources:
     - configMap:
         name: glass-addon-dashboard-okd

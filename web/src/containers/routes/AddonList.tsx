@@ -16,14 +16,18 @@ const AddonList: React.FC = (): JSX.Element => {
 	const tenantName = params["tenant"] || "";
 
 	const addons = useAllAddonsQuery({
-		variables: {tenant: tenantName},
+		variables: {tenant: tenantName, cluster: clusterName},
 		skip: !tenantName
 	});
 
 	const addonData = useMemo(() => {
 		if (addons.loading || addons.error || !addons.data)
 			return [];
-		return (addons.data.clusterAddons as ClusterAddon[]).map(c => <AddonItem key={c.name} item={c}/>);
+		return (addons.data.clusterAddons as ClusterAddon[]).map(c => <AddonItem
+			key={c.name}
+			item={c}
+			installed={addons.data?.clusterInstalledAddons.find(i => i === c.name) != null}
+		/>);
 	}, [addons]);
 
 	const loadingData = (): JSX.Element[] => {

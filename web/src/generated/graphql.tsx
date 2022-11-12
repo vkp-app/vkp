@@ -25,7 +25,6 @@ export enum AddonSource {
 
 export type Cluster = {
   __typename?: 'Cluster';
-  addons: Array<NamespacedName>;
   name: Scalars['ID'];
   status: ClusterStatus;
   tenant: Scalars['ID'];
@@ -93,6 +92,7 @@ export type Query = {
   __typename?: 'Query';
   cluster: Cluster;
   clusterAddons: Array<ClusterAddon>;
+  clusterInstalledAddons: Array<Scalars['String']>;
   clusterMetricCPU: Array<MetricValue>;
   clusterMetricMemory: Array<MetricValue>;
   clusterMetricNetReceive: Array<MetricValue>;
@@ -113,6 +113,12 @@ export type QueryClusterArgs = {
 
 
 export type QueryClusterAddonsArgs = {
+  tenant: Scalars['ID'];
+};
+
+
+export type QueryClusterInstalledAddonsArgs = {
+  cluster: Scalars['ID'];
   tenant: Scalars['ID'];
 };
 
@@ -195,10 +201,11 @@ export type User = {
 
 export type AllAddonsQueryVariables = Exact<{
   tenant: Scalars['ID'];
+  cluster: Scalars['ID'];
 }>;
 
 
-export type AllAddonsQuery = { __typename?: 'Query', clusterAddons: Array<{ __typename?: 'ClusterAddon', name: string, displayName: string, maintainer: string, source: AddonSource, description: string, logo: string }> };
+export type AllAddonsQuery = { __typename?: 'Query', clusterInstalledAddons: Array<string>, clusterAddons: Array<{ __typename?: 'ClusterAddon', name: string, displayName: string, maintainer: string, source: AddonSource, description: string, logo: string }> };
 
 export type ClustersQueryVariables = Exact<{
   tenant: Scalars['ID'];
@@ -213,7 +220,7 @@ export type ClusterQueryVariables = Exact<{
 }>;
 
 
-export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: Track, addons: Array<{ __typename?: 'NamespacedName', name: string, namespace: string }>, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string } } };
+export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: Track, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string } } };
 
 export type CreateClusterMutationVariables = Exact<{
   tenant: Scalars['ID'];
@@ -258,7 +265,7 @@ export type TenantQuery = { __typename?: 'Query', tenant: { __typename?: 'Tenant
 
 
 export const AllAddonsDocument = gql`
-    query allAddons($tenant: ID!) {
+    query allAddons($tenant: ID!, $cluster: ID!) {
   clusterAddons(tenant: $tenant) {
     name
     displayName
@@ -267,6 +274,7 @@ export const AllAddonsDocument = gql`
     description
     logo
   }
+  clusterInstalledAddons(tenant: $tenant, cluster: $cluster)
 }
     `;
 
@@ -283,6 +291,7 @@ export const AllAddonsDocument = gql`
  * const { data, loading, error } = useAllAddonsQuery({
  *   variables: {
  *      tenant: // value for 'tenant'
+ *      cluster: // value for 'cluster'
  *   },
  * });
  */
@@ -343,10 +352,6 @@ export const ClusterDocument = gql`
     name
     tenant
     track
-    addons {
-      name
-      namespace
-    }
     status {
       kubeVersion
       kubeURL

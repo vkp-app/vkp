@@ -16,6 +16,18 @@ rules:
   - apiGroups:
       - paas.dcas.dev
     resources:
+      - clusteraddonbindings
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - paas.dcas.dev
+    resources:
       - clusteraddons
     verbs:
       - get

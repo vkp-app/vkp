@@ -21,6 +21,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	LabelClusterRef      = "paas.dcas.dev/cluster-name"
+	LabelClusterAddonRef = "paas.dcas.dev/cluster-addon-name"
+)
+
 // ClusterAddonBindingSpec defines the desired state of ClusterAddonBinding
 type ClusterAddonBindingSpec struct {
 	ClusterRef      corev1.LocalObjectReference `json:"clusterRef"`

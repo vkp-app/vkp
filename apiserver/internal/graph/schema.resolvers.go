@@ -34,11 +34,6 @@ func (r *clusterResolver) Track(ctx context.Context, obj *paasv1alpha1.Cluster) 
 	return model.FromDAO(obj.Spec.Track), nil
 }
 
-// Addons is the resolver for the addons field.
-func (r *clusterResolver) Addons(ctx context.Context, obj *paasv1alpha1.Cluster) ([]paasv1alpha1.NamespacedName, error) {
-	return obj.Spec.Addons, nil
-}
-
 // DisplayName is the resolver for the displayName field.
 func (r *clusterAddonResolver) DisplayName(ctx context.Context, obj *paasv1alpha1.ClusterAddon) (string, error) {
 	return obj.Spec.DisplayName, nil
@@ -230,6 +225,23 @@ func (r *queryResolver) ClusterAddons(ctx context.Context, tenant string) ([]paa
 		return nil, err
 	}
 	return addons.Items, nil
+}
+
+// ClusterInstalledAddons is the resolver for the clusterInstalledAddons field.
+func (r *queryResolver) ClusterInstalledAddons(ctx context.Context, tenant string, cluster string) ([]string, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster)
+	log.Info("listing installed addons")
+
+	addons := &paasv1alpha1.ClusterAddonBindingList{}
+	if err := r.List(ctx, addons, client.MatchingLabels{paasv1alpha1.LabelClusterRef: cluster}, client.InNamespace(tenant)); err != nil {
+		log.Error(err, "failed to list addon bindings")
+	}
+	// collect the list of names
+	names := make([]string, len(addons.Items))
+	for i := range addons.Items {
+		names[i] = addons.Items[i].GetName()
+	}
+	return names, nil
 }
 
 // CurrentUser is the resolver for the currentUser field.

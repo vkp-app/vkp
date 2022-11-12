@@ -1,4 +1,4 @@
-query allAddons($tenant: ID!) {
+query allAddons($tenant: ID!, $cluster: ID!) {
     clusterAddons(tenant: $tenant) {
         name
         displayName
@@ -8,4 +8,5 @@ query allAddons($tenant: ID!) {
         description
         logo
     }
+    clusterInstalledAddons(tenant: $tenant, cluster: $cluster)
 }

@@ -3,12 +3,14 @@ import {Avatar, Box, CardContent, CardHeader, Skeleton, Typography} from "@mui/m
 import Grid2 from "@mui/material/Unstable_Grid2";
 import {AddonSource, ClusterAddon} from "../../../generated/graphql";
 import AddonSourceChip from "./AddonSourceChip";
+import AddonChip from "./AddonChip";
 
 interface Props {
 	item: ClusterAddon | null;
+	installed?: boolean;
 }
 
-const AddonItem: React.FC<Props> = ({item}): JSX.Element => {
+const AddonItem: React.FC<Props> = ({item, installed}): JSX.Element => {
 	return <Grid2
 		xs={4}>
 		<Box>
@@ -21,10 +23,12 @@ const AddonItem: React.FC<Props> = ({item}): JSX.Element => {
 				subheader={item?.maintainer ? <span>
 					{item.maintainer}
 					<AddonSourceChip source={item?.source || AddonSource.Unknown}/>
+					{installed && <AddonChip/>}
 				</span> : <Skeleton
 					variant="text"
 					width="60%"
 				/>}
+				titleTypographyProps={{fontFamily: "Manrope", fontWeight: "bold"}}
 				subheaderTypographyProps={{fontSize: 14}}
 				avatar={item != null ? <Avatar
 					src={item.logo}

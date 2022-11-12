@@ -51,7 +51,6 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Cluster struct {
-		Addons func(childComplexity int) int
 		Name   func(childComplexity int) int
 		Status func(childComplexity int) int
 		Tenant func(childComplexity int) int
@@ -92,6 +91,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Cluster                  func(childComplexity int, tenant string, cluster string) int
 		ClusterAddons            func(childComplexity int, tenant string) int
+		ClusterInstalledAddons   func(childComplexity int, tenant string, cluster string) int
 		ClusterMetricCPU         func(childComplexity int, tenant string, cluster string) int
 		ClusterMetricMemory      func(childComplexity int, tenant string, cluster string) int
 		ClusterMetricNetReceive  func(childComplexity int, tenant string, cluster string) int
@@ -124,7 +124,6 @@ type ComplexityRoot struct {
 type ClusterResolver interface {
 	Tenant(ctx context.Context, obj *v1alpha1.Cluster) (string, error)
 	Track(ctx context.Context, obj *v1alpha1.Cluster) (model.Track, error)
-	Addons(ctx context.Context, obj *v1alpha1.Cluster) ([]v1alpha1.NamespacedName, error)
 }
 type ClusterAddonResolver interface {
 	DisplayName(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
@@ -144,6 +143,7 @@ type QueryResolver interface {
 	ClustersInTenant(ctx context.Context, tenant string) ([]v1alpha1.Cluster, error)
 	Cluster(ctx context.Context, tenant string, cluster string) (*v1alpha1.Cluster, error)
 	ClusterAddons(ctx context.Context, tenant string) ([]v1alpha1.ClusterAddon, error)
+	ClusterInstalledAddons(ctx context.Context, tenant string, cluster string) ([]string, error)
 	CurrentUser(ctx context.Context) (*model.User, error)
 	ClusterMetricMemory(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
 	ClusterMetricCPU(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error)
@@ -171,13 +171,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
-
-	case "Cluster.addons":
-		if e.complexity.Cluster.Addons == nil {
-			break
-		}
-
-		return e.complexity.Cluster.Addons(childComplexity), true
 
 	case "Cluster.name":
 		if e.complexity.Cluster.Name == nil {
@@ -357,6 +350,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ClusterAddons(childComplexity, args["tenant"].(string)), true
+
+	case "Query.clusterInstalledAddons":
+		if e.complexity.Query.ClusterInstalledAddons == nil {
+			break
+		}
+
+		args, err := ec.field_Query_clusterInstalledAddons_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ClusterInstalledAddons(childComplexity, args["tenant"].(string), args["cluster"].(string)), true
 
 	case "Query.clusterMetricCPU":
 		if e.complexity.Query.ClusterMetricCPU == nil {
@@ -622,7 +627,6 @@ type Cluster {
   name: ID!
   tenant: ID!
   track: Track!
-  addons: [NamespacedName!]!
 
   status: ClusterStatus!
 }
@@ -665,7 +669,9 @@ type Query {
 
   clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
   cluster(tenant: ID!, cluster: ID!): Cluster! @hasUser
+
   clusterAddons(tenant: ID!): [ClusterAddon!]! @hasUser
+  clusterInstalledAddons(tenant: ID!, cluster: ID!): [String!]! @hasUser
 
   currentUser: User! @hasUser
 
@@ -778,6 +784,30 @@ func (ec *executionContext) field_Query_clusterAddons_args(ctx context.Context, 
 		}
 	}
 	args["tenant"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_clusterInstalledAddons_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenant"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["cluster"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cluster"] = arg1
 	return args, nil
 }
 
@@ -1144,56 +1174,6 @@ func (ec *executionContext) fieldContext_Cluster_track(ctx context.Context, fiel
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Track does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Cluster_addons(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Cluster) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Cluster_addons(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Cluster().Addons(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]v1alpha1.NamespacedName)
-	fc.Result = res
-	return ec.marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedNameᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Cluster_addons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Cluster",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext_NamespacedName_name(ctx, field)
-			case "namespace":
-				return ec.fieldContext_NamespacedName_namespace(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type NamespacedName", field.Name)
 		},
 	}
 	return fc, nil
@@ -1885,8 +1865,6 @@ func (ec *executionContext) fieldContext_Mutation_createCluster(ctx context.Cont
 				return ec.fieldContext_Cluster_tenant(ctx, field)
 			case "track":
 				return ec.fieldContext_Cluster_track(ctx, field)
-			case "addons":
-				return ec.fieldContext_Cluster_addons(ctx, field)
 			case "status":
 				return ec.fieldContext_Cluster_status(ctx, field)
 			}
@@ -2294,8 +2272,6 @@ func (ec *executionContext) fieldContext_Query_clustersInTenant(ctx context.Cont
 				return ec.fieldContext_Cluster_tenant(ctx, field)
 			case "track":
 				return ec.fieldContext_Cluster_track(ctx, field)
-			case "addons":
-				return ec.fieldContext_Cluster_addons(ctx, field)
 			case "status":
 				return ec.fieldContext_Cluster_status(ctx, field)
 			}
@@ -2381,8 +2357,6 @@ func (ec *executionContext) fieldContext_Query_cluster(ctx context.Context, fiel
 				return ec.fieldContext_Cluster_tenant(ctx, field)
 			case "track":
 				return ec.fieldContext_Cluster_track(ctx, field)
-			case "addons":
-				return ec.fieldContext_Cluster_addons(ctx, field)
 			case "status":
 				return ec.fieldContext_Cluster_status(ctx, field)
 			}
@@ -2486,6 +2460,81 @@ func (ec *executionContext) fieldContext_Query_clusterAddons(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_clusterAddons_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_clusterInstalledAddons(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_clusterInstalledAddons(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ClusterInstalledAddons(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasUser == nil {
+				return nil, errors.New("directive hasUser is not implemented")
+			}
+			return ec.directives.HasUser(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []string`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_clusterInstalledAddons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_clusterInstalledAddons_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -5363,26 +5412,6 @@ func (ec *executionContext) _Cluster(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		case "addons":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Cluster_addons(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "status":
 
 			out.Values[i] = ec._Cluster_status(ctx, field, obj)
@@ -5819,6 +5848,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_clusterAddons(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "clusterInstalledAddons":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_clusterInstalledAddons(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

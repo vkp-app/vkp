@@ -24,8 +24,8 @@ const ClusterMetadataView: React.FC<Props> = ({cluster, loading}): JSX.Element =
 			</ListItem>
 			<ListItem>
 				<ListItemText
-					primary="Addons"
-					secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : JSON.stringify(cluster?.addons || [])}
+					primary="Kubernetes API"
+					secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : `https://${cluster?.status.kubeURL}:443`}
 				/>
 			</ListItem>
 			<ListItem>

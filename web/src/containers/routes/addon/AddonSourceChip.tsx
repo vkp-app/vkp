@@ -36,8 +36,7 @@ const AddonSourceChip: React.FC<Props> = ({source}): JSX.Element => {
 	}
 
 	return <Tooltip
-		title={tip()}
-		arrow>
+		title={tip()}>
 		<Chip
 			sx={{ml: 1, maxHeight: 20, height: 20}}
 			variant="outlined"

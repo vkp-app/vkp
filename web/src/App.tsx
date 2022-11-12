@@ -54,9 +54,13 @@ const App: React.FC = (): JSX.Element => {
 				},
 				MuiTooltip: {
 					styleOverrides: {
-						tooltip: {
-							fontSize: "0.9rem"
-						}
+						tooltip: ({theme}) => ({
+							backgroundColor: theme.palette.background.paper,
+							color: theme.palette.text.primary,
+							boxShadow: theme.shadows[1],
+							fontSize: "0.9rem",
+							fontWeight: 400
+						})
 					}
 				},
 				MuiListSubheader: {
