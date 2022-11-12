@@ -13,10 +13,14 @@ const (
 	DexKeySecret = "client_secret"
 )
 
+func DexSecretName(cluster string) string {
+	return fmt.Sprintf("%s-dex", cluster)
+}
+
 func DexSecret(cr *paasv1alpha1.Cluster) *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-dex", cr.GetName()),
+			Name:      DexSecretName(cr.GetName()),
 			Namespace: cr.GetNamespace(),
 			Labels:    Labels(cr),
 		},

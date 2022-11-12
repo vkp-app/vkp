@@ -5,8 +5,11 @@ package graph
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	cluster2 "gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
 	cmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
+	"os"
 	"sigs.k8s.io/yaml"
 	"strings"
 
@@ -235,9 +238,27 @@ func (r *queryResolver) RenderKubeconfig(ctx context.Context, tenant string, clu
 		return "", err
 	}
 
+	// fetch the dex secret for this cluster
+	dexSec := &corev1.Secret{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: cluster2.DexSecretName(cr.GetName())}, dexSec); err != nil {
+		log.Error(err, "failed to retrieve dex secret")
+		return "", err
+	}
+
+	// fetch the TLS secret for this cluster
+	tlsSec := &corev1.Secret{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: cluster2.IngressSecretName(cr.GetName())}, tlsSec); err != nil {
+		log.Error(err, "failed to retrieve TLS secret")
+		return "", err
+	}
+
 	username := strings.Split(user.Username, "@")[0]
 	clusterName := fmt.Sprintf("%s-%s", tenant, cluster)
 	contextName := fmt.Sprintf("%s@%s", username, clusterName)
+
+	// create the kubeconfig struct and
+	// populate the information that the user
+	// will need
 	cfg := cmdv1.Config{
 		Kind:           "Config",
 		APIVersion:     "v1",
@@ -247,7 +268,7 @@ func (r *queryResolver) RenderKubeconfig(ctx context.Context, tenant string, clu
 				Name: clusterName,
 				Cluster: cmdv1.Cluster{
 					Server:                   fmt.Sprintf("https://%s:443", cr.Status.KubeURL),
-					CertificateAuthorityData: nil,
+					CertificateAuthorityData: tlsSec.Data["ca.crt"],
 				},
 			},
 		},
@@ -270,14 +291,16 @@ func (r *queryResolver) RenderKubeconfig(ctx context.Context, tenant string, clu
 						Command:    "kubectl",
 						Args: []string{
 							"oidc-login",
-							"get-login",
-							"--oidc-issuer-url=https://todo",
-							"--oidc-client-id=todo",
-							"--oidc-client-secret=todo",
+							"get-token",
+							fmt.Sprintf("--oidc-issuer-url=%s", os.Getenv(cluster2.EnvIDPURL)),
+							fmt.Sprintf("--oidc-client-id=%s", string(dexSec.Data[cluster2.DexKeyID])),
+							fmt.Sprintf("--oidc-client-secret=%s", string(dexSec.Data[cluster2.DexKeySecret])),
 							"--oidc-extra-scope=profile",
 							"--oidc-extra-scope=email",
 							"--oidc-extra-scope=groups",
+							fmt.Sprintf("--certificate-authority-data=%s", base64.StdEncoding.EncodeToString(tlsSec.Data["ca.crt"])),
 						},
+						InstallHint: "kubectl krew install oidc-login",
 					},
 				},
 			},

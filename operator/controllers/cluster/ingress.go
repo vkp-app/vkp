@@ -12,6 +12,10 @@ func getHostname(cr *paasv1alpha1.Cluster) string {
 	return fmt.Sprintf("api.%s.%s", cr.Status.ClusterID, cr.Status.ClusterDomain)
 }
 
+func IngressSecretName(cluster string) string {
+	return fmt.Sprintf("tls-kubeapi-%s", cluster)
+}
+
 func Ingress(cr *paasv1alpha1.Cluster) *netv1.Ingress {
 	hostname := getHostname(cr)
 	pathType := netv1.PathTypePrefix
@@ -54,7 +58,7 @@ func Ingress(cr *paasv1alpha1.Cluster) *netv1.Ingress {
 			},
 			TLS: []netv1.IngressTLS{
 				{
-					SecretName: fmt.Sprintf("tls-kubeapi-%s", cr.GetName()),
+					SecretName: IngressSecretName(cr.GetName()),
 					Hosts: []string{
 						hostname,
 					},

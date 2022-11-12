@@ -37,3 +37,9 @@ rules:
       - subjectaccessreviews
     verbs:
       - create
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get

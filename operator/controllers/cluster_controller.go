@@ -324,7 +324,7 @@ func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1al
 
 	// fetch the secret
 	sc := &corev1.Secret{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: fmt.Sprintf("%s-dex", cr.GetName())}, sc); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: cluster.DexSecretName(cr.GetName())}, sc); err != nil {
 		log.Error(err, "failed to fetch dex secret")
 		return err
 	}
@@ -344,6 +344,8 @@ func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1al
 		RedirectUris: []string{
 			fmt.Sprintf("https://console.%s.%s/auth/callback", cr.Status.ClusterID, cr.Status.ClusterDomain),
 			fmt.Sprintf("https://console.%s.%s/oauth2/callback", cr.Status.ClusterID, cr.Status.ClusterDomain),
+			// needed for kubectl oidc-login plugin
+			"http://localhost:8000",
 		},
 	}
 	// create the client
