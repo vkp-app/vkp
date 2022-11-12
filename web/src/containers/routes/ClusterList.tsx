@@ -1,12 +1,11 @@
 import React, {useMemo} from "react";
 import {
 	Alert,
-	Box,
 	Button,
 	Card,
+	CardHeader,
 	Collapse,
 	Link as MuiLink,
-	ListSubheader,
 	Skeleton,
 	Table,
 	TableBody,
@@ -88,21 +87,19 @@ const ClusterList: React.FC = (): JSX.Element => {
 
 
 	return <StandardLayout>
-		<ListSubheader
-			sx={{display: "flex", alignItems: "center"}}>
-			Clusters
-			<Box sx={{flexGrow: 1}}/>
-			<Button
-				sx={{fontFamily: "Manrope", fontSize: 13, fontWeight: 600, height: 24, minHeight: 24, textTransform: "none"}}
-				variant="outlined"
-				component={Link}
-				to={`/new/cluster/${tenantName}`}
-				disabled={tenant.loading || tenant.error != null || !tenantApproved}>
-				Create
-			</Button>
-		</ListSubheader>
 		<Card
 			variant="outlined">
+			<CardHeader
+				title="Clusters"
+				action={<Button
+					sx={{fontFamily: "Manrope", fontSize: 13, fontWeight: 600, height: 24, minHeight: 24, textTransform: "none"}}
+					variant="outlined"
+					component={Link}
+					to={`/new/cluster/${tenantName}`}
+					disabled={tenant.loading || tenant.error != null || !tenantApproved}>
+					Create
+				</Button>}
+			/>
 			{!tenant.loading && tenant.error && <InlineError
 				message="Unable to load tenant"
 				error={tenant.error}

@@ -4,8 +4,8 @@ import {
 	Box,
 	Button,
 	Card,
+	CardHeader,
 	FormGroup,
-	ListSubheader,
 	Step,
 	StepButton,
 	Stepper,
@@ -106,12 +106,12 @@ const CreateCluster: React.FC = (): JSX.Element => {
 	}
 
 	return <StandardLayout>
-		<ListSubheader>
-			Create cluster
-		</ListSubheader>
 		<Card
 			sx={{p: 2}}
 			variant="outlined">
+			<CardHeader
+				title="Create cluster"
+			/>
 			{!loading && error && <InlineError
 				message="Unable to lodge cluster creation request"
 				error={error}

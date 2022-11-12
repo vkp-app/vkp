@@ -1,5 +1,5 @@
 import React, {useMemo} from "react";
-import {Card, IconButton, ListSubheader} from "@mui/material";
+import {Card, CardHeader, IconButton, ListSubheader} from "@mui/material";
 import {Link, useParams} from "react-router-dom";
 import {ArrowLeft} from "tabler-icons-react";
 import Grid2 from "@mui/material/Unstable_Grid2";
@@ -55,6 +55,11 @@ const AddonList: React.FC = (): JSX.Element => {
 		<Card
 			variant="outlined"
 			sx={{p: 2}}>
+			<CardHeader
+				title="Addon marketplace"
+				subheader="Browse, install and modify pre-packaged applications, configuration and capability provided by us, your administrators and the community."
+				subheaderTypographyProps={{fontSize: 14}}
+			/>
 			{!addons.loading && addons.error && <InlineError
 				message="Unable to load addons"
 				error={addons.error}

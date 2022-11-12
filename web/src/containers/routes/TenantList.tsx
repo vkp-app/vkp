@@ -1,10 +1,9 @@
 import React, {useMemo} from "react";
 import {
-	Box,
 	Button,
 	Card,
+	CardHeader,
 	Link as MuiLink,
-	ListSubheader,
 	Skeleton,
 	Table,
 	TableBody,
@@ -84,20 +83,18 @@ const TenantList: React.FC = (): JSX.Element => {
 
 
 	return <StandardLayout>
-		<ListSubheader
-			sx={{display: "flex", alignItems: "center"}}>
-			Tenants
-			<Box sx={{flexGrow: 1}}/>
-			<Button
-				sx={{fontFamily: "Manrope", fontSize: 13, fontWeight: 600, height: 24, minHeight: 24, textTransform: "none"}}
-				variant="outlined"
-				component={Link}
-				to="/new/tenant">
-				Create
-			</Button>
-		</ListSubheader>
 		<Card
 			variant="outlined">
+			<CardHeader
+				title="Tenants"
+				action={<Button
+					sx={{fontFamily: "Manrope", fontSize: 13, fontWeight: 600, height: 24, minHeight: 24, textTransform: "none"}}
+					variant="outlined"
+					component={Link}
+					to="/new/tenant">
+					Create
+				</Button>}
+			/>
 			<Table>
 				<TableHead>
 					<TableRow>
