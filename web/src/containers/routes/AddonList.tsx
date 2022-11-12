@@ -99,12 +99,13 @@ const AddonList: React.FC = (): JSX.Element => {
 				message="Unable to load addons"
 				error={addons.error}
 			/>}
-			<Grid2
-				container
-				spacing={2}>
-				{addons.loading ? loadingData() : addonData}
-			</Grid2>
 		</Card>
+		<Grid2
+			sx={{mt: 2}}
+			container
+			spacing={2}>
+			{addons.loading ? loadingData() : addonData}
+		</Grid2>
 	</StandardLayout>
 }
 export default AddonList;

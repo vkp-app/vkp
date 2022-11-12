@@ -1,8 +1,8 @@
 import React from "react";
 import {
 	Avatar,
-	Box,
 	Button,
+	Card,
 	CardActions,
 	CardContent,
 	CardHeader,
@@ -49,7 +49,9 @@ const AddonItem: React.FC<Props> = ({item, installed, loading, onInstall, onUnin
 
 	return <Grid2
 		xs={6}>
-		<Box>
+		<Card
+			variant="outlined"
+			sx={{maxHeight: 200, minHeight: 200}}>
 			<CardHeader
 				disableTypography={item == null}
 				title={item?.displayName || <Skeleton
@@ -105,7 +107,7 @@ const AddonItem: React.FC<Props> = ({item, installed, loading, onInstall, onUnin
 					width="20%"
 				/>}
 			</CardActions>}
-		</Box>
+		</Card>
 	</Grid2>
 }
 export default AddonItem;
