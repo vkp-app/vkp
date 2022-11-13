@@ -223,12 +223,34 @@ func (r *mutationResolver) ApproveTenant(ctx context.Context, tenant string) (bo
 func (r *queryResolver) Tenants(ctx context.Context) ([]paasv1alpha1.Tenant, error) {
 	log := logr.FromContextOrDiscard(ctx)
 	log.Info("listing tenants")
+	user, _ := userctx.CtxUser(ctx)
+
 	tenants := &paasv1alpha1.TenantList{}
 	if err := r.List(ctx, tenants); err != nil {
 		log.Error(err, "failed to list tenants")
 		return nil, err
 	}
-	return tenants.Items, nil
+	// if the user is an admin, return the full list
+	if err := r.userHasAdmin(ctx, user); err == nil {
+		return tenants.Items, nil
+	}
+
+	// otherwise, filter the tenants
+	var items []paasv1alpha1.Tenant
+	for _, tr := range tenants.Items {
+		// todo figure out a better way of filtering tenants
+		// since this will probably have a pretty
+		// nasty performance penalty
+		ok, err := r.canAccessTenantResource(ctx, &tr, false)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			continue
+		}
+		items = append(items, tr)
+	}
+	return items, nil
 }
 
 // Tenant is the resolver for the tenant field.

@@ -56,9 +56,6 @@ func (r *Resolver) HasClusterAccess(ctx context.Context, req any, next graphql.R
 
 func (r *Resolver) canAccessTenant(ctx context.Context, tenant string, requiresWrite bool) (bool, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "requiresWrite", requiresWrite)
-	log.Info("checking tenant access")
-
-	user, _ := userctx.CtxUser(ctx)
 
 	// fetch the tenant resource
 	tr := &paasv1alpha1.Tenant{}
@@ -66,6 +63,15 @@ func (r *Resolver) canAccessTenant(ctx context.Context, tenant string, requiresW
 		log.Error(err, "failed to retrieve tenant resource")
 		return false, err
 	}
+
+	return r.canAccessTenantResource(ctx, tr, requiresWrite)
+}
+
+func (r *Resolver) canAccessTenantResource(ctx context.Context, tr *paasv1alpha1.Tenant, requiresWrite bool) (bool, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tr.GetName(), "requiresWrite", requiresWrite)
+	log.Info("checking tenant access")
+	user, _ := userctx.CtxUser(ctx)
+
 	// if the user owns the tenant, then
 	// that's it really.
 	if tr.Spec.Owner == user.Username {
@@ -135,7 +141,7 @@ func (r *Resolver) canAccessCluster(ctx context.Context, tenant, cluster string,
 	return false, nil
 }
 
-func (r *Resolver) HasRole(ctx context.Context, _ any, next graphql.Resolver, role model.Role) (res any, err error) {
+func (r *Resolver) HasRole(ctx context.Context, _ any, next graphql.Resolver, role model.Role) (any, error) {
 	log := logr.FromContextOrDiscard(ctx)
 	user, ok := userctx.CtxUser(ctx)
 	if !ok {
@@ -146,6 +152,18 @@ func (r *Resolver) HasRole(ctx context.Context, _ any, next graphql.Resolver, ro
 	// only need user privilege
 	if role == model.RoleUser {
 		return next(ctx)
+	}
+	if err := r.userHasAdmin(ctx, user); err != nil {
+		return nil, err
+	}
+	return next(ctx)
+}
+
+func (r *Resolver) userHasAdmin(ctx context.Context, user *model.User) error {
+	log := logr.FromContextOrDiscard(ctx)
+	user, ok := userctx.CtxUser(ctx)
+	if !ok {
+		return ErrUnauthorised
 	}
 	// run a SAR to verify that the user can access management-cluster resources
 	log.Info("verifying administrative privileges of requesting user")
@@ -166,11 +184,11 @@ func (r *Resolver) HasRole(ctx context.Context, _ any, next graphql.Resolver, ro
 	}
 	if err := r.Create(ctx, sar); err != nil {
 		log.Error(err, "failed to create SubjectAccessReview")
-		return nil, err
+		return err
 	}
 	if !sar.Status.Allowed {
 		log.Info("rejecting admin request due to failing SAR checks")
-		return nil, ErrForbidden
+		return ErrForbidden
 	}
-	return next(ctx)
+	return nil
 }
