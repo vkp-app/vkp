@@ -111,6 +111,7 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, tenant string) (*pa
 func (r *mutationResolver) CreateCluster(ctx context.Context, tenant string, input model.NewCluster) (*paasv1alpha1.Cluster, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
 	log.Info("creating cluster")
+	user, _ := userctx.CtxUser(ctx)
 	// validate the tenant
 	tenantResource := &paasv1alpha1.Tenant{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: tenant}, tenantResource); err != nil {
@@ -135,6 +136,13 @@ func (r *mutationResolver) CreateCluster(ctx context.Context, tenant string, inp
 		},
 		Spec: paasv1alpha1.ClusterSpec{
 			Track: input.Track.ToDAO(),
+			Accessors: []paasv1alpha1.AccessRef{
+				{
+					// make sure that the creating user has administrative privileges
+					// over the cluster
+					User: user.Username,
+				},
+			},
 		},
 	}
 	if err := r.Create(ctx, cluster); err != nil {
