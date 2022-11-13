@@ -1,0 +1,73 @@
+namespace: kubernetes-dashboard
+resources:
+  - https://raw.githubusercontent.com/kubernetes/dashboard/v2.6.1/aio/deploy/recommended.yaml
+  - secret.yaml
+  - ingress.yaml
+images:
+  - name: kubernetesui/dashboard
+    newName: harbor.dcas.dev/docker.io/kubernetesui/dashboard
+  - name: kubernetesui/metrics-scraper
+    newName: harbor.dcas.dev/docker.io/kubernetesui/metrics-scraper
+patches:
+  - target:
+      kind: Service
+      name: kubernetes-dashboard
+    patch: |
+      - op: replace
+        path: /spec/ports/0
+        value:
+          port: 80
+          targetPort: public
+  - target:
+      kind: Deployment
+      name: kubernetes-dashboard
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/ports/0/containerPort
+        value: 8080
+      - op: replace
+        path: /spec/template/spec/containers/0/args
+        value:
+          - --enable-insecure-login
+          - --enable-skip-login
+          - --insecure-port=8080
+          - --namespace=kubernetes-dashboard
+      - op: replace
+        path: /spec/template/spec/containers/0/livenessProbe/httpGet
+        value:
+          scheme: HTTP
+          port: 8080
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          name: tls
+          secret:
+            secretName: tls-ca.crt
+      - op: add
+        path: /spec/template/spec/containers/-
+        value:
+          name: oauth-proxy
+          image: harbor.dcas.dev/quay.io/oauth2-proxy/oauth2-proxy:v7.3.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+              name: public
+          volumeMounts:
+            - name: tls
+              mountPath: /var/run/secrets/dcas.dev/tls
+              readOnly: true
+          env:
+            - name: SSL_CERT_FILE
+              value: /var/run/secrets/dcas.dev/tls/ca.crt
+          args:
+            - --http-address=:8081
+            - --provider=oidc
+            - --client-id=__GLASS_DEX_CLIENT_ID__
+            - --client-secret=__GLASS_DEX_CLIENT_SECRET__
+            - --oidc-issuer-url=__GLASS_DEX_URL__
+            - --upstream=http://localhost:8080
+            - --cookie-secure=true
+            - --cookie-secret=k5aNVAjHCpK_xHftxHhEsxB2CAozam2HFY0jNn1plVI=
+            - --cookie-refresh=2h
+            - --email-domain=kilgore.trout
+            - --pass-authorization-header=true
