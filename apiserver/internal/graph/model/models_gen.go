@@ -8,6 +8,12 @@ import (
 	"strconv"
 )
 
+type Metric struct {
+	Name   string        `json:"name"`
+	Metric string        `json:"metric"`
+	Values []MetricValue `json:"values"`
+}
+
 type MetricValue struct {
 	Time  int64  `json:"time"`
 	Value string `json:"value"`

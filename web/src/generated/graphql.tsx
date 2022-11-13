@@ -49,6 +49,13 @@ export type ClusterStatus = {
   webURL: Scalars['String'];
 };
 
+export type Metric = {
+  __typename?: 'Metric';
+  metric: Scalars['String'];
+  name: Scalars['String'];
+  values: Array<MetricValue>;
+};
+
 export type MetricValue = {
   __typename?: 'MetricValue';
   time: Scalars['Int'];
@@ -110,11 +117,7 @@ export type Query = {
   cluster: Cluster;
   clusterAddons: Array<ClusterAddon>;
   clusterInstalledAddons: Array<Scalars['String']>;
-  clusterMetricCPU: Array<MetricValue>;
-  clusterMetricMemory: Array<MetricValue>;
-  clusterMetricNetReceive: Array<MetricValue>;
-  clusterMetricNetTransmit: Array<MetricValue>;
-  clusterMetricPods: Array<MetricValue>;
+  clusterMetrics: Array<Metric>;
   clustersInTenant: Array<Cluster>;
   currentUser: User;
   renderKubeconfig: Scalars['String'];
@@ -140,31 +143,7 @@ export type QueryClusterInstalledAddonsArgs = {
 };
 
 
-export type QueryClusterMetricCpuArgs = {
-  cluster: Scalars['ID'];
-  tenant: Scalars['ID'];
-};
-
-
-export type QueryClusterMetricMemoryArgs = {
-  cluster: Scalars['ID'];
-  tenant: Scalars['ID'];
-};
-
-
-export type QueryClusterMetricNetReceiveArgs = {
-  cluster: Scalars['ID'];
-  tenant: Scalars['ID'];
-};
-
-
-export type QueryClusterMetricNetTransmitArgs = {
-  cluster: Scalars['ID'];
-  tenant: Scalars['ID'];
-};
-
-
-export type QueryClusterMetricPodsArgs = {
+export type QueryClusterMetricsArgs = {
   cluster: Scalars['ID'];
   tenant: Scalars['ID'];
 };
@@ -284,7 +263,7 @@ export type MetricsClusterQueryVariables = Exact<{
 }>;
 
 
-export type MetricsClusterQuery = { __typename?: 'Query', clusterMetricMemory: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricCPU: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricPods: Array<{ __typename?: 'MetricValue', time: number, value: string }>, clusterMetricNetReceive: Array<{ __typename?: 'MetricValue', time: number, value: string }> };
+export type MetricsClusterQuery = { __typename?: 'Query', clusterMetrics: Array<{ __typename?: 'Metric', name: string, metric: string, values: Array<{ __typename?: 'MetricValue', value: string }> }> };
 
 export type TenantsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -597,21 +576,12 @@ export type CurrentUserLazyQueryHookResult = ReturnType<typeof useCurrentUserLaz
 export type CurrentUserQueryResult = Apollo.QueryResult<CurrentUserQuery, CurrentUserQueryVariables>;
 export const MetricsClusterDocument = gql`
     query metricsCluster($tenant: ID!, $cluster: ID!) {
-  clusterMetricMemory(tenant: $tenant, cluster: $cluster) {
-    time
-    value
-  }
-  clusterMetricCPU(tenant: $tenant, cluster: $cluster) {
-    time
-    value
-  }
-  clusterMetricPods(tenant: $tenant, cluster: $cluster) {
-    time
-    value
-  }
-  clusterMetricNetReceive(tenant: $tenant, cluster: $cluster) {
-    time
-    value
+  clusterMetrics(tenant: $tenant, cluster: $cluster) {
+    name
+    metric
+    values {
+      value
+    }
   }
 }
     `;

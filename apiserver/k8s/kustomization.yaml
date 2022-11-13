@@ -4,3 +4,4 @@ resources:
   - role_binding.yaml
   - service_account.yaml
   - glass-admin.yaml
+  - config.yaml

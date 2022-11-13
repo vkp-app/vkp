@@ -71,6 +71,12 @@ type MetricValue {
   value: String!
 }
 
+type Metric {
+  name: String!
+  metric: String!
+  values: [MetricValue!]!
+}
+
 type Query {
   tenants: [Tenant!]! @hasUser
   tenant(tenant: ID!): Tenant! @hasUser
@@ -83,11 +89,7 @@ type Query {
 
   currentUser: User! @hasUser
 
-  clusterMetricMemory(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
-  clusterMetricCPU(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
-  clusterMetricPods(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
-  clusterMetricNetReceive(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
-  clusterMetricNetTransmit(tenant: ID!, cluster: ID!): [MetricValue!]! @hasUser
+  clusterMetrics(tenant: ID!, cluster: ID!): [Metric!]! @hasUser
 
   renderKubeconfig(tenant: ID!, cluster: ID!): String! @hasUser
 }

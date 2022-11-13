@@ -4,6 +4,7 @@ image:
 args:
   - --v=5
   - --prometheus-url=http://prometheus-olm-prometheus.monitoring.svc.cluster.local:9090
+  - --prometheus-config-file=/etc/kube-glass/config/prometheus.yaml
   - --dex-url=https://dex.192-168-49-2.nip.io
 env:
   API_LOG_LEVEL: 5
@@ -35,6 +36,11 @@ volumes:
     config:
       secret:
         secretName: tls-apiserver
+  - name: config
+    mountPath: /etc/kube-glass/config
+    config:
+      configMap:
+        name: glass-apiserver-config
 sidecars:
   - name: oauth-proxy
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0-amd64

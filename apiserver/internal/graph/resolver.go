@@ -3,10 +3,12 @@ package graph
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/go-logr/logr"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	prommodel "github.com/prometheus/common/model"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
+	v1 "gitlab.dcas.dev/k8s/kube-glass/apiserver/pkg/cfg/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
@@ -26,9 +28,29 @@ var (
 
 type Resolver struct {
 	client.Client
-	Scheme     *runtime.Scheme
-	Prometheus promv1.API
-	DexURL     string
+	Scheme *runtime.Scheme
+
+	Prometheus       promv1.API
+	PrometheusConfig *v1.PrometheusConfig
+
+	DexURL string
+}
+
+func (r *Resolver) GetMetrics(ctx context.Context, tenant, cluster string) ([]model.Metric, error) {
+	var metrics []model.Metric
+	for _, m := range r.PrometheusConfig.Metrics {
+		metric := fmt.Sprintf(m.Metric, tenant, cluster, cluster)
+		values, err := r.GetMetric(ctx, metric)
+		if err != nil {
+			continue
+		}
+		metrics = append(metrics, model.Metric{
+			Name:   m.Name,
+			Metric: m.Metric,
+			Values: values,
+		})
+	}
+	return metrics, nil
 }
 
 func (r *Resolver) GetMetric(ctx context.Context, promQL string) ([]model.MetricValue, error) {

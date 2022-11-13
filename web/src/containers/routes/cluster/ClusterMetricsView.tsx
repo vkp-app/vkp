@@ -1,5 +1,5 @@
 import React, {ReactNode} from "react";
-import {Card, CircularProgress, Grid, ListItem, ListItemText} from "@mui/material";
+import {Card, CardHeader, Grid, Skeleton, Typography} from "@mui/material";
 import SparkLine from "../../data/SparkLine";
 import {Cluster, MetricValue, useMetricsClusterQuery} from "../../../generated/graphql";
 import {formatBytes} from "../../../utils/fmt";
@@ -52,38 +52,64 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading, refresh}): JSX.E
 		return `${n}`;
 	}
 
+	const getFormatter = (metric: string): (n: number) => string => {
+		if (metric.includes("bytes")) {
+			return fmtBytes;
+		}
+		if (metric.includes("seconds") && metric.includes("cpu")) {
+			return fmtCPU;
+		}
+
+		return fmtPlain;
+	}
+
 	const metric = (data: MetricValue[], name: string, bz: boolean, fmt: (n: number) => string): ReactNode => {
 		const numData = data.map(i => Number(i.value));
 		const last = data.length === 0 ? 0 : Number(data[data.length - 1].value);
 		const max = Math.max(...numData);
-		return <ListItem>
-			<ListItemText
-				secondary={`${name} (${fmt(last)}/${fmt(max)})`}
-				primary={loading ? <CircularProgress/> : <SparkLine
-					width={300}
+		return <Grid
+			key={name}
+			item
+			xs={6}>
+			<CardHeader
+				title={<SparkLine
+					width={1000}
 					data={numData}
 					baseZero={bz}
 				/>}
+				subheader={<Typography
+					sx={{fontSize: 14}}
+					color="text.secondary">
+					{name}&nbsp;({fmt(last)}/{fmt(max)})
+				</Typography>}
+				disableTypography
 			/>
-		</ListItem>;
+		</Grid>
+	}
+
+	const loadingData = (): JSX.Element[] => {
+		const items = [];
+		for (let i = 0; i < 4; i++) {
+			items.push(<Grid
+				key={i}
+				item
+				xs={6}>
+				<CardHeader
+					title={<Skeleton height={35}/>}
+					subheader={<Skeleton width="50%"/>}
+					disableTypography
+				/>
+			</Grid>);
+		}
+		return items;
 	}
 
 	return <Card
 		variant="outlined"
 		sx={{p: 2}}>
 		<Grid container>
-			<Grid item xs={6}>
-				{metric(data?.clusterMetricMemory || [], "Memory usage", false, fmtBytes)}
-			</Grid>
-			<Grid item xs={6}>
-				{metric(data?.clusterMetricCPU || [], "CPU usage", false, fmtCPU)}
-			</Grid>
-			<Grid item xs={6}>
-				{metric(data?.clusterMetricPods || [], "Pod count", false, fmtPlain)}
-			</Grid>
-			<Grid item xs={6}>
-				{metric(data?.clusterMetricNetReceive || [], "Network received", true, fmtBytes)}
-			</Grid>
+			{loading && loadingData()}
+			{!loading && data?.clusterMetrics.map(m => metric(m.values as MetricValue[], m.name, false, getFormatter(m.metric)))}
 		</Grid>
 	</Card>
 }

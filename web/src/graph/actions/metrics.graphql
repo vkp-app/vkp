@@ -1,18 +1,9 @@
 query metricsCluster($tenant: ID!, $cluster: ID!) {
-    clusterMetricMemory(tenant: $tenant, cluster: $cluster) {
-        time
-        value
-    }
-    clusterMetricCPU(tenant: $tenant, cluster: $cluster) {
-        time
-        value
-    }
-    clusterMetricPods(tenant: $tenant, cluster: $cluster) {
-        time
-        value
-    }
-    clusterMetricNetReceive(tenant: $tenant, cluster: $cluster) {
-        time
-        value
+    clusterMetrics(tenant: $tenant, cluster: $cluster) {
+        name
+        metric
+        values {
+            value
+        }
     }
 }

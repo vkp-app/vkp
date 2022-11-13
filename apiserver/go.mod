@@ -10,6 +10,7 @@ require (
 	github.com/djcass44/go-utils/otel v0.1.6
 	github.com/go-logr/logr v1.2.3
 	github.com/gorilla/mux v1.8.0
+	github.com/imdario/mergo v0.3.13
 	github.com/prometheus/client_golang v1.12.2
 	github.com/prometheus/common v0.32.1
 	github.com/spf13/pflag v1.0.5
@@ -18,6 +19,7 @@ require (
 	gitlab.com/autokubeops/serverless v0.4.3-0.20221025153806-0d35c11181ba
 	gitlab.dcas.dev/k8s/kube-glass/operator v0.0.0-00010101000000-000000000000
 	go.uber.org/zap v1.23.0
+	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.25.0
 	k8s.io/apimachinery v0.25.3
 	k8s.io/client-go v0.25.0
@@ -65,7 +67,6 @@ require (
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/levigross/grequests v0.0.0-20190908174114-253788527a1a // indirect
@@ -112,7 +113,6 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.25.0 // indirect
 	k8s.io/component-base v0.25.0 // indirect
 	k8s.io/klog/v2 v2.70.1 // indirect

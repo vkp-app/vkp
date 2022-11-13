@@ -309,29 +309,9 @@ func (r *queryResolver) CurrentUser(ctx context.Context) (*model.User, error) {
 	return user, nil
 }
 
-// ClusterMetricMemory is the resolver for the clusterMetricMemory field.
-func (r *queryResolver) ClusterMetricMemory(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
-	return r.GetMetric(ctx, fmt.Sprintf(`sum by (namespace) (container_memory_usage_bytes{namespace="%s", pod=~".*-%s|%s-.+"})`, tenant, cluster, cluster))
-}
-
-// ClusterMetricCPU is the resolver for the clusterMetricCPU field.
-func (r *queryResolver) ClusterMetricCPU(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
-	return r.GetMetric(ctx, fmt.Sprintf(`sum(rate(container_cpu_usage_seconds_total{namespace="%s", pod=~".*-%s|%s-.+"}[1m])) by (namespace)`, tenant, cluster, cluster))
-}
-
-// ClusterMetricPods is the resolver for the clusterMetricPods field.
-func (r *queryResolver) ClusterMetricPods(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
-	return r.GetMetric(ctx, fmt.Sprintf(`sum by (namespace) (kube_pod_status_ready{namespace="%s", pod=~".*-%s|%s-.+", condition="true"})`, tenant, cluster, cluster))
-}
-
-// ClusterMetricNetReceive is the resolver for the clusterMetricNetReceive field.
-func (r *queryResolver) ClusterMetricNetReceive(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
-	return r.GetMetric(ctx, fmt.Sprintf(`sum by (namespace) (irate(node_network_receive_bytes_total{namespace="%s", pod=~".*-%s|%s-.+"}[2m]))`, tenant, cluster, cluster))
-}
-
-// ClusterMetricNetTransmit is the resolver for the clusterMetricNetTransmit field.
-func (r *queryResolver) ClusterMetricNetTransmit(ctx context.Context, tenant string, cluster string) ([]model.MetricValue, error) {
-	return r.GetMetric(ctx, fmt.Sprintf(`sum by (namespace) (irate(node_network_transmit_bytes_total{namespace="%s", pod=~".*-%s|%s-.+"}[2m]))`, tenant, cluster, cluster))
+// ClusterMetrics is the resolver for the clusterMetrics field.
+func (r *queryResolver) ClusterMetrics(ctx context.Context, tenant string, cluster string) ([]model.Metric, error) {
+	return r.GetMetrics(ctx, tenant, cluster)
 }
 
 // RenderKubeconfig is the resolver for the renderKubeconfig field.

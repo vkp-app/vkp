@@ -76,8 +76,8 @@ const SparkLine: React.FC<Props> = ({width = 150, height = 25, data, color = "pr
 			className={classes[`${color}Color` as keyof typeof classes]}
 			transform="scale(1,-1)"
 			sx={sx}
-			width={width}
-			height={height}
+			width="100%"
+			height="100%"
 			viewBox={`0 0 ${width} ${height}`}>
 			<path
 				d={path.join(" ")}

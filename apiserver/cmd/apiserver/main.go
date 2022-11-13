@@ -16,6 +16,8 @@ import (
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/userctx"
+	"gitlab.dcas.dev/k8s/kube-glass/apiserver/pkg/cfg"
+	v1 "gitlab.dcas.dev/k8s/kube-glass/apiserver/pkg/cfg/v1"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -44,6 +46,7 @@ func main() {
 	fOtelSampleRate := flag.Float64("otel-sample-rate", 0, "percentage (0.0 - 1.0) of traces that should be exported.")
 
 	fPrometheusURL := flag.String("prometheus-url", "", "URL of the management cluster's Prometheus server.")
+	fPrometheusConfig := flag.String("prometheus-config-file", "", "File that contains the Prometheus configuration file.")
 	fPrometheusMetrics := flag.Bool("prometheus-metrics", true, "Flag to indicate if Prometheus metrics should be exported.")
 
 	fDexURL := flag.String("dex-url", "", "URL of the Dex instance.")
@@ -84,12 +87,21 @@ func main() {
 		return
 	}
 
+	// fetch configuration
+	promConfig, err := cfg.Read[v1.PrometheusConfig](ctx, *fPrometheusConfig, v1.NewPrometheusConfig())
+	if err != nil {
+		log.Error(err, "failed to read Prometheus configuration file")
+		os.Exit(1)
+		return
+	}
+
 	// configure graphql
 	resolver := &graph.Resolver{
-		Client:     kubeClient,
-		Scheme:     scheme,
-		Prometheus: promv1.NewAPI(promClient),
-		DexURL:     *fDexURL,
+		Client:           kubeClient,
+		Scheme:           scheme,
+		Prometheus:       promv1.NewAPI(promClient),
+		PrometheusConfig: promConfig,
+		DexURL:           *fDexURL,
 	}
 	c := generated.Config{Resolvers: resolver}
 	c.Directives.HasUser = graph.HasUser
