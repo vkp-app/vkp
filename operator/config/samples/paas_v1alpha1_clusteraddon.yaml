@@ -31,8 +31,7 @@ spec:
   logo: https://upload.wikimedia.org/wikipedia/commons/3/3a/OpenShift-LogoType.svg
   description: |
     The console is a more friendly kubectl in the form of a single page webapp. It also integrates with other services like monitoring, chargeback, and OLM.
-    (OpenShift-specific features such as Projects or Routes will not work).
-    (Mutually-exclusive with the Kubernetes Dashboard).
+    (OpenShift-specific features such as Projects or Routes will not work, mutually-exclusive with the Kubernetes Dashboard).
   source: Official
   sourceURL: https://github.com/openshift/console
   resources:
@@ -79,7 +78,7 @@ spec:
   sourceURL: https://github.com/kubernetes/dashboard
   description: |
     General-purpose web UI for Kubernetes clusters.
-    (Mutually-exclusive with the OpenShift Console)
+    (Mutually-exclusive with the OpenShift Console).
   resources:
     - configMap:
         name: glass-addon-dashboard-k8s
