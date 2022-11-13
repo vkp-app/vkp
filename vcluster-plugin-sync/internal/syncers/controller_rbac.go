@@ -48,6 +48,16 @@ func (r *RoleBindingSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	log := logging.FromContext(ctx, "namespace", req.Namespace, "name", req.Name)
 	log.Info("syncing up")
 
+	// get the cluster
+	cr := &paasv1alpha1.Cluster{}
+	if err := r.pClient.Get(ctx, req.NamespacedName, cr); err != nil {
+		if errors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		log.Error(err, "failed to retrieve cluster resource")
+		return ctrl.Result{}, err
+	}
+
 	// get the tenant
 	tr := &paasv1alpha1.Tenant{}
 	if err := r.pClient.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: req.Namespace}, tr); err != nil {
@@ -59,18 +69,60 @@ func (r *RoleBindingSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	// reconcile the role binding
-	if err := r.reconcileRBAC(ctx, tr); err != nil {
+	if err := r.reconcileOwnerBinding(ctx, tr); err != nil {
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileClusterAccessorBinding(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
 }
 
-func (r *RoleBindingSyncer) reconcileRBAC(ctx context.Context, cr *paasv1alpha1.Tenant) error {
+func (r *RoleBindingSyncer) reconcileClusterAccessorBinding(ctx context.Context, cr *paasv1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
-	log.Info("reconciling nested RBAC")
+	log.Info("reconciling nested accessor RBAC")
 
-	binding := nested.OwnerBinding(cr)
+	for _, ar := range cr.Spec.Accessors {
+		if err := r.reconcileAccessor(ctx, &ar); err != nil {
+			log.Error(err, "failed to reconcile accessor")
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *RoleBindingSyncer) reconcileAccessor(ctx context.Context, ar *paasv1alpha1.AccessRef) error {
+	log := logging.FromContext(ctx)
+	log.Info("reconciling nested accessor", "Resource", ar)
+
+	binding := nested.AccessWriteBinding(ar)
+
+	// fetch the current resource
+	found := &authv1.ClusterRoleBinding{}
+	if err := r.vClient.Get(ctx, types.NamespacedName{Name: binding.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			if err := r.vClient.Create(ctx, binding); err != nil {
+				log.Error(err, "failed to create nested ClusterRoleBinding")
+				return err
+			}
+			return nil
+		}
+		log.Error(err, "failed to retrieve virtual role binding")
+		return err
+	}
+	// reconcile changes
+	if !reflect.DeepEqual(found.Subjects, binding.Subjects) || !reflect.DeepEqual(found.RoleRef, binding.RoleRef) {
+		return r.SafeUpdate(ctx, found, binding)
+	}
+	return nil
+}
+
+func (r *RoleBindingSyncer) reconcileOwnerBinding(ctx context.Context, tr *paasv1alpha1.Tenant) error {
+	log := logging.FromContext(ctx)
+	log.Info("reconciling nested owner RBAC")
+
+	binding := nested.OwnerBinding(tr)
 
 	found := &authv1.ClusterRoleBinding{}
 	if err := r.vClient.Get(ctx, types.NamespacedName{Name: binding.GetName()}, found); err != nil {

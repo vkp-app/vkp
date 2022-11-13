@@ -35,6 +35,17 @@ spec:
           spec:
             description: ClusterSpec defines the desired state of Cluster
             properties:
+              accessors:
+                items:
+                  properties:
+                    group:
+                      type: string
+                    readOnly:
+                      type: boolean
+                    user:
+                      type: string
+                  type: object
+                type: array
               ha:
                 properties:
                   enabled:

@@ -35,6 +35,8 @@ type ClusterSpec struct {
 	Storage Storage          `json:"storage,omitempty"`
 
 	Track ReleaseTrack `json:"track,omitempty"`
+
+	Accessors []AccessRef `json:"accessors,omitempty"`
 }
 
 type HighAvailability struct {
@@ -44,6 +46,12 @@ type HighAvailability struct {
 type Storage struct {
 	StorageClassName string `json:"storageClassName,omitempty"`
 	Size             int    `json:"size,omitempty"`
+}
+
+type AccessRef struct {
+	ReadOnly bool   `json:"readOnly,omitempty"`
+	User     string `json:"user,omitempty"`
+	Group    string `json:"group,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster
