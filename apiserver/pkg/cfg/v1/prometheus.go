@@ -9,14 +9,14 @@ type PrometheusMetric struct {
 }
 
 type PrometheusConfig struct {
-	Metrics []PrometheusMetric `yaml:"metrics"`
+	ClusterMetrics []PrometheusMetric `yaml:"clusterMetrics"`
 }
 
 // NewPrometheusConfig provides default configuration
 // that is used if the user doesn't override anything
 func NewPrometheusConfig() PrometheusConfig {
 	return PrometheusConfig{
-		Metrics: []PrometheusMetric{
+		ClusterMetrics: []PrometheusMetric{
 			{
 				Name:   "Memory usage",
 				Metric: `sum by (namespace) (container_memory_usage_bytes{namespace="%s", pod=~".*-%s|%s-.+"})`,
