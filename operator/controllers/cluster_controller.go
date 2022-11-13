@@ -354,23 +354,23 @@ func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1al
 		log.Error(err, "failed to create Dex client")
 		return err
 	}
-	if !resp.AlreadyExists || resp.Client == nil {
+	if !resp.AlreadyExists {
 		return nil
 	}
-	// reconcile the client
-	if !reflect.DeepEqual(oauthClient.RedirectUris, resp.Client.RedirectUris) {
-		log.Info("patching Dex client")
-		_, err = dexClient.UpdateClient(ctx, &api.UpdateClientReq{
-			Id:           oauthClient.Id,
-			RedirectUris: oauthClient.RedirectUris,
-			TrustedPeers: oauthClient.TrustedPeers,
-			Name:         oauthClient.Name,
-			LogoUrl:      oauthClient.LogoUrl,
-		})
-		if err != nil {
-			log.Error(err, "failed to update Dex client")
-			return err
-		}
+	// reconcile the client.
+	// we can't do a diff here because we have no easy way
+	// of fetching the current client data from Dex
+	log.Info("patching Dex client")
+	_, err = dexClient.UpdateClient(ctx, &api.UpdateClientReq{
+		Id:           oauthClient.Id,
+		RedirectUris: oauthClient.RedirectUris,
+		TrustedPeers: oauthClient.TrustedPeers,
+		Name:         oauthClient.Name,
+		LogoUrl:      oauthClient.LogoUrl,
+	})
+	if err != nil {
+		log.Error(err, "failed to update Dex client")
+		return err
 	}
 	return nil
 }
