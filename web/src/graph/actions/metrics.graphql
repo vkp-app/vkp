@@ -2,6 +2,7 @@ query metricsCluster($tenant: ID!, $cluster: ID!) {
     clusterMetrics(tenant: $tenant, cluster: $cluster) {
         name
         metric
+        format
         values {
             value
         }

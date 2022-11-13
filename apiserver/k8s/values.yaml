@@ -6,10 +6,6 @@ args:
   - --prometheus-url=http://prometheus-olm-prometheus.monitoring.svc.cluster.local:9090
   - --prometheus-config-file=/etc/kube-glass/config/prometheus.yaml
   - --dex-url=https://dex.192-168-49-2.nip.io
-env:
-  API_LOG_LEVEL: 5
-  API_METRICS_PROMETHEUS_ADDR: http://prometheus-olm-prometheus.monitoring.svc.cluster.local:9090
-  PAAS_IDP_URL: https://dex.192-168-49-2.nip.io
 ingress:
   tls:
     secretName: tls-apiserver

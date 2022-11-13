@@ -11,6 +11,7 @@ import (
 type Metric struct {
 	Name   string        `json:"name"`
 	Metric string        `json:"metric"`
+	Format MetricFormat  `json:"format"`
 	Values []MetricValue `json:"values"`
 }
 
@@ -27,6 +28,51 @@ type NewCluster struct {
 type User struct {
 	Username string   `json:"username"`
 	Groups   []string `json:"groups"`
+}
+
+type MetricFormat string
+
+const (
+	MetricFormatBytes MetricFormat = "Bytes"
+	MetricFormatCPU   MetricFormat = "CPU"
+	MetricFormatTime  MetricFormat = "Time"
+	MetricFormatPlain MetricFormat = "Plain"
+)
+
+var AllMetricFormat = []MetricFormat{
+	MetricFormatBytes,
+	MetricFormatCPU,
+	MetricFormatTime,
+	MetricFormatPlain,
+}
+
+func (e MetricFormat) IsValid() bool {
+	switch e {
+	case MetricFormatBytes, MetricFormatCPU, MetricFormatTime, MetricFormatPlain:
+		return true
+	}
+	return false
+}
+
+func (e MetricFormat) String() string {
+	return string(e)
+}
+
+func (e *MetricFormat) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricFormat(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricFormat", str)
+	}
+	return nil
+}
+
+func (e MetricFormat) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type Track string

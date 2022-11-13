@@ -66,6 +66,13 @@ type User {
   groups: [String!]!
 }
 
+enum MetricFormat {
+  Bytes,
+  CPU,
+  Time,
+  Plain
+}
+
 type MetricValue {
   time: Int!
   value: String!
@@ -74,6 +81,7 @@ type MetricValue {
 type Metric {
   name: String!
   metric: String!
+  format: MetricFormat!
   values: [MetricValue!]!
 }
 

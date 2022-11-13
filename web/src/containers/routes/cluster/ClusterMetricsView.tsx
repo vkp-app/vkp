@@ -1,7 +1,7 @@
 import React, {ReactNode} from "react";
 import {Card, CardHeader, Grid, Skeleton, Typography} from "@mui/material";
 import SparkLine from "../../data/SparkLine";
-import {Cluster, MetricValue, useMetricsClusterQuery} from "../../../generated/graphql";
+import {Cluster, MetricFormat, MetricValue, useMetricsClusterQuery} from "../../../generated/graphql";
 import {formatBytes} from "../../../utils/fmt";
 
 interface Props {
@@ -52,15 +52,17 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading, refresh}): JSX.E
 		return `${n}`;
 	}
 
-	const getFormatter = (metric: string): (n: number) => string => {
-		if (metric.includes("bytes")) {
-			return fmtBytes;
+	const getFormatter = (f: MetricFormat): (n: number) => string => {
+		switch (f) {
+			case MetricFormat.Bytes:
+				return fmtBytes;
+			case MetricFormat.Cpu:
+				return fmtCPU;
+			case MetricFormat.Time:
+			case MetricFormat.Plain:
+			default:
+				return fmtPlain;
 		}
-		if (metric.includes("seconds") && metric.includes("cpu")) {
-			return fmtCPU;
-		}
-
-		return fmtPlain;
 	}
 
 	const metric = (data: MetricValue[], name: string, bz: boolean, fmt: (n: number) => string): ReactNode => {
@@ -109,7 +111,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading, refresh}): JSX.E
 		sx={{p: 2}}>
 		<Grid container>
 			{loading && loadingData()}
-			{!loading && data?.clusterMetrics.map(m => metric(m.values as MetricValue[], m.name, false, getFormatter(m.metric)))}
+			{!loading && data?.clusterMetrics.map(m => metric(m.values as MetricValue[], m.name, false, getFormatter(m.format)))}
 		</Grid>
 	</Card>
 }

@@ -47,6 +47,7 @@ func (r *Resolver) GetMetrics(ctx context.Context, tenant, cluster string) ([]mo
 		metrics = append(metrics, model.Metric{
 			Name:   m.Name,
 			Metric: m.Metric,
+			Format: m.Format,
 			Values: values,
 		})
 	}

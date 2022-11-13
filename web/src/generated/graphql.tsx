@@ -51,10 +51,18 @@ export type ClusterStatus = {
 
 export type Metric = {
   __typename?: 'Metric';
+  format: MetricFormat;
   metric: Scalars['String'];
   name: Scalars['String'];
   values: Array<MetricValue>;
 };
+
+export enum MetricFormat {
+  Bytes = 'Bytes',
+  Cpu = 'CPU',
+  Plain = 'Plain',
+  Time = 'Time'
+}
 
 export type MetricValue = {
   __typename?: 'MetricValue';
@@ -263,7 +271,7 @@ export type MetricsClusterQueryVariables = Exact<{
 }>;
 
 
-export type MetricsClusterQuery = { __typename?: 'Query', clusterMetrics: Array<{ __typename?: 'Metric', name: string, metric: string, values: Array<{ __typename?: 'MetricValue', value: string }> }> };
+export type MetricsClusterQuery = { __typename?: 'Query', clusterMetrics: Array<{ __typename?: 'Metric', name: string, metric: string, format: MetricFormat, values: Array<{ __typename?: 'MetricValue', value: string }> }> };
 
 export type TenantsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -579,6 +587,7 @@ export const MetricsClusterDocument = gql`
   clusterMetrics(tenant: $tenant, cluster: $cluster) {
     name
     metric
+    format
     values {
       value
     }

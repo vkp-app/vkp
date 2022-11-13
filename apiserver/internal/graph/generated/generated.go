@@ -74,6 +74,7 @@ type ComplexityRoot struct {
 	}
 
 	Metric struct {
+		Format func(childComplexity int) int
 		Metric func(childComplexity int) int
 		Name   func(childComplexity int) int
 		Values func(childComplexity int) int
@@ -273,6 +274,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ClusterStatus.WebURL(childComplexity), true
+
+	case "Metric.format":
+		if e.complexity.Metric.Format == nil {
+			break
+		}
+
+		return e.complexity.Metric.Format(childComplexity), true
 
 	case "Metric.metric":
 		if e.complexity.Metric.Metric == nil {
@@ -667,6 +675,13 @@ type User {
   groups: [String!]!
 }
 
+enum MetricFormat {
+  Bytes,
+  CPU,
+  Time,
+  Plain
+}
+
 type MetricValue {
   time: Int!
   value: String!
@@ -675,6 +690,7 @@ type MetricValue {
 type Metric {
   name: String!
   metric: String!
+  format: MetricFormat!
   values: [MetricValue!]!
 }
 
@@ -1738,6 +1754,50 @@ func (ec *executionContext) fieldContext_Metric_metric(ctx context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Metric_format(ctx context.Context, field graphql.CollectedField, obj *model.Metric) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Metric_format(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Format, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.MetricFormat)
+	fc.Result = res
+	return ec.marshalNMetricFormat2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMetricFormat(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Metric_format(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Metric",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MetricFormat does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2992,6 +3052,8 @@ func (ec *executionContext) fieldContext_Query_clusterMetrics(ctx context.Contex
 				return ec.fieldContext_Metric_name(ctx, field)
 			case "metric":
 				return ec.fieldContext_Metric_metric(ctx, field)
+			case "format":
+				return ec.fieldContext_Metric_format(ctx, field)
 			case "values":
 				return ec.fieldContext_Metric_values(ctx, field)
 			}
@@ -5640,6 +5702,13 @@ func (ec *executionContext) _Metric(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "format":
+
+			out.Values[i] = ec._Metric_format(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "values":
 
 			out.Values[i] = ec._Metric_values(ctx, field, obj)
@@ -6725,6 +6794,16 @@ func (ec *executionContext) marshalNMetric2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkube�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNMetricFormat2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMetricFormat(ctx context.Context, v interface{}) (model.MetricFormat, error) {
+	var res model.MetricFormat
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMetricFormat2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMetricFormat(ctx context.Context, sel ast.SelectionSet, v model.MetricFormat) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNMetricValue2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMetricValue(ctx context.Context, sel ast.SelectionSet, v model.MetricValue) graphql.Marshaler {
