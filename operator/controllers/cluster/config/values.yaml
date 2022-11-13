@@ -79,3 +79,6 @@ plugin:
           - apiGroups: ["paas.dcas.dev"]
             resources: ["clusteraddonbindings"]
             verbs: ["get", "list", "watch", "update", "patch"]
+          - apiGroups: ["paas.dcas.dev"]
+            resources: ["clusters/status"]
+            verbs: ["get", "update", "patch"]

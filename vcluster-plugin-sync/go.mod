@@ -5,6 +5,7 @@ go 1.19
 replace gitlab.dcas.dev/k8s/kube-glass/operator => ../operator
 
 require (
+	github.com/djcass44/go-utils/utilities v0.1.1
 	github.com/loft-sh/vcluster-sdk v0.3.2
 	gitlab.dcas.dev/k8s/kube-glass/operator v0.0.0-00010101000000-000000000000
 	k8s.io/api v0.24.2
@@ -31,7 +32,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
-	github.com/go-logr/logr v1.2.0 // indirect
+	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
@@ -71,6 +72,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
+	golang.org/x/exp v0.0.0-20220428152302-39d4317da171 // indirect
 	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 // indirect
 	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb // indirect
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
@@ -84,7 +86,7 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.24.2 // indirect
 	k8s.io/cli-runtime v0.24.0 // indirect
 	k8s.io/component-base v0.24.2 // indirect

@@ -68,6 +68,12 @@ type ClusterStatus struct {
 	ClusterDomain string `json:"clusterDomain,omitempty"`
 
 	Message StatusMessage `json:"message,omitempty"`
+
+	Inventory NestedInventory `json:"inventory,omitempty"`
+}
+
+type NestedInventory struct {
+	AccessorRoles []string `json:"accessorRoles,omitempty"`
 }
 
 type StatusMessage struct {

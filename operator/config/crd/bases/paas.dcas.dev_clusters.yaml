@@ -136,6 +136,13 @@ spec:
                   - type
                   type: object
                 type: array
+              inventory:
+                properties:
+                  accessorRoles:
+                    items:
+                      type: string
+                    type: array
+                type: object
               kubeURL:
                 type: string
               kubeVersion:

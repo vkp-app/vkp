@@ -2,12 +2,14 @@ package syncers
 
 import (
 	"context"
+	"github.com/djcass44/go-utils/utilities/sliceutils"
 	"github.com/loft-sh/vcluster-sdk/syncer"
 	synccontext "github.com/loft-sh/vcluster-sdk/syncer/context"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/vcluster-plugin-sync/internal/syncers/nested"
 	authv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
@@ -72,31 +74,70 @@ func (r *RoleBindingSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.reconcileOwnerBinding(ctx, tr); err != nil {
 		return ctrl.Result{}, err
 	}
-	if err := r.reconcileClusterAccessorBinding(ctx, cr); err != nil {
-		return ctrl.Result{}, err
+	if res, err := r.reconcileClusterAccessorBinding(ctx, cr); err != nil || res.Requeue {
+		return res, err
 	}
 
 	return ctrl.Result{}, nil
 }
 
-func (r *RoleBindingSyncer) reconcileClusterAccessorBinding(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+func (r *RoleBindingSyncer) reconcileClusterAccessorBinding(ctx context.Context, cr *paasv1alpha1.Cluster) (ctrl.Result, error) {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling nested accessor RBAC")
 
 	for _, ar := range cr.Spec.Accessors {
-		if err := r.reconcileAccessor(ctx, &ar); err != nil {
+		if err := r.reconcileAccessor(ctx, cr, &ar); err != nil {
 			log.Error(err, "failed to reconcile accessor")
-			return err
+			return ctrl.Result{}, err
 		}
 	}
-	return nil
+	if err := r.pClient.Status().Update(ctx, cr); err != nil {
+		log.Error(err, "failed to update cluster inventory status")
+		return ctrl.Result{}, err
+	}
+
+	// check if there are any roles that we need to purge
+	if len(cr.Spec.Accessors) == len(cr.Status.Inventory.AccessorRoles) {
+		return ctrl.Result{}, nil
+	}
+
+	log.Info("detected mismatch in inventoried and actual accessors", "expected", len(cr.Spec.Accessors), "actual", len(cr.Status.Inventory.AccessorRoles))
+
+	// delete all the roles and request a requeue
+	for _, role := range cr.Status.Inventory.AccessorRoles {
+		res := &authv1.ClusterRoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: role,
+			},
+		}
+		log.V(1).Info("deleting cluster role binding")
+		if err := r.vClient.Delete(ctx, res); err != nil && !errors.IsNotFound(err) {
+			log.Error(err, "failed to delete cluster role binding")
+			return ctrl.Result{}, err
+		}
+		// remove this role
+		cr.Status.Inventory.AccessorRoles = sliceutils.Filter(cr.Status.Inventory.AccessorRoles, func(s string) bool {
+			return s != role
+		})
+		if err := r.pClient.Status().Update(ctx, cr); err != nil {
+			log.Error(err, "failed to update cluster inventory status")
+			return ctrl.Result{}, err
+		}
+	}
+	// request a requeue so we can
+	// recreate the expected bindings
+	return ctrl.Result{Requeue: true}, nil
 }
 
-func (r *RoleBindingSyncer) reconcileAccessor(ctx context.Context, ar *paasv1alpha1.AccessRef) error {
+func (r *RoleBindingSyncer) reconcileAccessor(ctx context.Context, cr *paasv1alpha1.Cluster, ar *paasv1alpha1.AccessRef) error {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling nested accessor", "Resource", ar)
 
 	binding := nested.AccessWriteBinding(ar)
+
+	if !sliceutils.Includes(cr.Status.Inventory.AccessorRoles, binding.GetName()) {
+		cr.Status.Inventory.AccessorRoles = append(cr.Status.Inventory.AccessorRoles, binding.GetName())
+	}
 
 	// fetch the current resource
 	found := &authv1.ClusterRoleBinding{}
