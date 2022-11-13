@@ -1,5 +1,6 @@
 directive @hasRole(role: Role!) on FIELD_DEFINITION
 directive @hasClusterAccess(write: Boolean!) on ARGUMENT_DEFINITION
+directive @hasTenantAccess(write: Boolean!) on ARGUMENT_DEFINITION
 
 enum Role {
   ADMIN,
@@ -92,12 +93,12 @@ type Metric {
 
 type Query {
   tenants: [Tenant!]! @hasRole(role: USER)
-  tenant(tenant: ID!): Tenant! @hasRole(role: USER)
+  tenant(tenant: ID! @hasTenantAccess(write: false)): Tenant! @hasRole(role: USER)
 
-  clustersInTenant(tenant: ID!): [Cluster!]! @hasRole(role: USER)
+  clustersInTenant(tenant: ID! @hasTenantAccess(write: false)): [Cluster!]! @hasRole(role: USER)
   cluster(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): Cluster! @hasRole(role: USER)
 
-  clusterAddons(tenant: ID!): [ClusterAddon!]! @hasRole(role: USER)
+  clusterAddons(tenant: ID! @hasTenantAccess(write: false)): [ClusterAddon!]! @hasRole(role: USER)
   clusterInstalledAddons(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): [String!]! @hasRole(role: USER)
 
   currentUser: User! @hasRole(role: USER)
@@ -114,7 +115,7 @@ input NewCluster {
 
 type Mutation {
   createTenant(tenant: String!): Tenant! @hasRole(role: USER)
-  createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasRole(role: USER)
+  createCluster(tenant: ID!, input: NewCluster! @hasTenantAccess(write: true)): Cluster! @hasRole(role: USER)
 
   installAddon(tenant: ID!, cluster: ID!, addon: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
   uninstallAddon(tenant: ID!, cluster: ID!, addon: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)

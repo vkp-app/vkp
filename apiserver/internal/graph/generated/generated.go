@@ -47,6 +47,7 @@ type ResolverRoot interface {
 type DirectiveRoot struct {
 	HasClusterAccess func(ctx context.Context, obj interface{}, next graphql.Resolver, write bool) (res interface{}, err error)
 	HasRole          func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (res interface{}, err error)
+	HasTenantAccess  func(ctx context.Context, obj interface{}, next graphql.Resolver, write bool) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -609,6 +610,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "../schema.graphqls", Input: `directive @hasRole(role: Role!) on FIELD_DEFINITION
 directive @hasClusterAccess(write: Boolean!) on ARGUMENT_DEFINITION
+directive @hasTenantAccess(write: Boolean!) on ARGUMENT_DEFINITION
 
 enum Role {
   ADMIN,
@@ -701,19 +703,19 @@ type Metric {
 
 type Query {
   tenants: [Tenant!]! @hasRole(role: USER)
-  tenant(tenant: ID!): Tenant! @hasRole(role: USER)
+  tenant(tenant: ID! @hasTenantAccess(write: false)): Tenant! @hasRole(role: USER)
 
-  clustersInTenant(tenant: ID!): [Cluster!]! @hasRole(role: USER)
+  clustersInTenant(tenant: ID! @hasTenantAccess(write: false)): [Cluster!]! @hasRole(role: USER)
   cluster(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): Cluster! @hasRole(role: USER)
 
-  clusterAddons(tenant: ID!): [ClusterAddon!]! @hasRole(role: USER)
-  clusterInstalledAddons(tenant: ID!, cluster: ID!): [String!]! @hasRole(role: USER)
+  clusterAddons(tenant: ID! @hasTenantAccess(write: false)): [ClusterAddon!]! @hasRole(role: USER)
+  clusterInstalledAddons(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): [String!]! @hasRole(role: USER)
 
   currentUser: User! @hasRole(role: USER)
 
-  clusterMetrics(tenant: ID!, cluster: ID!): [Metric!]! @hasRole(role: USER)
+  clusterMetrics(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): [Metric!]! @hasRole(role: USER)
 
-  renderKubeconfig(tenant: ID!, cluster: ID!): String! @hasRole(role: USER)
+  renderKubeconfig(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): String! @hasRole(role: USER)
 }
 
 input NewCluster {
@@ -723,10 +725,10 @@ input NewCluster {
 
 type Mutation {
   createTenant(tenant: String!): Tenant! @hasRole(role: USER)
-  createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasRole(role: USER)
+  createCluster(tenant: ID!, input: NewCluster! @hasTenantAccess(write: true)): Cluster! @hasRole(role: USER)
 
-  installAddon(tenant: ID!, cluster: ID!, addon: String!): Boolean! @hasRole(role: USER)
-  uninstallAddon(tenant: ID!, cluster: ID!, addon: String!): Boolean! @hasRole(role: USER)
+  installAddon(tenant: ID!, cluster: ID!, addon: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
+  uninstallAddon(tenant: ID!, cluster: ID!, addon: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
 
   approveTenant(tenant: ID!): Boolean! @hasRole(role: ADMIN)
 }
@@ -768,6 +770,21 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 	return args, nil
 }
 
+func (ec *executionContext) dir_hasTenantAccess_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 bool
+	if tmp, ok := rawArgs["write"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("write"))
+		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["write"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_approveTenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -798,9 +815,28 @@ func (ec *executionContext) field_Mutation_createCluster_args(ctx context.Contex
 	var arg1 model.NewCluster
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNNewCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐNewCluster(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNNewCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐNewCluster(ctx, tmp)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, true)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasTenantAccess == nil {
+				return nil, errors.New("directive hasTenantAccess is not implemented")
+			}
+			return ec.directives.HasTenantAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(model.NewCluster); ok {
+			arg1 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model.NewCluster`, tmp))
 		}
 	}
 	args["input"] = arg1
@@ -846,9 +882,26 @@ func (ec *executionContext) field_Mutation_installAddon_args(ctx context.Context
 	var arg2 string
 	if tmp, ok := rawArgs["addon"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addon"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, true)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasClusterAccess == nil {
+				return nil, errors.New("directive hasClusterAccess is not implemented")
+			}
+			return ec.directives.HasClusterAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg2 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["addon"] = arg2
@@ -879,9 +932,26 @@ func (ec *executionContext) field_Mutation_uninstallAddon_args(ctx context.Conte
 	var arg2 string
 	if tmp, ok := rawArgs["addon"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addon"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, true)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasClusterAccess == nil {
+				return nil, errors.New("directive hasClusterAccess is not implemented")
+			}
+			return ec.directives.HasClusterAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg2 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["addon"] = arg2
@@ -909,9 +979,26 @@ func (ec *executionContext) field_Query_clusterAddons_args(ctx context.Context, 
 	var arg0 string
 	if tmp, ok := rawArgs["tenant"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, false)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasTenantAccess == nil {
+				return nil, errors.New("directive hasTenantAccess is not implemented")
+			}
+			return ec.directives.HasTenantAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["tenant"] = arg0
@@ -933,9 +1020,26 @@ func (ec *executionContext) field_Query_clusterInstalledAddons_args(ctx context.
 	var arg1 string
 	if tmp, ok := rawArgs["cluster"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, false)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasClusterAccess == nil {
+				return nil, errors.New("directive hasClusterAccess is not implemented")
+			}
+			return ec.directives.HasClusterAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg1 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["cluster"] = arg1
@@ -957,9 +1061,26 @@ func (ec *executionContext) field_Query_clusterMetrics_args(ctx context.Context,
 	var arg1 string
 	if tmp, ok := rawArgs["cluster"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, false)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasClusterAccess == nil {
+				return nil, errors.New("directive hasClusterAccess is not implemented")
+			}
+			return ec.directives.HasClusterAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg1 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["cluster"] = arg1
@@ -1013,9 +1134,26 @@ func (ec *executionContext) field_Query_clustersInTenant_args(ctx context.Contex
 	var arg0 string
 	if tmp, ok := rawArgs["tenant"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, false)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasTenantAccess == nil {
+				return nil, errors.New("directive hasTenantAccess is not implemented")
+			}
+			return ec.directives.HasTenantAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["tenant"] = arg0
@@ -1037,9 +1175,26 @@ func (ec *executionContext) field_Query_renderKubeconfig_args(ctx context.Contex
 	var arg1 string
 	if tmp, ok := rawArgs["cluster"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, false)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasClusterAccess == nil {
+				return nil, errors.New("directive hasClusterAccess is not implemented")
+			}
+			return ec.directives.HasClusterAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg1 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["cluster"] = arg1
@@ -1052,9 +1207,26 @@ func (ec *executionContext) field_Query_tenant_args(ctx context.Context, rawArgs
 	var arg0 string
 	if tmp, ok := rawArgs["tenant"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, false)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasTenantAccess == nil {
+				return nil, errors.New("directive hasTenantAccess is not implemented")
+			}
+			return ec.directives.HasTenantAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["tenant"] = arg0

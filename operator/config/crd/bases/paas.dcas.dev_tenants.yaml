@@ -35,6 +35,17 @@ spec:
           spec:
             description: TenantSpec defines the desired state of Tenant
             properties:
+              accessors:
+                items:
+                  properties:
+                    group:
+                      type: string
+                    readOnly:
+                      type: boolean
+                    user:
+                      type: string
+                  type: object
+                type: array
               namespaceStrategy:
                 type: string
               owner:

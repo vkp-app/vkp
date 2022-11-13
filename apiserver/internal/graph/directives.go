@@ -13,6 +13,26 @@ import (
 	"os"
 )
 
+func (r *Resolver) HasTenantAccess(ctx context.Context, req any, next graphql.Resolver, write bool) (res any, err error) {
+	log := logr.FromContextOrDiscard(ctx)
+	log.V(1).Info("preparing to check tenant access", "request", req)
+
+	// chose not to do an "args, ok := ..." check here
+	// since it wouldn't show us the interface conversion error
+	args := req.(map[string]any)
+	tenant := args["tenant"].(string)
+
+	ok, err := r.canAccessTenant(ctx, tenant, write)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, ErrForbidden
+	}
+
+	return next(ctx)
+}
+
 func (r *Resolver) HasClusterAccess(ctx context.Context, req any, next graphql.Resolver, write bool) (res any, err error) {
 	log := logr.FromContextOrDiscard(ctx)
 	log.V(1).Info("preparing to check cluster access", "request", req)
@@ -32,6 +52,42 @@ func (r *Resolver) HasClusterAccess(ctx context.Context, req any, next graphql.R
 	}
 
 	return next(ctx)
+}
+
+func (r *Resolver) canAccessTenant(ctx context.Context, tenant string, requiresWrite bool) (bool, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "requiresWrite", requiresWrite)
+	log.Info("checking tenant access")
+
+	user, _ := userctx.CtxUser(ctx)
+
+	// fetch the tenant resource
+	tr := &paasv1alpha1.Tenant{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: tenant}, tr); err != nil {
+		log.Error(err, "failed to retrieve tenant resource")
+		return false, err
+	}
+	// if the user owns the tenant, then
+	// that's it really.
+	if tr.Spec.Owner == user.Username {
+		log.V(1).Info("user can access tenant as they own it")
+		return true, nil
+	}
+
+	for _, ar := range tr.Spec.Accessors {
+		if ar.User == user.Username || sliceutils.Includes(user.Groups, ar.Group) {
+			// if this request requires write access
+			// ignore all accessors that provide
+			// read-only access
+			if requiresWrite || ar.ReadOnly {
+				continue
+			}
+			log.V(1).Info("user can access the tenant as they are referenced in an accessor")
+			return true, nil
+		}
+	}
+
+	log.V(1).Info("user cannot access tenant as we failed to locate a matching accessor")
+	return false, nil
 }
 
 func (r *Resolver) canAccessCluster(ctx context.Context, tenant, cluster string, requiresWrite bool) (bool, error) {
@@ -70,7 +126,7 @@ func (r *Resolver) canAccessCluster(ctx context.Context, tenant, cluster string,
 			if requiresWrite || ar.ReadOnly {
 				continue
 			}
-			log.V(1).Info("user can access the cluster as they are referenced in a write-accessor")
+			log.V(1).Info("user can access the cluster as they are referenced in an accessor")
 			return true, nil
 		}
 	}

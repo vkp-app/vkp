@@ -106,6 +106,7 @@ func main() {
 	c := generated.Config{Resolvers: resolver}
 	c.Directives.HasRole = resolver.HasRole
 	c.Directives.HasClusterAccess = resolver.HasClusterAccess
+	c.Directives.HasTenantAccess = resolver.HasTenantAccess
 	srv := handler.New(generated.NewExecutableSchema(c))
 	srv.AddTransport(transport.POST{})
 

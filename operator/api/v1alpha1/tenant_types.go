@@ -39,6 +39,7 @@ const (
 type TenantSpec struct {
 	Owner             string            `json:"owner"`
 	NamespaceStrategy NamespaceStrategy `json:"namespaceStrategy"`
+	Accessors         []AccessRef       `json:"accessors,omitempty"`
 }
 
 // TenantStatus defines the observed state of Tenant
