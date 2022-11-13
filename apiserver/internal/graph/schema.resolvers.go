@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -400,7 +399,7 @@ func (r *queryResolver) RenderKubeconfig(ctx context.Context, tenant string, clu
 						Args: []string{
 							"oidc-login",
 							"get-token",
-							fmt.Sprintf("--oidc-issuer-url=%s", os.Getenv(cluster2.EnvIDPURL)),
+							fmt.Sprintf("--oidc-issuer-url=%s", r.DexURL),
 							fmt.Sprintf("--oidc-client-id=%s", string(dexSec.Data[cluster2.DexKeyID])),
 							fmt.Sprintf("--oidc-client-secret=%s", string(dexSec.Data[cluster2.DexKeySecret])),
 							"--oidc-extra-scope=profile",

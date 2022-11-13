@@ -28,6 +28,7 @@ type Resolver struct {
 	client.Client
 	Scheme     *runtime.Scheme
 	Prometheus promv1.API
+	DexURL     string
 }
 
 func (r *Resolver) GetMetric(ctx context.Context, promQL string) ([]model.MetricValue, error) {

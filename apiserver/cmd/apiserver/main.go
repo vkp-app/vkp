@@ -9,9 +9,9 @@ import (
 	"github.com/djcass44/go-utils/otel"
 	"github.com/djcass44/go-utils/otel/metrics"
 	"github.com/gorilla/mux"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/prometheus/client_golang/api"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	flag "github.com/spf13/pflag"
 	"gitlab.com/autokubeops/serverless"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
@@ -29,31 +29,30 @@ import (
 
 var scheme = runtime.NewScheme()
 
-type environment struct {
-	Port     int `envconfig:"PORT" default:"8080"`
-	LogLevel int `split_words:"true"`
-
-	Otel struct {
-		Enabled    bool    `split_words:"true"`
-		SampleRate float64 `split_words:"true"`
-	}
-
-	Metrics struct {
-		PrometheusAddr string `split_words:"true" required:"true"`
-	}
-}
-
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(paasv1alpha1.AddToScheme(scheme))
 }
 
 func main() {
-	var e environment
-	envconfig.MustProcess("api", &e)
+	// flags
+	fLogLevel := flag.Int("v", 0, "level of logging information (higher is more).")
+	fPort := flag.Int("port", 8080, "http port to listen on.")
 
+	fOtelEnabled := flag.Bool("otel-enabled", false, "enable exporting of OpenTelemetry traces.")
+	fOtelServiceName := flag.String("otel-service-name", "glass-apiserver", "name to distinguish which service traces originate from.")
+	fOtelSampleRate := flag.Float64("otel-sample-rate", 0, "percentage (0.0 - 1.0) of traces that should be exported.")
+
+	fPrometheusURL := flag.String("prometheus-url", "", "URL of the management cluster's Prometheus server.")
+	fPrometheusMetrics := flag.Bool("prometheus-metrics", true, "Flag to indicate if Prometheus metrics should be exported.")
+
+	fDexURL := flag.String("dex-url", "", "URL of the Dex instance.")
+
+	flag.Parse()
+
+	// logging configuration
 	zc := zap.NewProductionConfig()
-	zc.Level = zap.NewAtomicLevelAt(zapcore.Level(e.LogLevel * -1))
+	zc.Level = zap.NewAtomicLevelAt(zapcore.Level(*fLogLevel * -1))
 
 	log, ctx := logging.NewZap(context.TODO(), zc)
 
@@ -68,9 +67,9 @@ func main() {
 	// configure metrics and tracing
 	prom := metrics.MustNewDefault(ctx)
 	err = otel.Build(ctx, otel.Options{
-		Enabled:     e.Otel.Enabled,
-		ServiceName: "glass-apiserver",
-		SampleRate:  e.Otel.SampleRate,
+		Enabled:     *fOtelEnabled,
+		ServiceName: *fOtelServiceName,
+		SampleRate:  *fOtelSampleRate,
 	})
 	if err != nil {
 		log.Error(err, "failed to configure OpenTelemetry")
@@ -78,7 +77,7 @@ func main() {
 		return
 	}
 
-	promClient, err := api.NewClient(api.Config{Address: e.Metrics.PrometheusAddr})
+	promClient, err := api.NewClient(api.Config{Address: *fPrometheusURL})
 	if err != nil {
 		log.Error(err, "failed to create Prometheus client")
 		os.Exit(1)
@@ -90,6 +89,7 @@ func main() {
 		Client:     kubeClient,
 		Scheme:     scheme,
 		Prometheus: promv1.NewAPI(promClient),
+		DexURL:     *fDexURL,
 	}
 	c := generated.Config{Resolvers: resolver}
 	c.Directives.HasUser = graph.HasUser
@@ -100,13 +100,15 @@ func main() {
 	// configure routing
 	router := mux.NewRouter()
 	router.Use(otel.Middleware(), logging.Middleware(log), metrics.Middleware(), userctx.Middleware())
-	router.Handle("/metrics", prom)
+	if *fPrometheusMetrics {
+		router.Handle("/metrics", prom)
+	}
 	router.Handle("/api/v1/graphql", playground.Handler("GraphQL Playground", "/api/v1/query"))
 	router.Handle("/api/v1/query", srv)
 
 	// start the server
 	serverless.NewBuilder(router).
-		WithPort(e.Port).
+		WithPort(*fPort).
 		WithLogger(log).
 		Run()
 }

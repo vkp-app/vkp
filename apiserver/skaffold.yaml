@@ -23,7 +23,7 @@ manifests:
   helm:
     releases:
       - name: auto-deploy-app
-        remoteChart: https://av1o.gitlab.io/charts/auto-deploy-app-0.15.3.tgz
+        remoteChart: https://av1o.gitlab.io/charts/auto-deploy-app-0.15.4.tgz
         valuesFiles:
           - k8s/values.yaml
         namespace: glass-system
