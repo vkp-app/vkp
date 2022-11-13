@@ -1,17 +1,19 @@
 import React, {ReactNode} from "react";
 import {Card, CardHeader, Grid, Skeleton, Typography} from "@mui/material";
+import {ApolloError} from "@apollo/client";
 import SparkLine from "../../data/SparkLine";
 import {Cluster, MetricFormat, MetricValue, useMetricsClusterQuery} from "../../../generated/graphql";
 import {formatBytes} from "../../../utils/fmt";
+import InlineError from "../../alert/InlineError";
 
 interface Props {
 	cluster: Cluster | null;
-	loading: boolean;
+	clusterError?: ApolloError;
 	refresh?: boolean;
 }
 
-const ClusterMetricsView: React.FC<Props> = ({cluster, loading, refresh}): JSX.Element => {
-	const {data} = useMetricsClusterQuery({
+const ClusterMetricsView: React.FC<Props> = ({cluster, refresh, clusterError}): JSX.Element => {
+	const {data, loading, error} = useMetricsClusterQuery({
 		variables: {tenant: cluster?.tenant || "", cluster: cluster?.name || ""},
 		skip: !cluster,
 		pollInterval: refresh ? 10_000 : 0
@@ -109,6 +111,10 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, loading, refresh}): JSX.E
 	return <Card
 		variant="outlined"
 		sx={{p: 2}}>
+		{!loading && (error || clusterError) && <InlineError
+			message="Unable to load cluster metrics"
+			error={error || clusterError}
+		/>}
 		<Grid container>
 			{loading && loadingData()}
 			{!loading && data?.clusterMetrics.map(m => metric(m.values as MetricValue[], m.name, false, getFormatter(m.format)))}

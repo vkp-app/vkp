@@ -104,8 +104,8 @@ func main() {
 		DexURL:           *fDexURL,
 	}
 	c := generated.Config{Resolvers: resolver}
-	c.Directives.HasUser = graph.HasUser
-	c.Directives.HasAdmin = resolver.HasAdmin
+	c.Directives.HasRole = resolver.HasRole
+	c.Directives.HasClusterAccess = resolver.HasClusterAccess
 	srv := handler.New(generated.NewExecutableSchema(c))
 	srv.AddTransport(transport.POST{})
 

@@ -45,8 +45,8 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	HasAdmin func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
-	HasUser  func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	HasClusterAccess func(ctx context.Context, obj interface{}, next graphql.Resolver, write bool) (res interface{}, err error)
+	HasRole          func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -607,8 +607,13 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema.graphqls", Input: `directive @hasUser on FIELD_DEFINITION
-directive @hasAdmin on FIELD_DEFINITION
+	{Name: "../schema.graphqls", Input: `directive @hasRole(role: Role!) on FIELD_DEFINITION
+directive @hasClusterAccess(write: Boolean!) on ARGUMENT_DEFINITION
+
+enum Role {
+  ADMIN,
+  USER
+}
 
 enum Track {
   STABLE,
@@ -695,20 +700,20 @@ type Metric {
 }
 
 type Query {
-  tenants: [Tenant!]! @hasUser
-  tenant(tenant: ID!): Tenant! @hasUser
+  tenants: [Tenant!]! @hasRole(role: USER)
+  tenant(tenant: ID!): Tenant! @hasRole(role: USER)
 
-  clustersInTenant(tenant: ID!): [Cluster!]! @hasUser
-  cluster(tenant: ID!, cluster: ID!): Cluster! @hasUser
+  clustersInTenant(tenant: ID!): [Cluster!]! @hasRole(role: USER)
+  cluster(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): Cluster! @hasRole(role: USER)
 
-  clusterAddons(tenant: ID!): [ClusterAddon!]! @hasUser
-  clusterInstalledAddons(tenant: ID!, cluster: ID!): [String!]! @hasUser
+  clusterAddons(tenant: ID!): [ClusterAddon!]! @hasRole(role: USER)
+  clusterInstalledAddons(tenant: ID!, cluster: ID!): [String!]! @hasRole(role: USER)
 
-  currentUser: User! @hasUser
+  currentUser: User! @hasRole(role: USER)
 
-  clusterMetrics(tenant: ID!, cluster: ID!): [Metric!]! @hasUser
+  clusterMetrics(tenant: ID!, cluster: ID!): [Metric!]! @hasRole(role: USER)
 
-  renderKubeconfig(tenant: ID!, cluster: ID!): String! @hasUser
+  renderKubeconfig(tenant: ID!, cluster: ID!): String! @hasRole(role: USER)
 }
 
 input NewCluster {
@@ -717,13 +722,13 @@ input NewCluster {
 }
 
 type Mutation {
-  createTenant(tenant: String!): Tenant! @hasUser
-  createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasUser
+  createTenant(tenant: String!): Tenant! @hasRole(role: USER)
+  createCluster(tenant: ID!, input: NewCluster!): Cluster! @hasRole(role: USER)
 
-  installAddon(tenant: ID!, cluster: ID!, addon: String!): Boolean! @hasUser
-  uninstallAddon(tenant: ID!, cluster: ID!, addon: String!): Boolean! @hasUser
+  installAddon(tenant: ID!, cluster: ID!, addon: String!): Boolean! @hasRole(role: USER)
+  uninstallAddon(tenant: ID!, cluster: ID!, addon: String!): Boolean! @hasRole(role: USER)
 
-  approveTenant(tenant: ID!): Boolean! @hasAdmin
+  approveTenant(tenant: ID!): Boolean! @hasRole(role: ADMIN)
 }
 `, BuiltIn: false},
 }
@@ -732,6 +737,36 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_hasClusterAccess_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 bool
+	if tmp, ok := rawArgs["write"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("write"))
+		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["write"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.Role
+	if tmp, ok := rawArgs["role"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+		arg0, err = ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["role"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_approveTenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -946,9 +981,26 @@ func (ec *executionContext) field_Query_cluster_args(ctx context.Context, rawArg
 	var arg1 string
 	if tmp, ok := rawArgs["cluster"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, false)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasClusterAccess == nil {
+				return nil, errors.New("directive hasClusterAccess is not implemented")
+			}
+			return ec.directives.HasClusterAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg1 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["cluster"] = arg1
@@ -1959,10 +2011,14 @@ func (ec *executionContext) _Mutation_createTenant(ctx context.Context, field gr
 			return ec.resolvers.Mutation().CreateTenant(rctx, fc.Args["tenant"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2044,10 +2100,14 @@ func (ec *executionContext) _Mutation_createCluster(ctx context.Context, field g
 			return ec.resolvers.Mutation().CreateCluster(rctx, fc.Args["tenant"].(string), fc.Args["input"].(model.NewCluster))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2129,10 +2189,14 @@ func (ec *executionContext) _Mutation_installAddon(ctx context.Context, field gr
 			return ec.resolvers.Mutation().InstallAddon(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string), fc.Args["addon"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2204,10 +2268,14 @@ func (ec *executionContext) _Mutation_uninstallAddon(ctx context.Context, field 
 			return ec.resolvers.Mutation().UninstallAddon(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string), fc.Args["addon"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2279,10 +2347,14 @@ func (ec *executionContext) _Mutation_approveTenant(ctx context.Context, field g
 			return ec.resolvers.Mutation().ApproveTenant(rctx, fc.Args["tenant"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAdmin == nil {
-				return nil, errors.New("directive hasAdmin is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasAdmin(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2442,10 +2514,14 @@ func (ec *executionContext) _Query_tenants(ctx context.Context, field graphql.Co
 			return ec.resolvers.Query().Tenants(rctx)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2516,10 +2592,14 @@ func (ec *executionContext) _Query_tenant(ctx context.Context, field graphql.Col
 			return ec.resolvers.Query().Tenant(rctx, fc.Args["tenant"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2601,10 +2681,14 @@ func (ec *executionContext) _Query_clustersInTenant(ctx context.Context, field g
 			return ec.resolvers.Query().ClustersInTenant(rctx, fc.Args["tenant"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2686,10 +2770,14 @@ func (ec *executionContext) _Query_cluster(ctx context.Context, field graphql.Co
 			return ec.resolvers.Query().Cluster(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2771,10 +2859,14 @@ func (ec *executionContext) _Query_clusterAddons(ctx context.Context, field grap
 			return ec.resolvers.Query().ClusterAddons(rctx, fc.Args["tenant"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2862,10 +2954,14 @@ func (ec *executionContext) _Query_clusterInstalledAddons(ctx context.Context, f
 			return ec.resolvers.Query().ClusterInstalledAddons(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -2937,10 +3033,14 @@ func (ec *executionContext) _Query_currentUser(ctx context.Context, field graphq
 			return ec.resolvers.Query().CurrentUser(rctx)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -3007,10 +3107,14 @@ func (ec *executionContext) _Query_clusterMetrics(ctx context.Context, field gra
 			return ec.resolvers.Query().ClusterMetrics(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -3092,10 +3196,14 @@ func (ec *executionContext) _Query_renderKubeconfig(ctx context.Context, field g
 			return ec.resolvers.Query().RenderKubeconfig(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasUser == nil {
-				return nil, errors.New("directive hasUser is not implemented")
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.HasUser(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
@@ -6905,6 +7013,16 @@ func (ec *executionContext) marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8s�
 func (ec *executionContext) unmarshalNNewCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐNewCluster(ctx context.Context, v interface{}) (model.NewCluster, error) {
 	res, err := ec.unmarshalInputNewCluster(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
+	var res model.Role
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v model.Role) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

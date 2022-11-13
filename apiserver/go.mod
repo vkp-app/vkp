@@ -8,6 +8,7 @@ require (
 	github.com/99designs/gqlgen v0.17.20
 	github.com/djcass44/go-utils/logging v0.2.2
 	github.com/djcass44/go-utils/otel v0.1.6
+	github.com/djcass44/go-utils/utilities v0.1.1
 	github.com/go-logr/logr v1.2.3
 	github.com/gorilla/mux v1.8.0
 	github.com/imdario/mergo v0.3.13
@@ -98,6 +99,7 @@ require (
 	go.uber.org/automaxprocs v1.5.2-0.20220426165107-d835ace014b3 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
+	golang.org/x/exp v0.0.0-20220428152302-39d4317da171 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect

@@ -177,7 +177,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 		</ListSubheader>
 		<ClusterMetricsView
 			cluster={data?.cluster as Cluster | null}
-			loading={loading}
+			clusterError={error}
 			refresh={refresh}
 		/>
 		<ListSubheader>
