@@ -36,19 +36,31 @@ spec:
             description: TenantSpec defines the desired state of Tenant
             properties:
               accessors:
+                description: Accessors define who is authorised to interact with the
+                  tenant.
                 items:
                   properties:
                     group:
+                      description: Group binds a group to the virtual cluster. Using
+                        groups should be preferred as it allows you to manage membership
+                        outside of Kubernetes. Mutually-exclusive with User.
                       type: string
                     readOnly:
+                      description: ReadOnly indicates that the user/group should only
+                        have view access to the virtual cluster.
                       type: boolean
                     user:
+                      description: User binds a user to the virtual cluster. Mutually-exclusive
+                        with, and preferred over Group.
                       type: string
                   type: object
                 type: array
               namespaceStrategy:
                 type: string
               owner:
+                description: Owner is the human user that owns the tenant. They will
+                  have special privileges that will not be given to Accessors (e.g.
+                  ability to delete the tenant).
                 type: string
             required:
             - namespaceStrategy

@@ -33,21 +33,49 @@ const (
 
 // ClusterAddonSpec defines the desired state of ClusterAddon
 type ClusterAddonSpec struct {
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Resources"
 	Resources []RemoteRef `json:"resources"`
 
+	// DisplayName is the human-readable name of the addon shown in
+	// the addon marketplace.
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Display name",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	DisplayName string `json:"displayName"`
-	Maintainer  string `json:"maintainer"`
+	// Maintainer is the name/contact information of the addon.
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Maintainer",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	Maintainer string `json:"maintainer"`
 
-	Logo        string      `json:"logo,omitempty"`
-	Description string      `json:"description,omitempty"`
-	Source      AddonSource `json:"source,omitempty"`
-	SourceURL   string      `json:"sourceURL,omitempty"`
+	// Logo is the URL of an image that should be
+	// shown in the addon marketplace for this addon.
+	Logo string `json:"logo,omitempty"`
+	// Description is the human-readable description of the addon
+	// shown in the addon marketplace.
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Description",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	Description string `json:"description,omitempty"`
+	// Source indicates where the addon came from and how
+	// trustworthy it should be considered.
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Source"
+	Source AddonSource `json:"source,omitempty"`
+	// SourceURL is an external HTTP address that can be used by users
+	// to find more information about an addon.
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Source URL",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	SourceURL string `json:"sourceURL,omitempty"`
 }
 
 type RemoteRef struct {
-	URL       string                      `json:"url,omitempty"`
+	// URL is a Kustomize-compatible HTTPS URL to a Kustomize directory. Mutually-exclusive with ConfigMap and Secret.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="URL",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	URL string `json:"url,omitempty"`
+	// ConfigMap is a v1.ConfigMap that contains a number of Kustomize files. Mutually-exclusive with URL and Secret.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="ConfigMap",xDescriptors="urn:alm:descriptor:io.kubernetes:ConfigMap"
 	ConfigMap corev1.LocalObjectReference `json:"configMap,omitempty"`
-	Secret    corev1.LocalObjectReference `json:"secret,omitempty"`
+	// Secret is a v1.Secret that contains a number of Kustomize files. Mutually-exclusive with URL and ConfigMap.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Secret",xDescriptors="urn:alm:descriptor:io.kubernetes:Secret"
+	Secret corev1.LocalObjectReference `json:"secret,omitempty"`
 }
 
 // ClusterAddonStatus defines the observed state of ClusterAddon

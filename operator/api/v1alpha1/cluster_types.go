@@ -34,35 +34,58 @@ type ClusterSpec struct {
 	HA      HighAvailability `json:"ha,omitempty"`
 	Storage Storage          `json:"storage,omitempty"`
 
+	// Track defines the frequency of system updates.
 	Track ReleaseTrack `json:"track,omitempty"`
 
+	// Accessors define who is authorised to interact with the cluster.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Accessors"
 	Accessors []AccessRef `json:"accessors,omitempty"`
 }
 
 type HighAvailability struct {
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	Enabled bool `json:"enabled,omitempty"`
 }
 
 type Storage struct {
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Storage class",xDescriptors="urn:alm:descriptor:io.kubernetes:StorageClass"
 	StorageClassName string `json:"storageClassName,omitempty"`
-	Size             int    `json:"size,omitempty"`
+	// Size in Gi of the clusters backing disk.
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Size (Gi)",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
+	Size int `json:"size,omitempty"`
 }
 
 type AccessRef struct {
-	ReadOnly bool   `json:"readOnly,omitempty"`
-	User     string `json:"user,omitempty"`
-	Group    string `json:"group,omitempty"`
+	// ReadOnly indicates that the user/group should only have view access
+	// to the virtual cluster.
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Read Only",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	ReadOnly bool `json:"readOnly,omitempty"`
+	// User binds a user to the virtual cluster. Mutually-exclusive with, and preferred over Group.
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="User",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	User string `json:"user,omitempty"`
+	// Group binds a group to the virtual cluster.
+	// Using groups should be preferred as it allows you to manage
+	// membership outside of Kubernetes. Mutually-exclusive with User.
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Group",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	Group string `json:"group,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster
 type ClusterStatus struct {
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Cluster conditions",xDescriptors="urn:alm:descriptor:io.kubernetes.conditions"
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
 	KubeVersion     string `json:"kubeVersion,omitempty"`
 	PlatformVersion string `json:"platformVersion,omitempty"`
 
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Kubernetes API URL",xDescriptors="urn:alm:descriptor:org.w3:link"
 	KubeURL string `json:"kubeURL,omitempty"`
-	WebURL  string `json:"webURL,omitempty"`
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Dashboard URL",xDescriptors="urn:alm:descriptor:org.w3:link"
+	WebURL string `json:"webURL,omitempty"`
 
 	ClusterID     string `json:"clusterID,omitempty"`
 	ClusterDomain string `json:"clusterDomain,omitempty"`

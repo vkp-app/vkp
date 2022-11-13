@@ -36,19 +36,26 @@ spec:
             description: ClusterAddonSpec defines the desired state of ClusterAddon
             properties:
               description:
+                description: Description is the human-readable description of the
+                  addon shown in the addon marketplace.
                 type: string
               displayName:
+                description: DisplayName is the human-readable name of the addon shown
+                  in the addon marketplace.
                 type: string
               logo:
+                description: Logo is the URL of an image that should be shown in the
+                  addon marketplace for this addon.
                 type: string
               maintainer:
+                description: Maintainer is the name/contact information of the addon.
                 type: string
               resources:
                 items:
                   properties:
                     configMap:
-                      description: LocalObjectReference contains enough information
-                        to let you locate the referenced object inside the same namespace.
+                      description: ConfigMap is a v1.ConfigMap that contains a number
+                        of Kustomize files. Mutually-exclusive with URL and Secret.
                       properties:
                         name:
                           description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
@@ -57,8 +64,8 @@ spec:
                       type: object
                       x-kubernetes-map-type: atomic
                     secret:
-                      description: LocalObjectReference contains enough information
-                        to let you locate the referenced object inside the same namespace.
+                      description: Secret is a v1.Secret that contains a number of
+                        Kustomize files. Mutually-exclusive with URL and ConfigMap.
                       properties:
                         name:
                           description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
@@ -67,12 +74,18 @@ spec:
                       type: object
                       x-kubernetes-map-type: atomic
                     url:
+                      description: URL is a Kustomize-compatible HTTPS URL to a Kustomize
+                        directory. Mutually-exclusive with ConfigMap and Secret.
                       type: string
                   type: object
                 type: array
               source:
+                description: Source indicates where the addon came from and how trustworthy
+                  it should be considered.
                 type: string
               sourceURL:
+                description: SourceURL is an external HTTP address that can be used
+                  by users to find more information about an addon.
                 type: string
             required:
             - displayName

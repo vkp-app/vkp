@@ -37,9 +37,17 @@ const (
 
 // TenantSpec defines the desired state of Tenant
 type TenantSpec struct {
+	// Owner is the human user that owns the tenant.
+	// They will have special privileges that will not be given
+	// to Accessors (e.g. ability to delete the tenant).
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Owner",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	Owner             string            `json:"owner"`
 	NamespaceStrategy NamespaceStrategy `json:"namespaceStrategy"`
-	Accessors         []AccessRef       `json:"accessors,omitempty"`
+	// Accessors define who is authorised to interact with the tenant.
+	//
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Accessors"
+	Accessors []AccessRef `json:"accessors,omitempty"`
 }
 
 // TenantStatus defines the observed state of Tenant
