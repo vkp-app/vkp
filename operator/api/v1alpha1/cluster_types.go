@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -90,18 +91,13 @@ type ClusterStatus struct {
 	ClusterID     string `json:"clusterID,omitempty"`
 	ClusterDomain string `json:"clusterDomain,omitempty"`
 
-	Message StatusMessage `json:"message,omitempty"`
-
 	Inventory NestedInventory `json:"inventory,omitempty"`
+
+	Phase vclusterv1alpha1.VirtualClusterPhase `json:"phase,omitempty"`
 }
 
 type NestedInventory struct {
 	AccessorRoles []string `json:"accessorRoles,omitempty"`
-}
-
-type StatusMessage struct {
-	Kube   string `json:"kube,omitempty"`
-	Addons string `json:"addons,omitempty"`
 }
 
 //+kubebuilder:object:root=true

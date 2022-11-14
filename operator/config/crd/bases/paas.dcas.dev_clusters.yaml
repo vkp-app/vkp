@@ -158,13 +158,10 @@ spec:
                 type: string
               kubeVersion:
                 type: string
-              message:
-                properties:
-                  addons:
-                    type: string
-                  kube:
-                    type: string
-                type: object
+              phase:
+                description: VirtualClusterPhase describes the phase of a virtual
+                  cluster
+                type: string
               platformVersion:
                 type: string
               webURL:

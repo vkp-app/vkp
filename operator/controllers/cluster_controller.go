@@ -191,6 +191,7 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 		}
 		return err
 	}
+	cr.Status.Phase = vcluster.Status.Phase
 	cr.Status.KubeURL = vcluster.Spec.ControlPlaneEndpoint.Host
 	if vcluster.Spec.KubernetesVersion != nil {
 		cr.Status.KubeVersion = *vcluster.Spec.KubernetesVersion
