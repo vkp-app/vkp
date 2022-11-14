@@ -6,7 +6,14 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+
+	"gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 )
+
+type AddonBindingStatus struct {
+	Name  string              `json:"name"`
+	Phase v1alpha1.AddonPhase `json:"phase"`
+}
 
 type Metric struct {
 	Name   string        `json:"name"`

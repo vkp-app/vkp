@@ -178,6 +178,11 @@ func (r *mutationResolver) InstallAddon(ctx context.Context, tenant string, clus
 		log.Error(err, "failed to create ClusterAddonBinding")
 		return false, err
 	}
+	br.Status.Phase = paasv1alpha1.AddonPhaseInstalled
+	if err := r.Status().Update(ctx, br); err != nil {
+		log.Error(err, "failed to update ClusterAddonBinding status")
+		return false, err
+	}
 	return true, nil
 }
 
@@ -311,7 +316,7 @@ func (r *queryResolver) ClusterAddons(ctx context.Context, tenant string) ([]paa
 }
 
 // ClusterInstalledAddons is the resolver for the clusterInstalledAddons field.
-func (r *queryResolver) ClusterInstalledAddons(ctx context.Context, tenant string, cluster string) ([]string, error) {
+func (r *queryResolver) ClusterInstalledAddons(ctx context.Context, tenant string, cluster string) ([]model.AddonBindingStatus, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster)
 	log.Info("listing installed addons")
 
@@ -321,14 +326,12 @@ func (r *queryResolver) ClusterInstalledAddons(ctx context.Context, tenant strin
 	}
 	// collect the list of names
 	//goland:noinspection GoPreferNilSlice
-	names := []string{}
+	names := []model.AddonBindingStatus{}
 	for i := range addons.Items {
-		// skip binding that are actively
-		// being finalized
-		if addons.Items[i].DeletionTimestamp != nil {
-			continue
-		}
-		names = append(names, addons.Items[i].GetName())
+		names = append(names, model.AddonBindingStatus{
+			Name:  addons.Items[i].GetName(),
+			Phase: addons.Items[i].Status.Phase,
+		})
 	}
 	return names, nil
 }

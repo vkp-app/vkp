@@ -53,7 +53,7 @@ const AddonList: React.FC = (): JSX.Element => {
 		return (addons.data.clusterAddons as ClusterAddon[]).map(c => <AddonItem
 			key={c.name}
 			item={c}
-			installed={addons.data?.clusterInstalledAddons.find(i => i === `${clusterName}-${c.name}`) != null}
+			phase={addons.data?.clusterInstalledAddons.find(i => i.name === `${clusterName}-${c.name}`)?.phase}
 			loading={installData.loading || uninstallData.loading}
 			onInstall={() => onInstallAddon(c.name)}
 			onUninstall={() => onUninstallAddon(c.name)}

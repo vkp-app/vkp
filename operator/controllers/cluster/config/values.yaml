@@ -80,5 +80,5 @@ plugin:
             resources: ["clusteraddonbindings"]
             verbs: ["get", "list", "watch", "update", "patch"]
           - apiGroups: ["paas.dcas.dev"]
-            resources: ["clusters/status"]
+            resources: ["clusters/status", "clusteraddonbindings/status"]
             verbs: ["get", "update", "patch"]

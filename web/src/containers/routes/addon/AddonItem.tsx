@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import {makeStyles} from "tss-react/mui";
-import {AddonSource, ClusterAddon} from "../../../generated/graphql";
+import {AddonPhase, AddonSource, ClusterAddon} from "../../../generated/graphql";
 import AddonSourceChip from "./AddonSourceChip";
 import AddonChip from "./AddonChip";
 
@@ -29,22 +29,34 @@ const useStyles = makeStyles()(() => ({
 
 interface Props {
 	item: ClusterAddon | null;
-	installed?: boolean;
+	phase?: AddonPhase | null;
 	loading?: boolean;
 	onInstall: () => void;
 	onUninstall: () => void;
 }
 
-const AddonItem: React.FC<Props> = ({item, installed, loading, onInstall, onUninstall}): JSX.Element => {
+const AddonItem: React.FC<Props> = ({item, phase, loading, onInstall, onUninstall}): JSX.Element => {
 	// hooks
 	const {classes} = useStyles();
 
 	const handleClick = (): void => {
-		if (installed) {
+		if (phase != null) {
 			onUninstall();
 			return;
 		}
 		onInstall();
+	}
+
+	const getAction = (): string => {
+		switch (phase) {
+			case undefined:
+			case null:
+				return "Install";
+			case AddonPhase.Installed:
+				return "Uninstall";
+			default:
+				return phase.toString();
+		}
 	}
 
 	return <Grid2
@@ -61,7 +73,7 @@ const AddonItem: React.FC<Props> = ({item, installed, loading, onInstall, onUnin
 				subheader={item?.maintainer ? <span>
 					{item.maintainer}
 					<AddonSourceChip source={item?.source || AddonSource.Unknown}/>
-					{installed && <AddonChip/>}
+					{phase != null && <AddonChip/>}
 				</span> : <Skeleton
 					variant="text"
 					width="60%"
@@ -80,10 +92,10 @@ const AddonItem: React.FC<Props> = ({item, installed, loading, onInstall, onUnin
 				action={item != null ? <Button
 					className={classes.button}
 					variant="outlined"
-					disabled={loading}
-					startIcon={loading ? <CircularProgress size={14}/> : undefined}
+					disabled={loading || phase === AddonPhase.Installing || phase === AddonPhase.Deleting}
+					startIcon={loading || phase === AddonPhase.Installing || phase === AddonPhase.Deleting ? <CircularProgress size={14}/> : undefined}
 					onClick={handleClick}>
-					{installed ? "Uninstall" : "Install"}
+					{getAction()}
 				</Button> : undefined}
 			/>
 			<CardContent>

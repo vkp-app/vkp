@@ -7,6 +7,12 @@ enum Role {
   USER
 }
 
+enum AddonPhase {
+  Installing,
+  Installed,
+  Deleting
+}
+
 enum Track {
   STABLE,
   REGULAR,
@@ -67,6 +73,11 @@ enum AddonSource {
   Unknown
 }
 
+type AddonBindingStatus {
+  name: String!
+  phase: AddonPhase!
+}
+
 type User {
   username: String!
   groups: [String!]!
@@ -99,7 +110,7 @@ type Query {
   cluster(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): Cluster! @hasRole(role: USER)
 
   clusterAddons(tenant: ID! @hasTenantAccess(write: false)): [ClusterAddon!]! @hasRole(role: USER)
-  clusterInstalledAddons(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): [String!]! @hasRole(role: USER)
+  clusterInstalledAddons(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): [AddonBindingStatus!]! @hasRole(role: USER)
 
   currentUser: User! @hasRole(role: USER)
 

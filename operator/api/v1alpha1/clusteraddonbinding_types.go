@@ -26,6 +26,14 @@ const (
 	LabelClusterAddonRef = "paas.dcas.dev/cluster-addon-name"
 )
 
+type AddonPhase string
+
+const (
+	AddonPhaseInstalling AddonPhase = "Installing"
+	AddonPhaseInstalled  AddonPhase = "Installed"
+	AddonPhaseDeleting   AddonPhase = "Deleting"
+)
+
 // ClusterAddonBindingSpec defines the desired state of ClusterAddonBinding
 type ClusterAddonBindingSpec struct {
 	ClusterRef      corev1.LocalObjectReference `json:"clusterRef"`
@@ -34,6 +42,7 @@ type ClusterAddonBindingSpec struct {
 
 // ClusterAddonBindingStatus defines the observed state of ClusterAddonBinding
 type ClusterAddonBindingStatus struct {
+	Phase AddonPhase `json:"phase,omitempty"`
 }
 
 //+kubebuilder:object:root=true

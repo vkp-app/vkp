@@ -96,6 +96,13 @@ func (r *AddonSyncer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Res
 	if br.DeletionTimestamp != nil {
 		log.Info("skipping addon that has been marked for deletion")
 		if controllerutil.ContainsFinalizer(br, finalizer) {
+			// update the status to indicate that
+			// we're actively deleting the resource
+			br.Status.Phase = paasv1alpha1.AddonPhaseDeleting
+			if err := r.pClient.Status().Update(ctx, br); err != nil {
+				log.Error(err, "failed to update binding status")
+				return ctrl.Result{}, err
+			}
 			if err := r.finalizeAddon(ctx, car); err != nil {
 				return ctrl.Result{}, err
 			}

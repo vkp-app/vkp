@@ -63,7 +63,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 	const installedAddons: string[] = useMemo(() => {
 		if (data == null)
 			return [];
-		return [...data.clusterInstalledAddons];
+		return data.clusterInstalledAddons.map(a => a.name);
 	}, [data]);
 
 	const [renderKubeConfig, kubeConfig] = useKubeConfigLazyQuery();

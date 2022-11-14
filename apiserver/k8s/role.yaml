@@ -17,6 +17,7 @@ rules:
       - paas.dcas.dev
     resources:
       - clusteraddonbindings
+      - clusteraddonbindings/status
     verbs:
       - get
       - list

@@ -38,7 +38,7 @@ type Resolver struct {
 
 func (r *Resolver) GetMetrics(ctx context.Context, tenant, cluster string) ([]model.Metric, error) {
 	var metrics []model.Metric
-	for _, m := range r.PrometheusConfig.Metrics {
+	for _, m := range r.PrometheusConfig.ClusterMetrics {
 		metric := fmt.Sprintf(m.Metric, tenant, cluster, cluster)
 		values, err := r.GetMetric(ctx, metric)
 		if err != nil {

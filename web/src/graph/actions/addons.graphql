@@ -9,7 +9,10 @@ query allAddons($tenant: ID!, $cluster: ID!) {
         description
         logo
     }
-    clusterInstalledAddons(tenant: $tenant, cluster: $cluster)
+    clusterInstalledAddons(tenant: $tenant, cluster: $cluster) {
+        name
+        phase
+    }
 }
 
 mutation installAddon($tenant: ID!, $cluster: ID!, $addon: String!) {

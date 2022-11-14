@@ -51,6 +51,11 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AddonBindingStatus struct {
+		Name  func(childComplexity int) int
+		Phase func(childComplexity int) int
+	}
+
 	Cluster struct {
 		Name   func(childComplexity int) int
 		Status func(childComplexity int) int
@@ -153,7 +158,7 @@ type QueryResolver interface {
 	ClustersInTenant(ctx context.Context, tenant string) ([]v1alpha1.Cluster, error)
 	Cluster(ctx context.Context, tenant string, cluster string) (*v1alpha1.Cluster, error)
 	ClusterAddons(ctx context.Context, tenant string) ([]v1alpha1.ClusterAddon, error)
-	ClusterInstalledAddons(ctx context.Context, tenant string, cluster string) ([]string, error)
+	ClusterInstalledAddons(ctx context.Context, tenant string, cluster string) ([]model.AddonBindingStatus, error)
 	CurrentUser(ctx context.Context) (*model.User, error)
 	ClusterMetrics(ctx context.Context, tenant string, cluster string) ([]model.Metric, error)
 	RenderKubeconfig(ctx context.Context, tenant string, cluster string) (string, error)
@@ -177,6 +182,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "AddonBindingStatus.name":
+		if e.complexity.AddonBindingStatus.Name == nil {
+			break
+		}
+
+		return e.complexity.AddonBindingStatus.Name(childComplexity), true
+
+	case "AddonBindingStatus.phase":
+		if e.complexity.AddonBindingStatus.Phase == nil {
+			break
+		}
+
+		return e.complexity.AddonBindingStatus.Phase(childComplexity), true
 
 	case "Cluster.name":
 		if e.complexity.Cluster.Name == nil {
@@ -617,6 +636,12 @@ enum Role {
   USER
 }
 
+enum AddonPhase {
+  Installing,
+  Installed,
+  Deleting
+}
+
 enum Track {
   STABLE,
   REGULAR,
@@ -677,6 +702,11 @@ enum AddonSource {
   Unknown
 }
 
+type AddonBindingStatus {
+  name: String!
+  phase: AddonPhase!
+}
+
 type User {
   username: String!
   groups: [String!]!
@@ -709,7 +739,7 @@ type Query {
   cluster(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): Cluster! @hasRole(role: USER)
 
   clusterAddons(tenant: ID! @hasTenantAccess(write: false)): [ClusterAddon!]! @hasRole(role: USER)
-  clusterInstalledAddons(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): [String!]! @hasRole(role: USER)
+  clusterInstalledAddons(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): [AddonBindingStatus!]! @hasRole(role: USER)
 
   currentUser: User! @hasRole(role: USER)
 
@@ -1270,6 +1300,94 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _AddonBindingStatus_name(ctx context.Context, field graphql.CollectedField, obj *model.AddonBindingStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddonBindingStatus_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AddonBindingStatus_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AddonBindingStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AddonBindingStatus_phase(ctx context.Context, field graphql.CollectedField, obj *model.AddonBindingStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddonBindingStatus_phase(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phase, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(v1alpha1.AddonPhase)
+	fc.Result = res
+	return ec.marshalNAddonPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonPhase(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AddonBindingStatus_phase(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AddonBindingStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type AddonPhase does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Cluster_name(ctx context.Context, field graphql.CollectedField, obj *v1alpha1.Cluster) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Cluster_name(ctx, field)
@@ -3143,10 +3261,10 @@ func (ec *executionContext) _Query_clusterInstalledAddons(ctx context.Context, f
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.([]string); ok {
+		if data, ok := tmp.([]model.AddonBindingStatus); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []string`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model.AddonBindingStatus`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3158,9 +3276,9 @@ func (ec *executionContext) _Query_clusterInstalledAddons(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]model.AddonBindingStatus)
 	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNAddonBindingStatus2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐAddonBindingStatusᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_clusterInstalledAddons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3170,7 +3288,13 @@ func (ec *executionContext) fieldContext_Query_clusterInstalledAddons(ctx contex
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_AddonBindingStatus_name(ctx, field)
+			case "phase":
+				return ec.fieldContext_AddonBindingStatus_phase(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AddonBindingStatus", field.Name)
 		},
 	}
 	defer func() {
@@ -5693,6 +5817,41 @@ func (ec *executionContext) unmarshalInputNewCluster(ctx context.Context, obj in
 
 // region    **************************** object.gotpl ****************************
 
+var addonBindingStatusImplementors = []string{"AddonBindingStatus"}
+
+func (ec *executionContext) _AddonBindingStatus(ctx context.Context, sel ast.SelectionSet, obj *model.AddonBindingStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, addonBindingStatusImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AddonBindingStatus")
+		case "name":
+
+			out.Values[i] = ec._AddonBindingStatus_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "phase":
+
+			out.Values[i] = ec._AddonBindingStatus_phase(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var clusterImplementors = []string{"Cluster"}
 
 func (ec *executionContext) _Cluster(ctx context.Context, sel ast.SelectionSet, obj *v1alpha1.Cluster) graphql.Marshaler {
@@ -6856,6 +7015,70 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNAddonBindingStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐAddonBindingStatus(ctx context.Context, sel ast.SelectionSet, v model.AddonBindingStatus) graphql.Marshaler {
+	return ec._AddonBindingStatus(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAddonBindingStatus2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐAddonBindingStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []model.AddonBindingStatus) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAddonBindingStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐAddonBindingStatus(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNAddonPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonPhase(ctx context.Context, v interface{}) (v1alpha1.AddonPhase, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := v1alpha1.AddonPhase(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAddonPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonPhase(ctx context.Context, sel ast.SelectionSet, v v1alpha1.AddonPhase) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
 
 func (ec *executionContext) unmarshalNAddonSource2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonSource(ctx context.Context, v interface{}) (v1alpha1.AddonSource, error) {
 	tmp, err := graphql.UnmarshalString(v)

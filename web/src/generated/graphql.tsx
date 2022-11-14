@@ -16,6 +16,18 @@ export type Scalars = {
   Float: number;
 };
 
+export type AddonBindingStatus = {
+  __typename?: 'AddonBindingStatus';
+  name: Scalars['String'];
+  phase: AddonPhase;
+};
+
+export enum AddonPhase {
+  Deleting = 'Deleting',
+  Installed = 'Installed',
+  Installing = 'Installing'
+}
+
 export enum AddonSource {
   Community = 'Community',
   Official = 'Official',
@@ -124,7 +136,7 @@ export type Query = {
   __typename?: 'Query';
   cluster: Cluster;
   clusterAddons: Array<ClusterAddon>;
-  clusterInstalledAddons: Array<Scalars['String']>;
+  clusterInstalledAddons: Array<AddonBindingStatus>;
   clusterMetrics: Array<Metric>;
   clustersInTenant: Array<Cluster>;
   currentUser: User;
@@ -172,6 +184,11 @@ export type QueryTenantArgs = {
   tenant: Scalars['ID'];
 };
 
+export enum Role {
+  Admin = 'ADMIN',
+  User = 'USER'
+}
+
 export type Tenant = {
   __typename?: 'Tenant';
   name: Scalars['ID'];
@@ -209,7 +226,7 @@ export type AllAddonsQueryVariables = Exact<{
 }>;
 
 
-export type AllAddonsQuery = { __typename?: 'Query', clusterInstalledAddons: Array<string>, clusterAddons: Array<{ __typename?: 'ClusterAddon', name: string, displayName: string, maintainer: string, source: AddonSource, sourceURL: string, description: string, logo: string }> };
+export type AllAddonsQuery = { __typename?: 'Query', clusterAddons: Array<{ __typename?: 'ClusterAddon', name: string, displayName: string, maintainer: string, source: AddonSource, sourceURL: string, description: string, logo: string }>, clusterInstalledAddons: Array<{ __typename?: 'AddonBindingStatus', name: string, phase: AddonPhase }> };
 
 export type InstallAddonMutationVariables = Exact<{
   tenant: Scalars['ID'];
@@ -242,7 +259,7 @@ export type ClusterQueryVariables = Exact<{
 }>;
 
 
-export type ClusterQuery = { __typename?: 'Query', clusterInstalledAddons: Array<string>, cluster: { __typename?: 'Cluster', name: string, tenant: string, track: Track, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string } } };
+export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: Track, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string } }, clusterInstalledAddons: Array<{ __typename?: 'AddonBindingStatus', phase: AddonPhase, name: string }> };
 
 export type CreateClusterMutationVariables = Exact<{
   tenant: Scalars['ID'];
@@ -297,7 +314,10 @@ export const AllAddonsDocument = gql`
     description
     logo
   }
-  clusterInstalledAddons(tenant: $tenant, cluster: $cluster)
+  clusterInstalledAddons(tenant: $tenant, cluster: $cluster) {
+    name
+    phase
+  }
 }
     `;
 
@@ -447,7 +467,10 @@ export const ClusterDocument = gql`
       webURL
     }
   }
-  clusterInstalledAddons(tenant: $tenant, cluster: $cluster)
+  clusterInstalledAddons(tenant: $tenant, cluster: $cluster) {
+    phase
+    name
+  }
 }
     `;
 
