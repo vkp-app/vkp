@@ -24,7 +24,7 @@ helmCharts:
           clientSecret: __GLASS_DEX_CLIENT_SECRET__
       ingress:
         enabled: true
-        className: nginx
+        className: __GLASS_INGRESS_CLASS__
         annotations:
           cert-manager.io/cluster-issuer: iss-kube
         hosts:

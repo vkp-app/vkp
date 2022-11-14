@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
-	"fmt"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +28,8 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1al
 		Name: cluster.GetName(),
 		Ingress: ValuesIngress{
 			Host:          strings.TrimPrefix(hostname, "api."),
-			TLSSecretName: fmt.Sprintf("tls-kubeapi-%s", cluster.GetName()),
+			TLSSecretName: IngressSecretName(cluster.GetName()),
+			ClassName:     getEnv(EnvIngressClass, "nginx"),
 		},
 		IDP: ValuesIDP{
 			URL: getEnv(EnvIDPURL, ""),

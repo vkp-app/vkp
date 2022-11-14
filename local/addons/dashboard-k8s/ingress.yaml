@@ -5,7 +5,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: iss-kube
 spec:
-  ingressClassName: nginx
+  ingressClassName: __GLASS_INGRESS_CLASS__
   rules:
     - host: console.__GLASS_CLUSTER_URL__
       http:

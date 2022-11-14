@@ -58,6 +58,8 @@ plugin:
         value: "{{ .Name }}"
       - name: __GLASS_CLUSTER_URL__
         value: "{{ .Ingress.Host }}"
+      - name: __GLASS_INGRESS_CLASS__
+        value: "{{ .Ingress.ClassName }}"
       - name: __GLASS_DEX_URL__
         value: "{{ .IDP.URL }}"
       - name: __GLASS_DEX_CLIENT_ID__

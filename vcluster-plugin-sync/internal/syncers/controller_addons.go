@@ -304,6 +304,7 @@ func (*AddonSyncer) mangleYAML(s string) string {
 	s = strings.ReplaceAll(s, MagicClusterURL, os.Getenv(MagicClusterURL))
 	s = strings.ReplaceAll(s, MagicDexClientID, os.Getenv(MagicDexClientID))
 	s = strings.ReplaceAll(s, MagicDexClientSecret, os.Getenv(MagicDexClientSecret))
+	s = strings.ReplaceAll(s, MagicIngressClass, os.Getenv(MagicIngressClass))
 
 	return s
 }

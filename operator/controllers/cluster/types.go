@@ -26,6 +26,7 @@ type ValuesTemplate struct {
 type ValuesIngress struct {
 	Host          string
 	TLSSecretName string
+	ClassName     string
 }
 
 type ValuesIDP struct {

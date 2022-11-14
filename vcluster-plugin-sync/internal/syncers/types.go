@@ -5,6 +5,7 @@ const (
 	MagicDexURL          = "__GLASS_DEX_URL__"
 	MagicDexClientID     = "__GLASS_DEX_CLIENT_ID__"
 	MagicDexClientSecret = "__GLASS_DEX_CLIENT_SECRET__"
+	MagicIngressClass    = "__GLASS_INGRESS_CLASS__"
 
 	EnvClusterName = "VCLUSTER_CLUSTER_NAME"
 )
