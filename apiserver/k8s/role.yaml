@@ -13,6 +13,7 @@ rules:
       - list
       - watch
       - create
+      - delete
   - apiGroups:
       - paas.dcas.dev
     resources:
@@ -26,6 +27,7 @@ rules:
       - update
       - patch
       - delete
+      - deletecollection
   - apiGroups:
       - paas.dcas.dev
     resources:

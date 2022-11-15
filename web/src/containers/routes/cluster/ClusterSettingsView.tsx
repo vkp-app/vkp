@@ -1,46 +1,117 @@
-import React from "react";
-import {Alert, Card, List, ListItem, ListItemText, Skeleton} from "@mui/material";
-import {Cluster} from "../../../generated/graphql";
+import React, {useState} from "react";
+import {
+	Box,
+	Button,
+	Card,
+	CircularProgress,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	List,
+	ListItem,
+	ListItemSecondaryAction,
+	ListItemText
+} from "@mui/material";
+import {useNavigate} from "react-router-dom";
+import {makeStyles} from "tss-react/mui";
+import {Cluster, useDeleteClusterMutation} from "../../../generated/graphql";
+import InlineError from "../../alert/InlineError";
+
+const useStyles = makeStyles()(() => ({
+	button: {
+		fontFamily: "Manrope",
+		fontWeight: 600,
+		fontSize: 13,
+		textTransform: "none",
+		minHeight: 28,
+		height: 28
+	}
+}));
 
 interface Props {
 	cluster: Cluster | null;
-	loading: boolean;
 }
 
-const ClusterMetadataView: React.FC<Props> = ({cluster, loading}): JSX.Element => {
+const ClusterSettingsView: React.FC<Props> = ({cluster}): JSX.Element => {
+	// hooks
+	const {classes} = useStyles();
+	const navigate = useNavigate();
+	const [deleteCluster, {loading, error}] = useDeleteClusterMutation();
+
+	const [showDelete, setShowDelete] = useState<boolean>(false);
+
+	const onDeleteCluster = (): void => {
+		if (!cluster)
+			return;
+		deleteCluster({
+			variables: {tenant: cluster.tenant, cluster: cluster.name}
+		}).then(r => {
+			if (r.data != null) {
+				navigate(`/clusters/${cluster.tenant}`);
+			}
+		});
+	}
+
 	return <Card
 		variant="outlined"
 		sx={{p: 2}}>
-		<Alert
-			severity="warning">
-			This information is not normally needed but may be useful for debugging or support-related purposes.
-		</Alert>
 		<List>
 			<ListItem>
 				<ListItemText
-					primary="Release track"
-					secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : cluster?.track || "Unknown"}
+					primary="Delete cluster"
+					secondary="Permanently remove this cluster and all its resources."
 				/>
-			</ListItem>
-			<ListItem>
-				<ListItemText
-					primary="Kubernetes API"
-					secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : `https://${cluster?.status.kubeURL}:443`}
-				/>
-			</ListItem>
-			<ListItem>
-				<ListItemText
-					primary="Management API"
-					secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : "VCluster"}
-				/>
-			</ListItem>
-			<ListItem>
-				<ListItemText
-					primary="Management namespace"
-					secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : cluster?.tenant || "Unknown"}
-				/>
+				<ListItemSecondaryAction>
+					<Button
+						className={classes.button}
+						color="error"
+						variant="outlined"
+						onClick={() => setShowDelete(() => true)}>
+						Delete
+					</Button>
+				</ListItemSecondaryAction>
 			</ListItem>
 		</List>
+		<Dialog
+			open={showDelete}
+			onClose={() => setShowDelete(() => false)}>
+			<DialogTitle>
+				Delete cluster
+			</DialogTitle>
+			<DialogContent>
+				All cluster and workload resources will be removed.
+				<b>If you have running applications, they will be permanently deleted.</b>
+				{!loading && <Box
+					sx={{mt: 1}}>
+					<InlineError
+						message="Unable to delete cluster"
+						error={error}
+					/>
+				</Box>}
+			</DialogContent>
+			<DialogActions>
+				<Button
+					className={classes.button}
+					variant="outlined"
+					onClick={() => setShowDelete(() => false)}
+					disabled={loading}>
+					Cancel
+				</Button>
+				<Button
+					className={classes.button}
+					variant="outlined"
+					onClick={() => onDeleteCluster()}
+					color="error"
+					disabled={loading}
+					startIcon={loading && <CircularProgress
+						size={16}
+						color="error"
+					/>}>
+					Delete cluster and resources
+				</Button>
+			</DialogActions>
+		</Dialog>
 	</Card>
 }
-export default ClusterMetadataView;
+export default ClusterSettingsView;

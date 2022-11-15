@@ -87,6 +87,7 @@ export type Mutation = {
   approveTenant: Scalars['Boolean'];
   createCluster: Cluster;
   createTenant: Tenant;
+  deleteCluster: Scalars['Boolean'];
   installAddon: Scalars['Boolean'];
   uninstallAddon: Scalars['Boolean'];
 };
@@ -105,6 +106,12 @@ export type MutationCreateClusterArgs = {
 
 export type MutationCreateTenantArgs = {
   tenant: Scalars['String'];
+};
+
+
+export type MutationDeleteClusterArgs = {
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
 };
 
 
@@ -269,6 +276,14 @@ export type CreateClusterMutationVariables = Exact<{
 
 
 export type CreateClusterMutation = { __typename?: 'Mutation', createCluster: { __typename?: 'Cluster', name: string } };
+
+export type DeleteClusterMutationVariables = Exact<{
+  tenant: Scalars['ID'];
+  cluster: Scalars['ID'];
+}>;
+
+
+export type DeleteClusterMutation = { __typename?: 'Mutation', deleteCluster: boolean };
 
 export type KubeConfigQueryVariables = Exact<{
   tenant: Scalars['ID'];
@@ -537,6 +552,38 @@ export function useCreateClusterMutation(baseOptions?: Apollo.MutationHookOption
 export type CreateClusterMutationHookResult = ReturnType<typeof useCreateClusterMutation>;
 export type CreateClusterMutationResult = Apollo.MutationResult<CreateClusterMutation>;
 export type CreateClusterMutationOptions = Apollo.BaseMutationOptions<CreateClusterMutation, CreateClusterMutationVariables>;
+export const DeleteClusterDocument = gql`
+    mutation deleteCluster($tenant: ID!, $cluster: ID!) {
+  deleteCluster(tenant: $tenant, cluster: $cluster)
+}
+    `;
+export type DeleteClusterMutationFn = Apollo.MutationFunction<DeleteClusterMutation, DeleteClusterMutationVariables>;
+
+/**
+ * __useDeleteClusterMutation__
+ *
+ * To run a mutation, you first call `useDeleteClusterMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteClusterMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteClusterMutation, { data, loading, error }] = useDeleteClusterMutation({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      cluster: // value for 'cluster'
+ *   },
+ * });
+ */
+export function useDeleteClusterMutation(baseOptions?: Apollo.MutationHookOptions<DeleteClusterMutation, DeleteClusterMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteClusterMutation, DeleteClusterMutationVariables>(DeleteClusterDocument, options);
+      }
+export type DeleteClusterMutationHookResult = ReturnType<typeof useDeleteClusterMutation>;
+export type DeleteClusterMutationResult = Apollo.MutationResult<DeleteClusterMutation>;
+export type DeleteClusterMutationOptions = Apollo.BaseMutationOptions<DeleteClusterMutation, DeleteClusterMutationVariables>;
 export const KubeConfigDocument = gql`
     query kubeConfig($tenant: ID!, $cluster: ID!) {
   renderKubeconfig(tenant: $tenant, cluster: $cluster)

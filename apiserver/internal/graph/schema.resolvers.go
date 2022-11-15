@@ -155,6 +155,37 @@ func (r *mutationResolver) CreateCluster(ctx context.Context, tenant string, inp
 	return cluster, nil
 }
 
+// DeleteCluster is the resolver for the deleteCluster field.
+func (r *mutationResolver) DeleteCluster(ctx context.Context, tenant string, cluster string) (bool, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster)
+	log.Info("deleting cluster")
+
+	// delete all the addons that were
+	// installed for this cluster
+	if err := r.DeleteAllOf(ctx, &paasv1alpha1.ClusterAddonBinding{}, client.InNamespace(tenant), client.MatchingLabels{paasv1alpha1.LabelClusterRef: cluster}); err != nil {
+		log.Error(err, "failed to delete cluster addons")
+		return false, err
+	}
+
+	// create a dummy cluster object, so we
+	// can delete the cluster
+	cr := &paasv1alpha1.Cluster{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cluster,
+			Namespace: tenant,
+			Labels: map[string]string{
+				labelTenant: tenant,
+			},
+		},
+	}
+	if err := r.Delete(ctx, cr); err != nil {
+		log.Error(err, "failed to delete cluster")
+		return false, err
+	}
+
+	return true, nil
+}
+
 // InstallAddon is the resolver for the installAddon field.
 func (r *mutationResolver) InstallAddon(ctx context.Context, tenant string, cluster string, addon string) (bool, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster, "addon", addon)

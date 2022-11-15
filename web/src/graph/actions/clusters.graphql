@@ -32,6 +32,10 @@ mutation createCluster($tenant: ID!, $input: NewCluster!) {
     }
 }
 
+mutation deleteCluster($tenant: ID!, $cluster: ID!) {
+    deleteCluster(tenant: $tenant, cluster: $cluster)
+}
+
 query kubeConfig($tenant: ID!, $cluster: ID!) {
     renderKubeconfig(tenant: $tenant, cluster: $cluster)
 }

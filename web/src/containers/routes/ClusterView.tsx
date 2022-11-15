@@ -24,6 +24,7 @@ import ClusterMetadataView from "./cluster/ClusterMetadataView";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 import ClusterMetricsView from "./cluster/ClusterMetricsView";
 import KubeConfigDialog from "./cluster/KubeConfigDialog";
+import ClusterSettingsView from "./cluster/ClusterSettingsView";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	title: {
@@ -35,10 +36,10 @@ const useStyles = makeStyles()((theme: Theme) => ({
 	button: {
 		fontFamily: "Manrope",
 		fontWeight: 600,
-		fontSize: 12,
+		fontSize: 13,
 		textTransform: "none",
-		minHeight: 24,
-		height: 24
+		minHeight: 28,
+		height: 28
 	}
 }));
 
@@ -179,6 +180,12 @@ const ClusterView: React.FC = (): JSX.Element => {
 			cluster={data?.cluster as Cluster | null}
 			clusterError={error}
 			refresh={refresh}
+		/>
+		<ListSubheader>
+			Advanced settings
+		</ListSubheader>
+		<ClusterSettingsView
+			cluster={data?.cluster as Cluster | null}
 		/>
 		<ListSubheader>
 			Metadata
