@@ -52,7 +52,7 @@ const CreateTenant: React.FC = (): JSX.Element => {
 				title="Request a tenancy"
 			/>
 			{!loading && error && <InlineError
-				message="Unable to lodge cluster creation request"
+				message="Unable to lodge tenant creation request"
 				error={error}
 			/>}
 			<Divider/>
