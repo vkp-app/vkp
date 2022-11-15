@@ -18,7 +18,7 @@ import {
 import {makeStyles} from "tss-react/mui";
 import {ArrowLeft, ExternalLink} from "tabler-icons-react";
 import InlineError from "../alert/InlineError";
-import {Cluster, useClusterQuery, useKubeConfigLazyQuery} from "../../generated/graphql";
+import {Cluster, useCanEditClusterQuery, useClusterQuery, useKubeConfigLazyQuery} from "../../generated/graphql";
 import StandardLayout from "../layout/StandardLayout";
 import ClusterMetadataView from "./cluster/ClusterMetadataView";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
@@ -59,6 +59,11 @@ const ClusterView: React.FC = (): JSX.Element => {
 		variables: {tenant: tenantName, cluster: clusterName},
 		skip: !clusterName || !tenantName,
 		pollInterval: refresh ? 30_000 : 0
+	});
+
+	const canEditCluster = useCanEditClusterQuery({
+		variables: {tenant: tenantName, cluster: clusterName},
+		skip: !tenantName || !clusterName
 	});
 
 	const installedAddons: string[] = useMemo(() => {
@@ -186,14 +191,17 @@ const ClusterView: React.FC = (): JSX.Element => {
 		</ListSubheader>
 		<ClusterSettingsView
 			cluster={data?.cluster as Cluster | null}
+			readOnly={!canEditCluster.data?.hasClusterAccess ?? true}
 		/>
-		<ListSubheader>
-			Metadata
-		</ListSubheader>
-		<ClusterMetadataView
-			cluster={data?.cluster as Cluster | null}
-			loading={loading}
-		/>
+		{canEditCluster.data?.hasClusterAccess === true && <React.Fragment>
+			<ListSubheader>
+				Metadata
+			</ListSubheader>
+			<ClusterMetadataView
+				cluster={data?.cluster as Cluster | null}
+				loading={loading}
+			/>
+		</React.Fragment>}
 		<KubeConfigDialog
 			open={config !== ""}
 			config={config}

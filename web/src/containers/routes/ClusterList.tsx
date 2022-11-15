@@ -16,7 +16,13 @@ import {
 import {Link, useParams} from "react-router-dom";
 import StandardLayout from "../layout/StandardLayout";
 import InlineNotFound from "../alert/InlineNotFound";
-import {Cluster, TenantPhase, useClustersQuery, useTenantQuery} from "../../generated/graphql";
+import {
+	Cluster,
+	TenantPhase,
+	useCanCreateClusterQuery,
+	useClustersQuery,
+	useTenantQuery
+} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 
@@ -31,6 +37,11 @@ const ClusterList: React.FC = (): JSX.Element => {
 	});
 
 	const tenant = useTenantQuery({
+		variables: {tenant: tenantName},
+		skip: !tenantName
+	});
+
+	const canCreateCluster = useCanCreateClusterQuery({
 		variables: {tenant: tenantName},
 		skip: !tenantName
 	});
@@ -96,7 +107,7 @@ const ClusterList: React.FC = (): JSX.Element => {
 					variant="outlined"
 					component={Link}
 					to={`/new/cluster/${tenantName}`}
-					disabled={tenant.loading || tenant.error != null || !tenantApproved}>
+					disabled={tenant.loading || tenant.error != null || !tenantApproved || !canCreateCluster.data?.hasTenantAccess}>
 					Create
 				</Button>}
 			/>

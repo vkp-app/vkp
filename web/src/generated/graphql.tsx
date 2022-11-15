@@ -148,6 +148,9 @@ export type Query = {
   clusterMetrics: Array<Metric>;
   clustersInTenant: Array<Cluster>;
   currentUser: User;
+  hasClusterAccess: Scalars['Boolean'];
+  hasRole: Scalars['Boolean'];
+  hasTenantAccess: Scalars['Boolean'];
   renderKubeconfig: Scalars['String'];
   tenant: Tenant;
   tenants: Array<Tenant>;
@@ -179,6 +182,24 @@ export type QueryClusterMetricsArgs = {
 
 export type QueryClustersInTenantArgs = {
   tenant: Scalars['ID'];
+};
+
+
+export type QueryHasClusterAccessArgs = {
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+  write: Scalars['Boolean'];
+};
+
+
+export type QueryHasRoleArgs = {
+  role: Role;
+};
+
+
+export type QueryHasTenantAccessArgs = {
+  tenant: Scalars['ID'];
+  write: Scalars['Boolean'];
 };
 
 
@@ -297,6 +318,26 @@ export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type CurrentUserQuery = { __typename?: 'Query', currentUser: { __typename?: 'User', username: string, groups: Array<string> } };
+
+export type HasAdminQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type HasAdminQuery = { __typename?: 'Query', hasRole: boolean };
+
+export type CanCreateClusterQueryVariables = Exact<{
+  tenant: Scalars['ID'];
+}>;
+
+
+export type CanCreateClusterQuery = { __typename?: 'Query', hasTenantAccess: boolean };
+
+export type CanEditClusterQueryVariables = Exact<{
+  tenant: Scalars['ID'];
+  cluster: Scalars['ID'];
+}>;
+
+
+export type CanEditClusterQuery = { __typename?: 'Query', hasClusterAccess: boolean };
 
 export type MetricsClusterQueryVariables = Exact<{
   tenant: Scalars['ID'];
@@ -653,6 +694,105 @@ export function useCurrentUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type CurrentUserQueryHookResult = ReturnType<typeof useCurrentUserQuery>;
 export type CurrentUserLazyQueryHookResult = ReturnType<typeof useCurrentUserLazyQuery>;
 export type CurrentUserQueryResult = Apollo.QueryResult<CurrentUserQuery, CurrentUserQueryVariables>;
+export const HasAdminDocument = gql`
+    query hasAdmin {
+  hasRole(role: ADMIN)
+}
+    `;
+
+/**
+ * __useHasAdminQuery__
+ *
+ * To run a query within a React component, call `useHasAdminQuery` and pass it any options that fit your needs.
+ * When your component renders, `useHasAdminQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useHasAdminQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useHasAdminQuery(baseOptions?: Apollo.QueryHookOptions<HasAdminQuery, HasAdminQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<HasAdminQuery, HasAdminQueryVariables>(HasAdminDocument, options);
+      }
+export function useHasAdminLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<HasAdminQuery, HasAdminQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<HasAdminQuery, HasAdminQueryVariables>(HasAdminDocument, options);
+        }
+export type HasAdminQueryHookResult = ReturnType<typeof useHasAdminQuery>;
+export type HasAdminLazyQueryHookResult = ReturnType<typeof useHasAdminLazyQuery>;
+export type HasAdminQueryResult = Apollo.QueryResult<HasAdminQuery, HasAdminQueryVariables>;
+export const CanCreateClusterDocument = gql`
+    query canCreateCluster($tenant: ID!) {
+  hasTenantAccess(tenant: $tenant, write: true)
+}
+    `;
+
+/**
+ * __useCanCreateClusterQuery__
+ *
+ * To run a query within a React component, call `useCanCreateClusterQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCanCreateClusterQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCanCreateClusterQuery({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *   },
+ * });
+ */
+export function useCanCreateClusterQuery(baseOptions: Apollo.QueryHookOptions<CanCreateClusterQuery, CanCreateClusterQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CanCreateClusterQuery, CanCreateClusterQueryVariables>(CanCreateClusterDocument, options);
+      }
+export function useCanCreateClusterLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CanCreateClusterQuery, CanCreateClusterQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CanCreateClusterQuery, CanCreateClusterQueryVariables>(CanCreateClusterDocument, options);
+        }
+export type CanCreateClusterQueryHookResult = ReturnType<typeof useCanCreateClusterQuery>;
+export type CanCreateClusterLazyQueryHookResult = ReturnType<typeof useCanCreateClusterLazyQuery>;
+export type CanCreateClusterQueryResult = Apollo.QueryResult<CanCreateClusterQuery, CanCreateClusterQueryVariables>;
+export const CanEditClusterDocument = gql`
+    query canEditCluster($tenant: ID!, $cluster: ID!) {
+  hasClusterAccess(tenant: $tenant, cluster: $cluster, write: true)
+}
+    `;
+
+/**
+ * __useCanEditClusterQuery__
+ *
+ * To run a query within a React component, call `useCanEditClusterQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCanEditClusterQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCanEditClusterQuery({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      cluster: // value for 'cluster'
+ *   },
+ * });
+ */
+export function useCanEditClusterQuery(baseOptions: Apollo.QueryHookOptions<CanEditClusterQuery, CanEditClusterQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CanEditClusterQuery, CanEditClusterQueryVariables>(CanEditClusterDocument, options);
+      }
+export function useCanEditClusterLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CanEditClusterQuery, CanEditClusterQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CanEditClusterQuery, CanEditClusterQueryVariables>(CanEditClusterDocument, options);
+        }
+export type CanEditClusterQueryHookResult = ReturnType<typeof useCanEditClusterQuery>;
+export type CanEditClusterLazyQueryHookResult = ReturnType<typeof useCanEditClusterLazyQuery>;
+export type CanEditClusterQueryResult = Apollo.QueryResult<CanEditClusterQuery, CanEditClusterQueryVariables>;
 export const MetricsClusterDocument = gql`
     query metricsCluster($tenant: ID!, $cluster: ID!) {
   clusterMetrics(tenant: $tenant, cluster: $cluster) {

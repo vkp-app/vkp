@@ -117,6 +117,10 @@ type Query {
   clusterMetrics(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): [Metric!]! @hasRole(role: USER)
 
   renderKubeconfig(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): String! @hasRole(role: USER)
+
+  hasRole(role: Role!): Boolean! @hasRole(role: USER)
+  hasTenantAccess(tenant: ID!, write: Boolean!): Boolean! @hasRole(role: USER)
+  hasClusterAccess(tenant: ID!, cluster: ID!, write: Boolean!): Boolean! @hasRole(role: USER)
 }
 
 input NewCluster {

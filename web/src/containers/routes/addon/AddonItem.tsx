@@ -33,9 +33,10 @@ interface Props {
 	loading?: boolean;
 	onInstall: () => void;
 	onUninstall: () => void;
+	readOnly?: boolean;
 }
 
-const AddonItem: React.FC<Props> = ({item, phase, loading, onInstall, onUninstall}): JSX.Element => {
+const AddonItem: React.FC<Props> = ({item, phase, loading, readOnly, onInstall, onUninstall}): JSX.Element => {
 	// hooks
 	const {classes} = useStyles();
 
@@ -92,7 +93,7 @@ const AddonItem: React.FC<Props> = ({item, phase, loading, onInstall, onUninstal
 				action={item != null ? <Button
 					className={classes.button}
 					variant="outlined"
-					disabled={loading || phase === AddonPhase.Installing || phase === AddonPhase.Deleting}
+					disabled={loading || phase === AddonPhase.Installing || phase === AddonPhase.Deleting || readOnly}
 					startIcon={loading || phase === AddonPhase.Installing || phase === AddonPhase.Deleting ? <CircularProgress size={14}/> : undefined}
 					onClick={handleClick}>
 					{getAction()}

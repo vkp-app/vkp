@@ -31,9 +31,10 @@ const useStyles = makeStyles()(() => ({
 
 interface Props {
 	cluster: Cluster | null;
+	readOnly: boolean;
 }
 
-const ClusterSettingsView: React.FC<Props> = ({cluster}): JSX.Element => {
+const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element => {
 	// hooks
 	const {classes} = useStyles();
 	const navigate = useNavigate();
@@ -67,6 +68,7 @@ const ClusterSettingsView: React.FC<Props> = ({cluster}): JSX.Element => {
 						className={classes.button}
 						color="error"
 						variant="outlined"
+						disabled={readOnly || cluster == null}
 						onClick={() => setShowDelete(() => true)}>
 						Delete
 					</Button>

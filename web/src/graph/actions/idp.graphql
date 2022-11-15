@@ -4,3 +4,15 @@ query currentUser {
         groups
     }
 }
+
+query hasAdmin {
+    hasRole(role: ADMIN)
+}
+
+query canCreateCluster($tenant: ID!) {
+    hasTenantAccess(tenant: $tenant, write: true)
+}
+
+query canEditCluster($tenant: ID!, $cluster: ID!) {
+    hasClusterAccess(tenant: $tenant, cluster: $cluster, write: true)
+}

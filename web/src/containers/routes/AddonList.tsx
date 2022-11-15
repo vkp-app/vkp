@@ -7,6 +7,7 @@ import StandardLayout from "../layout/StandardLayout";
 import {
 	ClusterAddon,
 	useAllAddonsQuery,
+	useCanEditClusterQuery,
 	useInstallAddonMutation,
 	useUninstallAddonMutation
 } from "../../generated/graphql";
@@ -24,6 +25,11 @@ const AddonList: React.FC = (): JSX.Element => {
 		variables: {tenant: tenantName, cluster: clusterName},
 		skip: !tenantName
 	});
+	const canEditCluster = useCanEditClusterQuery({
+		variables: {tenant: tenantName, cluster: clusterName},
+		skip: !tenantName || !clusterName
+	});
+
 	const [installAddon, installData] = useInstallAddonMutation();
 	const [uninstallAddon, uninstallData] = useUninstallAddonMutation();
 
@@ -55,6 +61,7 @@ const AddonList: React.FC = (): JSX.Element => {
 			item={c}
 			phase={addons.data?.clusterInstalledAddons.find(i => i.name === `${clusterName}-${c.name}`)?.phase}
 			loading={installData.loading || uninstallData.loading}
+			readOnly={!canEditCluster.data?.hasClusterAccess ?? true}
 			onInstall={() => onInstallAddon(c.name)}
 			onUninstall={() => onUninstallAddon(c.name)}
 		/>);

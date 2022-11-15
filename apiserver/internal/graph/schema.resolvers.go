@@ -469,6 +469,32 @@ func (r *queryResolver) RenderKubeconfig(ctx context.Context, tenant string, clu
 	return string(data), nil
 }
 
+// HasRole is the resolver for the hasRole field.
+func (r *queryResolver) HasRole(ctx context.Context, role model.Role) (bool, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("role", role.String())
+	log.Info("checking if user has role")
+	user, _ := userctx.CtxUser(ctx)
+	switch role {
+	case model.RoleUser:
+		return true, nil
+	case model.RoleAdmin:
+		err := r.userHasAdmin(ctx, user)
+		return err == nil, err
+	default:
+		return false, fmt.Errorf("unknown role: %s", role.String())
+	}
+}
+
+// HasTenantAccess is the resolver for the hasTenantAccess field.
+func (r *queryResolver) HasTenantAccess(ctx context.Context, tenant string, write bool) (bool, error) {
+	return r.canAccessTenant(ctx, tenant, write)
+}
+
+// HasClusterAccess is the resolver for the hasClusterAccess field.
+func (r *queryResolver) HasClusterAccess(ctx context.Context, tenant string, cluster string, write bool) (bool, error) {
+	return r.canAccessCluster(ctx, tenant, cluster, write)
+}
+
 // Owner is the resolver for the owner field.
 func (r *tenantResolver) Owner(ctx context.Context, obj *paasv1alpha1.Tenant) (string, error) {
 	return obj.Spec.Owner, nil
