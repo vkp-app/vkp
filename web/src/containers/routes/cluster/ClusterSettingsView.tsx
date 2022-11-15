@@ -14,20 +14,8 @@ import {
 	ListItemText
 } from "@mui/material";
 import {useNavigate} from "react-router-dom";
-import {makeStyles} from "tss-react/mui";
 import {Cluster, useDeleteClusterMutation} from "../../../generated/graphql";
 import InlineError from "../../alert/InlineError";
-
-const useStyles = makeStyles()(() => ({
-	button: {
-		fontFamily: "Manrope",
-		fontWeight: 600,
-		fontSize: 13,
-		textTransform: "none",
-		minHeight: 28,
-		height: 28
-	}
-}));
 
 interface Props {
 	cluster: Cluster | null;
@@ -36,7 +24,6 @@ interface Props {
 
 const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element => {
 	// hooks
-	const {classes} = useStyles();
 	const navigate = useNavigate();
 	const [deleteCluster, {loading, error}] = useDeleteClusterMutation();
 
@@ -65,9 +52,7 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element 
 				/>
 				<ListItemSecondaryAction>
 					<Button
-						className={classes.button}
 						color="error"
-						variant="outlined"
 						disabled={readOnly || cluster == null}
 						onClick={() => setShowDelete(() => true)}>
 						Delete
@@ -94,15 +79,11 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element 
 			</DialogContent>
 			<DialogActions>
 				<Button
-					className={classes.button}
-					variant="outlined"
 					onClick={() => setShowDelete(() => false)}
 					disabled={loading}>
 					Cancel
 				</Button>
 				<Button
-					className={classes.button}
-					variant="outlined"
 					onClick={() => onDeleteCluster()}
 					color="error"
 					disabled={loading}

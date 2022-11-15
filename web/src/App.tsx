@@ -52,6 +52,21 @@ const App: React.FC = (): JSX.Element => {
 						animation: "wave"
 					}
 				},
+				MuiButton: {
+					defaultProps: {
+						variant: "outlined"
+					},
+					styleOverrides: {
+						root: {
+							fontFamily: "Manrope",
+							fontWeight: 600,
+							fontSize: 13,
+							textTransform: "none",
+							minHeight: 28,
+							height: 28
+						}
+					}
+				},
 				MuiTooltip: {
 					styleOverrides: {
 						tooltip: ({theme}) => ({

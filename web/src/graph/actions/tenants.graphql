@@ -17,3 +17,7 @@ query tenant($tenant: ID!) {
         }
     }
 }
+
+mutation approveTenancy($tenant: ID!) {
+    approveTenant(tenant: $tenant)
+}

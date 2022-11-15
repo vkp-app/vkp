@@ -32,14 +32,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
 		fontSize: 24,
 		fontWeight: 500,
 		paddingBottom: theme.spacing(1)
-	},
-	button: {
-		fontFamily: "Manrope",
-		fontWeight: 600,
-		fontSize: 13,
-		textTransform: "none",
-		minHeight: 28,
-		height: 28
 	}
 }));
 
@@ -129,9 +121,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 					/>
 					<ListItemSecondaryAction>
 						<Button
-							className={classes.button}
 							disabled={loading || kubeConfig.loading}
-							variant="outlined"
 							startIcon={kubeConfig.loading ? <CircularProgress size={14}/> : undefined}
 							onClick={onRenderConfig}>
 							Open
@@ -147,9 +137,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 					/>
 					<ListItemSecondaryAction>
 						<Button
-							className={classes.button}
 							disabled={loading || !data?.cluster.status.webURL || installedAddons.find(i => i.startsWith(`${clusterName}-dashboard-`)) == null}
-							variant="outlined"
 							startIcon={<ExternalLink
 								size={18}
 							/>}
@@ -168,8 +156,6 @@ const ClusterView: React.FC = (): JSX.Element => {
 					/>
 					<ListItemSecondaryAction>
 						<Button
-							className={classes.button}
-							variant="outlined"
 							component={Link}
 							to={`/clusters/${tenantName}/cluster/${clusterName}/-/addons`}>
 							Open

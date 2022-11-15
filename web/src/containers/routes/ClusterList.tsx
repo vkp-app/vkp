@@ -13,45 +13,41 @@ import {
 	TableHead,
 	TableRow
 } from "@mui/material";
-import {Link, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import StandardLayout from "../layout/StandardLayout";
 import InlineNotFound from "../alert/InlineNotFound";
-import {
-	Cluster,
-	TenantPhase,
-	useCanCreateClusterQuery,
-	useClustersQuery,
-	useTenantQuery
-} from "../../generated/graphql";
+import {Cluster, TenantPhase, useApproveTenancyMutation, useClusterListQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 
 const ClusterList: React.FC = (): JSX.Element => {
 	// hooks
 	const params = useParams();
+	const navigate = useNavigate();
 	const tenantName = params["tenant"] || "";
 
-	const clusters = useClustersQuery({
+	const clusterList = useClusterListQuery({
 		variables: {tenant: tenantName},
 		skip: !tenantName
 	});
+	const [approveTenant] = useApproveTenancyMutation();
 
-	const tenant = useTenantQuery({
-		variables: {tenant: tenantName},
-		skip: !tenantName
-	});
+	const tenantApproved = clusterList.data?.tenant.status.phase === TenantPhase.Ready;
 
-	const canCreateCluster = useCanCreateClusterQuery({
-		variables: {tenant: tenantName},
-		skip: !tenantName
-	});
-
-	const tenantApproved = tenant.data?.tenant.status.phase === TenantPhase.Ready;
+	const onApproveTenant = (): void => {
+		approveTenant({
+			variables: {tenant: tenantName}
+		}).then(r => {
+			if (r.data) {
+				navigate("/tenants");
+			}
+		});
+	}
 
 	const clusterData = useMemo(() => {
-		if (clusters.loading || clusters.error || !clusters.data)
+		if (clusterList.loading || clusterList.error || !clusterList.data)
 			return [];
-		return (clusters.data.clustersInTenant as Cluster[]).map(c => (<TableRow
+		return (clusterList.data.clustersInTenant as Cluster[]).map(c => (<TableRow
 			key={c.name}>
 			<TableCell
 				component="th"
@@ -68,7 +64,7 @@ const ClusterList: React.FC = (): JSX.Element => {
 				<ClusterVersionIndicator version={c.status.kubeVersion}/>
 			</TableCell>
 		</TableRow>))
-	}, [clusters]);
+	}, [clusterList]);
 
 	const loadingData = (): JSX.Element[] => {
 		const items = [];
@@ -107,19 +103,27 @@ const ClusterList: React.FC = (): JSX.Element => {
 					variant="outlined"
 					component={Link}
 					to={`/new/cluster/${tenantName}`}
-					disabled={tenant.loading || tenant.error != null || !tenantApproved || !canCreateCluster.data?.hasTenantAccess}>
+					disabled={clusterList.loading || clusterList.error != null || !tenantApproved || !clusterList.data?.hasTenantAccess}>
 					Create
 				</Button>}
 			/>
-			{!tenant.loading && tenant.error && <InlineError
+			{!clusterList.loading && clusterList.error && <InlineError
 				message="Unable to load tenant"
-				error={tenant.error}
+				error={clusterList.error}
 			/>}
 			<Collapse
-				in={!tenant.loading && !tenantApproved && !tenant.error}>
+				in={!clusterList.loading && !tenantApproved && !clusterList.error}>
 				<Alert
 					severity="warning">
 					Kubernetes clusters cannot be provisioned as this tenancy is awaiting approval from an administrator or policy agent.
+				</Alert>
+				<Alert
+					action={<Button
+						onClick={() => onApproveTenant()}>
+						Approve
+					</Button>}
+					severity="info">
+					You are an administrator and can approve this tenancy.
 				</Alert>
 			</Collapse>
 			<Table>
@@ -130,14 +134,14 @@ const ClusterList: React.FC = (): JSX.Element => {
 					</TableRow>
 				</TableHead>
 				<TableBody>
-					{clusters.loading ? loadingData() : clusterData}
+					{clusterList.loading ? loadingData() : clusterData}
 				</TableBody>
 			</Table>
-			{!clusters.loading && clusters.error && <InlineError
+			{!clusterList.loading && clusterList.error && <InlineError
 				message="Unable to load clusters"
-				error={clusters.error}
+				error={clusterList.error}
 			/>}
-			{clusters.data?.clustersInTenant.length === 0 && <InlineNotFound
+			{clusterList.data?.clustersInTenant.length === 0 && <InlineNotFound
 				title="No clusters"
 				subtitle="This tenancy is empty. Create a cluster to get started"
 			/>}

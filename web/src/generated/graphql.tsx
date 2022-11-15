@@ -275,6 +275,13 @@ export type UninstallAddonMutationVariables = Exact<{
 
 export type UninstallAddonMutation = { __typename?: 'Mutation', uninstallAddon: boolean };
 
+export type ClusterListQueryVariables = Exact<{
+  tenant: Scalars['ID'];
+}>;
+
+
+export type ClusterListQuery = { __typename?: 'Query', hasTenantAccess: boolean, hasRole: boolean, clustersInTenant: Array<{ __typename?: 'Cluster', name: string, tenant: string, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string } }>, tenant: { __typename?: 'Tenant', name: string, owner: string, status: { __typename?: 'TenantStatus', phase: TenantPhase } } };
+
 export type ClustersQueryVariables = Exact<{
   tenant: Scalars['ID'];
 }>;
@@ -358,6 +365,13 @@ export type TenantQueryVariables = Exact<{
 
 
 export type TenantQuery = { __typename?: 'Query', tenant: { __typename?: 'Tenant', name: string, owner: string, status: { __typename?: 'TenantStatus', phase: TenantPhase } } };
+
+export type ApproveTenancyMutationVariables = Exact<{
+  tenant: Scalars['ID'];
+}>;
+
+
+export type ApproveTenancyMutation = { __typename?: 'Mutation', approveTenant: boolean };
 
 
 export const AllAddonsDocument = gql`
@@ -472,6 +486,55 @@ export function useUninstallAddonMutation(baseOptions?: Apollo.MutationHookOptio
 export type UninstallAddonMutationHookResult = ReturnType<typeof useUninstallAddonMutation>;
 export type UninstallAddonMutationResult = Apollo.MutationResult<UninstallAddonMutation>;
 export type UninstallAddonMutationOptions = Apollo.BaseMutationOptions<UninstallAddonMutation, UninstallAddonMutationVariables>;
+export const ClusterListDocument = gql`
+    query clusterList($tenant: ID!) {
+  clustersInTenant(tenant: $tenant) {
+    name
+    tenant
+    status {
+      kubeVersion
+      kubeURL
+    }
+  }
+  tenant(tenant: $tenant) {
+    name
+    owner
+    status {
+      phase
+    }
+  }
+  hasTenantAccess(tenant: $tenant, write: true)
+  hasRole(role: ADMIN)
+}
+    `;
+
+/**
+ * __useClusterListQuery__
+ *
+ * To run a query within a React component, call `useClusterListQuery` and pass it any options that fit your needs.
+ * When your component renders, `useClusterListQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useClusterListQuery({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *   },
+ * });
+ */
+export function useClusterListQuery(baseOptions: Apollo.QueryHookOptions<ClusterListQuery, ClusterListQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ClusterListQuery, ClusterListQueryVariables>(ClusterListDocument, options);
+      }
+export function useClusterListLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ClusterListQuery, ClusterListQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ClusterListQuery, ClusterListQueryVariables>(ClusterListDocument, options);
+        }
+export type ClusterListQueryHookResult = ReturnType<typeof useClusterListQuery>;
+export type ClusterListLazyQueryHookResult = ReturnType<typeof useClusterListLazyQuery>;
+export type ClusterListQueryResult = Apollo.QueryResult<ClusterListQuery, ClusterListQueryVariables>;
 export const ClustersDocument = gql`
     query clusters($tenant: ID!) {
   clustersInTenant(tenant: $tenant) {
@@ -911,6 +974,37 @@ export function useTenantLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Ten
 export type TenantQueryHookResult = ReturnType<typeof useTenantQuery>;
 export type TenantLazyQueryHookResult = ReturnType<typeof useTenantLazyQuery>;
 export type TenantQueryResult = Apollo.QueryResult<TenantQuery, TenantQueryVariables>;
+export const ApproveTenancyDocument = gql`
+    mutation approveTenancy($tenant: ID!) {
+  approveTenant(tenant: $tenant)
+}
+    `;
+export type ApproveTenancyMutationFn = Apollo.MutationFunction<ApproveTenancyMutation, ApproveTenancyMutationVariables>;
+
+/**
+ * __useApproveTenancyMutation__
+ *
+ * To run a mutation, you first call `useApproveTenancyMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useApproveTenancyMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [approveTenancyMutation, { data, loading, error }] = useApproveTenancyMutation({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *   },
+ * });
+ */
+export function useApproveTenancyMutation(baseOptions?: Apollo.MutationHookOptions<ApproveTenancyMutation, ApproveTenancyMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ApproveTenancyMutation, ApproveTenancyMutationVariables>(ApproveTenancyDocument, options);
+      }
+export type ApproveTenancyMutationHookResult = ReturnType<typeof useApproveTenancyMutation>;
+export type ApproveTenancyMutationResult = Apollo.MutationResult<ApproveTenancyMutation>;
+export type ApproveTenancyMutationOptions = Apollo.BaseMutationOptions<ApproveTenancyMutation, ApproveTenancyMutationVariables>;
 
       export interface PossibleTypesResultData {
         possibleTypes: {

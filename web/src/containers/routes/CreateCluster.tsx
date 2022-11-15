@@ -35,12 +35,6 @@ import AddonChip from "./addon/AddonChip";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	button: {
-		fontFamily: "Manrope",
-		fontWeight: 600,
-		fontSize: 13,
-		textTransform: "none",
-		minHeight: 24,
-		height: 24,
 		marginRight: theme.spacing(1)
 	},
 	formLabel: {
@@ -306,14 +300,12 @@ const CreateCluster: React.FC = (): JSX.Element => {
 							sx={{pt: 2, display: "flex", float: "right"}}>
 							<Button
 								className={classes.button}
-								variant="outlined"
 								disabled={loading}
 								onClick={() => navigate(-1)}>
 							Cancel
 							</Button>
 							<Button
 								className={classes.button}
-								variant="outlined"
 								disabled={!nameIsValid || loading}
 								onClick={onCreate}>
 							Create

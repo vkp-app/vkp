@@ -1,0 +1,19 @@
+query clusterList($tenant: ID!) {
+    clustersInTenant(tenant: $tenant) {
+        name
+        tenant
+        status {
+            kubeVersion
+            kubeURL
+        }
+    }
+    tenant(tenant: $tenant) {
+        name
+        owner
+        status {
+            phase
+        }
+    }
+    hasTenantAccess(tenant: $tenant, write: true)
+    hasRole(role: ADMIN)
+}

@@ -11,21 +11,10 @@ import {
 	Typography
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
-import {makeStyles} from "tss-react/mui";
 import {AddonPhase, AddonSource, ClusterAddon} from "../../../generated/graphql";
 import AddonSourceChip from "./AddonSourceChip";
 import AddonChip from "./AddonChip";
 
-const useStyles = makeStyles()(() => ({
-	button: {
-		fontFamily: "Manrope",
-		fontWeight: 600,
-		fontSize: 13,
-		textTransform: "none",
-		minHeight: 24,
-		height: 24
-	}
-}));
 
 interface Props {
 	item: ClusterAddon | null;
@@ -37,9 +26,6 @@ interface Props {
 }
 
 const AddonItem: React.FC<Props> = ({item, phase, loading, readOnly, onInstall, onUninstall}): JSX.Element => {
-	// hooks
-	const {classes} = useStyles();
-
 	const handleClick = (): void => {
 		if (phase != null) {
 			onUninstall();
@@ -91,7 +77,6 @@ const AddonItem: React.FC<Props> = ({item, phase, loading, readOnly, onInstall, 
 					height={48}
 				/>}
 				action={item != null ? <Button
-					className={classes.button}
 					variant="outlined"
 					disabled={loading || phase === AddonPhase.Installing || phase === AddonPhase.Deleting || readOnly}
 					startIcon={loading || phase === AddonPhase.Installing || phase === AddonPhase.Deleting ? <CircularProgress size={14}/> : undefined}
@@ -111,7 +96,6 @@ const AddonItem: React.FC<Props> = ({item, phase, loading, readOnly, onInstall, 
 			</CardContent>
 			{(item == null || item?.sourceURL !== "") && <CardActions>
 				{item != null ? <Button
-					className={classes.button}
 					variant="text"
 					href={item?.sourceURL || ""}
 					target="_blank">

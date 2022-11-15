@@ -88,8 +88,6 @@ const TenantList: React.FC = (): JSX.Element => {
 			<CardHeader
 				title="Tenants"
 				action={<Button
-					sx={{fontFamily: "Manrope", fontSize: 13, fontWeight: 600, height: 24, minHeight: 24, textTransform: "none"}}
-					variant="outlined"
 					component={Link}
 					to="/new/tenant">
 					Create
