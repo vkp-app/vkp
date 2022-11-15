@@ -136,6 +136,9 @@ func (r *mutationResolver) CreateCluster(ctx context.Context, tenant string, inp
 		},
 		Spec: paasv1alpha1.ClusterSpec{
 			Track: input.Track.ToDAO(),
+			HA: paasv1alpha1.HighAvailability{
+				Enabled: input.Ha,
+			},
 			Accessors: []paasv1alpha1.AccessRef{
 				{
 					// make sure that the creating user has administrative privileges

@@ -87,9 +87,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		return ctrl.Result{}, nil
 	}
-	if cr.Status.WebURL == "" {
-		cr.Status.WebURL = fmt.Sprintf("console.%s.%s", cr.Status.ClusterID, cr.Status.ClusterDomain)
-	}
+	cr.Status.WebURL = fmt.Sprintf("console.%s.%s", cr.Status.ClusterID, cr.Status.ClusterDomain)
 
 	if err := r.reconcileID(ctx, cr); err != nil {
 		return ctrl.Result{}, err

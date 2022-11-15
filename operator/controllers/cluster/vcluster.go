@@ -34,7 +34,9 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1al
 		IDP: ValuesIDP{
 			URL: getEnv(EnvIDPURL, ""),
 		},
-		Storage: cluster.Spec.Storage,
+		Storage:   cluster.Spec.Storage,
+		HA:        cluster.Spec.HA.Enabled,
+		OpenShift: getEnv(EnvIsOpenShift, "false") == "true",
 	}
 	log.V(3).Info("templating values.yaml file", "Template", valuesTemplate, "Overrides", valuesConfig)
 	if err := valuesTpl.Execute(values, valuesConfig); err != nil {

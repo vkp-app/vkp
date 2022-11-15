@@ -128,6 +128,7 @@ export type NamespacedName = {
 };
 
 export type NewCluster = {
+  ha: Scalars['Boolean'];
   name: Scalars['String'];
   track: Track;
 };

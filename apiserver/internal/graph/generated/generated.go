@@ -751,6 +751,7 @@ type Query {
 input NewCluster {
   name: String!
   track: Track!
+  ha: Boolean!
 }
 
 type Mutation {
@@ -5780,7 +5781,7 @@ func (ec *executionContext) unmarshalInputNewCluster(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "track"}
+	fieldsInOrder := [...]string{"name", "track", "ha"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5800,6 +5801,14 @@ func (ec *executionContext) unmarshalInputNewCluster(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track"))
 			it.Track, err = ec.unmarshalNTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTrack(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ha":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ha"))
+			it.Ha, err = ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}

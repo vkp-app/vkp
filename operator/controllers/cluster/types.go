@@ -14,13 +14,17 @@ const (
 	EnvIngressIssuer = "PAAS_INGRESS_ISSUER"
 
 	EnvIDPURL = "PAAS_IDP_URL"
+
+	EnvIsOpenShift = "PAAS_IS_OPENSHIFT"
 )
 
 type ValuesTemplate struct {
-	Name    string
-	Ingress ValuesIngress
-	IDP     ValuesIDP
-	Storage paasv1alpha1.Storage
+	Name      string
+	Ingress   ValuesIngress
+	IDP       ValuesIDP
+	Storage   paasv1alpha1.Storage
+	HA        bool
+	OpenShift bool
 }
 
 type ValuesIngress struct {
