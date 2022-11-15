@@ -117,14 +117,14 @@ const ClusterList: React.FC = (): JSX.Element => {
 					severity="warning">
 					Kubernetes clusters cannot be provisioned as this tenancy is awaiting approval from an administrator or policy agent.
 				</Alert>
-				<Alert
+				{clusterList.data?.hasRole === true && <Alert
 					action={<Button
 						onClick={() => onApproveTenant()}>
 						Approve
 					</Button>}
 					severity="info">
 					You are an administrator and can approve this tenancy.
-				</Alert>
+				</Alert>}
 			</Collapse>
 			<Table>
 				<TableHead>
