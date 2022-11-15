@@ -30,6 +30,7 @@ type MetricValue struct {
 type NewCluster struct {
 	Name  string `json:"name"`
 	Track Track  `json:"track"`
+	Ha    bool   `json:"ha"`
 }
 
 type User struct {

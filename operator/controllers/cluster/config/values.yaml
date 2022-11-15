@@ -1,5 +1,8 @@
 ingress:
   enabled: false
+{{- if .OpenShift }}
+securityContext: null
+{{- else }}
 securityContext:
   allowPrivilegeEscalation: false
   capabilities:
@@ -8,6 +11,7 @@ securityContext:
   readOnlyRootFilesystem: true
   runAsNonRoot: true
   runAsUser: 12345
+{{- end }}
 sync:
   ingresses:
     enabled: true
@@ -43,6 +47,16 @@ storage:
   {{- if .Storage.StorageClassName }}
   className: {{ .Storage.StorageClassName }}
   {{- end }}
+coredns:
+{{- if .HA }}
+  replicas: 2
+{{- else }}
+  replicas: 1
+{{- end }}
+{{- if .OpenShift }}
+openshift:
+  enabled: true
+{{- end }}
 plugin:
   glass-hook:
     image: dev.local/kube-glass/vcluster-plugin-hooks:latest

@@ -122,6 +122,7 @@ type Query {
 input NewCluster {
   name: String!
   track: Track!
+  ha: Boolean!
 }
 
 type Mutation {

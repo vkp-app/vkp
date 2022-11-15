@@ -38,7 +38,7 @@ const AddonSourceChip: React.FC<Props> = ({source}): JSX.Element => {
 	return <Tooltip
 		title={tip()}>
 		<Chip
-			sx={{ml: 1, maxHeight: 20, height: 20}}
+			sx={{ml: 1, maxHeight: 20, height: 20, fontFamily: "Manrope", fontWeight: "bold", fontSize: 12}}
 			variant="outlined"
 			label={source}
 			color={colour()}
