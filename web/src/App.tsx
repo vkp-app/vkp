@@ -13,6 +13,7 @@ import Home from "./containers/routes/Home";
 import CreateCluster from "./containers/routes/CreateCluster";
 import TenantList from "./containers/routes/TenantList";
 import AddonList from "./containers/routes/AddonList";
+import CreateTenant from "./containers/routes/CreateTenant";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -140,6 +141,10 @@ const App: React.FC = (): JSX.Element => {
 							<Route
 								path="/new/cluster/:tenant"
 								element={<CreateCluster/>}
+							/>
+							<Route
+								path="/new/tenant"
+								element={<CreateTenant/>}
 							/>
 							<Route
 								path={"/*"}

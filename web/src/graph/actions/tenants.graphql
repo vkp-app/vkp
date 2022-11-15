@@ -21,3 +21,9 @@ query tenant($tenant: ID!) {
 mutation approveTenancy($tenant: ID!) {
     approveTenant(tenant: $tenant)
 }
+
+mutation createTenant($tenant: String!) {
+    createTenant(tenant: $tenant) {
+        name
+    }
+}

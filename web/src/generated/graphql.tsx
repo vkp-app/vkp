@@ -373,6 +373,13 @@ export type ApproveTenancyMutationVariables = Exact<{
 
 export type ApproveTenancyMutation = { __typename?: 'Mutation', approveTenant: boolean };
 
+export type CreateTenantMutationVariables = Exact<{
+  tenant: Scalars['String'];
+}>;
+
+
+export type CreateTenantMutation = { __typename?: 'Mutation', createTenant: { __typename?: 'Tenant', name: string } };
+
 
 export const AllAddonsDocument = gql`
     query allAddons($tenant: ID!, $cluster: ID!) {
@@ -1005,6 +1012,39 @@ export function useApproveTenancyMutation(baseOptions?: Apollo.MutationHookOptio
 export type ApproveTenancyMutationHookResult = ReturnType<typeof useApproveTenancyMutation>;
 export type ApproveTenancyMutationResult = Apollo.MutationResult<ApproveTenancyMutation>;
 export type ApproveTenancyMutationOptions = Apollo.BaseMutationOptions<ApproveTenancyMutation, ApproveTenancyMutationVariables>;
+export const CreateTenantDocument = gql`
+    mutation createTenant($tenant: String!) {
+  createTenant(tenant: $tenant) {
+    name
+  }
+}
+    `;
+export type CreateTenantMutationFn = Apollo.MutationFunction<CreateTenantMutation, CreateTenantMutationVariables>;
+
+/**
+ * __useCreateTenantMutation__
+ *
+ * To run a mutation, you first call `useCreateTenantMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateTenantMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createTenantMutation, { data, loading, error }] = useCreateTenantMutation({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *   },
+ * });
+ */
+export function useCreateTenantMutation(baseOptions?: Apollo.MutationHookOptions<CreateTenantMutation, CreateTenantMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateTenantMutation, CreateTenantMutationVariables>(CreateTenantDocument, options);
+      }
+export type CreateTenantMutationHookResult = ReturnType<typeof useCreateTenantMutation>;
+export type CreateTenantMutationResult = Apollo.MutationResult<CreateTenantMutation>;
+export type CreateTenantMutationOptions = Apollo.BaseMutationOptions<CreateTenantMutation, CreateTenantMutationVariables>;
 
       export interface PossibleTypesResultData {
         possibleTypes: {
