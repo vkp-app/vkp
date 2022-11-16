@@ -48,6 +48,13 @@ const App: React.FC = (): JSX.Element => {
 				mode: prefersDarkMode ? "dark" : "light"
 			},
 			components: {
+				MuiCard: {
+					styleOverrides: {
+						root: ({theme, ownerState}) => ({
+							borderRadius: ownerState.variant === "outlined" ? theme.spacing(2) : undefined
+						})
+					}
+				},
 				MuiSkeleton: {
 					defaultProps: {
 						animation: "wave"

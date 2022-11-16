@@ -252,6 +252,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 									{trackData.map((t, i) => <Step
 										key={t.label}>
 										<StepButton
+											disableRipple
 											icon={<t.icon
 												color={t.colour}
 											/>}

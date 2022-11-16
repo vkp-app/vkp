@@ -2,10 +2,12 @@ package syncers
 
 import (
 	"context"
+	"github.com/google/go-containerregistry/pkg/authn"
+	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/mutate"
+	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/loft-sh/vcluster-sdk/syncer"
 	synccontext "github.com/loft-sh/vcluster-sdk/syncer/context"
-	"github.com/vmware-tanzu/carvel-imgpkg/pkg/imgpkg/registry"
-	v1 "github.com/vmware-tanzu/carvel-imgpkg/pkg/imgpkg/v1"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -248,8 +250,8 @@ func (r *AddonSyncer) finalizeAddon(ctx context.Context, cr *paasv1alpha1.Cluste
 	})
 }
 
-func (r *AddonSyncer) manifestsFromOCI(ctx context.Context, name string) (string, error) {
-	log := logging.FromContext(ctx).WithValues("oci", name)
+func (*AddonSyncer) manifestsFromOCI(ctx context.Context, refName string) (string, error) {
+	log := logging.FromContext(ctx).WithValues("oci", refName)
 	log.Info("fetching addon manifests from OCI image")
 
 	// prepare a temp directory we can
@@ -261,12 +263,21 @@ func (r *AddonSyncer) manifestsFromOCI(ctx context.Context, name string) (string
 	}
 
 	log.Info("pulling OCI bundle")
-	opts := v1.PullOpts{IsBundle: true}
-	_, err = v1.Pull(name, dir, opts, registry.Opts{})
+	ref, err := name.ParseReference(refName)
 	if err != nil {
-		log.Error(err, "failed to pull bundle")
+		log.Error(err, "failed to parse OCI image reference")
 		return "", err
 	}
+	img, err := remote.Image(ref, remote.WithAuthFromKeychain(authn.DefaultKeychain))
+	if err != nil {
+		log.Error(err, "failed to locate remote OCI image")
+		return "", err
+	}
+	fs := mutate.Extract(img)
+	if err := untar(ctx, fs, dir); err != nil {
+		return "", err
+	}
+
 	log.Info("successfully pulled OCI bundle")
 	return dir, nil
 }
