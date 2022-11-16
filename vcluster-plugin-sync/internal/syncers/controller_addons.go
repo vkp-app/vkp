@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/loft-sh/vcluster-sdk/syncer"
 	synccontext "github.com/loft-sh/vcluster-sdk/syncer/context"
+	"github.com/vmware-tanzu/carvel-imgpkg/pkg/imgpkg/registry"
+	v1 "github.com/vmware-tanzu/carvel-imgpkg/pkg/imgpkg/v1"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -159,6 +161,12 @@ func (r *AddonSyncer) kustomizeResources(ctx context.Context, cr *paasv1alpha1.C
 				return err
 			}
 			kustomizePath = dir
+		} else if manifest.OCI != "" {
+			dir, err := r.manifestsFromOCI(ctx, manifest.OCI)
+			if err != nil {
+				return err
+			}
+			kustomizePath = dir
 		}
 		// configure kustomize so we can
 		// inflate helm charts
@@ -238,6 +246,29 @@ func (r *AddonSyncer) finalizeAddon(ctx context.Context, cr *paasv1alpha1.Cluste
 		}
 		return nil
 	})
+}
+
+func (r *AddonSyncer) manifestsFromOCI(ctx context.Context, name string) (string, error) {
+	log := logging.FromContext(ctx).WithValues("oci", name)
+	log.Info("fetching addon manifests from OCI image")
+
+	// prepare a temp directory we can
+	// dump resources in
+	dir, err := os.MkdirTemp("", "addon-*")
+	if err != nil {
+		log.Error(err, "failed to allocate temporary directory")
+		return "", err
+	}
+
+	log.Info("pulling OCI bundle")
+	opts := v1.PullOpts{IsBundle: true}
+	_, err = v1.Pull(name, dir, opts, registry.Opts{})
+	if err != nil {
+		log.Error(err, "failed to pull bundle")
+		return "", err
+	}
+	log.Info("successfully pulled OCI bundle")
+	return dir, nil
 }
 
 // manifestsFromSecret downloads all kubernetes manifests from a corev1.ConfigMap
