@@ -1,0 +1,87 @@
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterAddon
+metadata:
+  labels:
+    app.kubernetes.io/name: clusteraddon
+    app.kubernetes.io/instance: dashboard-okd
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: dashboard-okd
+spec:
+  displayName: "OpenShift Console"
+  maintainer: "KubeGlass"
+  logo: https://upload.wikimedia.org/wikipedia/commons/3/3a/OpenShift-LogoType.svg
+  description: |
+    The console is a more friendly kubectl in the form of a single page webapp. It also integrates with other services like monitoring, chargeback, and OLM.
+    (OpenShift-specific features such as Projects or Routes will not work, mutually-exclusive with the Kubernetes Dashboard).
+  source: Official
+  sourceURL: https://github.com/openshift/console
+  resources:
+    - configMap:
+        name: glass-addon-dashboard-okd
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterAddon
+metadata:
+  labels:
+    app.kubernetes.io/name: clusteraddon
+    app.kubernetes.io/instance: policy-controller
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: policy-controller
+spec:
+  displayName: "Cosign Policy Controller"
+  maintainer: "Sigstore"
+  logo: https://avatars.githubusercontent.com/u/71096353?s=200&v=4
+  source: Community
+  sourceURL: https://github.com/sigstore/policy-controller
+  description: |
+    The policy admission controller is used to enforce policy on a cluster on verifiable supply-chain metadata from cosign.
+  resources: []
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterAddon
+metadata:
+  labels:
+    app.kubernetes.io/name: clusteraddon
+    app.kubernetes.io/instance: dashboard-k8s
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: dashboard-k8s
+spec:
+  displayName: "Kubernetes Dashboard"
+  maintainer: "Kubernetes"
+  logo: https://raw.githubusercontent.com/kubernetes/kubernetes/master/logo/logo.svg
+  source: Community
+  sourceURL: https://github.com/kubernetes/dashboard
+  description: |
+    General-purpose web UI for Kubernetes clusters.
+    (Mutually-exclusive with the OpenShift Console).
+  resources:
+    - configMap:
+        name: glass-addon-dashboard-k8s
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterAddon
+metadata:
+  labels:
+    app.kubernetes.io/name: clusteraddon
+    app.kubernetes.io/instance: podinfo
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: podinfo
+spec:
+  displayName: "Podinfo"
+  maintainer: "KubeGlass"
+  description: |
+    Go microservice template for Kubernetes
+  source: Official
+  sourceURL: https://github.com/stefanprodan/podinfo
+  logo: https://raw.githubusercontent.com/stefanprodan/podinfo/gh-pages/cuddle_clap.gif
+  resources:
+    - configMap:
+        name: glass-addon-podinfo

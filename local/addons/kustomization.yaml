@@ -1,4 +1,6 @@
-namespace: alpha
+namespace: glass-system
+resources:
+  - addons.yaml
 generatorOptions:
   disableNameSuffixHash: true
 configMapGenerator:

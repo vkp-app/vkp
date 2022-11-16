@@ -76,6 +76,9 @@ type RemoteRef struct {
 	// Secret is a v1.Secret that contains a number of Kustomize files. Mutually-exclusive with URL and ConfigMap.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Secret",xDescriptors="urn:alm:descriptor:io.kubernetes:Secret"
 	Secret corev1.LocalObjectReference `json:"secret,omitempty"`
+	// OCI is an OCI-compliant container image that contains a Kustomize directory.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="OCI",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	OCI string `json:"oci,omitempty"`
 }
 
 // ClusterAddonStatus defines the observed state of ClusterAddon
@@ -93,6 +96,10 @@ func SecretDigestKey(name string) string {
 
 func UriDigestKey(name string) string {
 	return "uri:" + name
+}
+
+func OciDigestKey(name string) string {
+	return "oci:" + name
 }
 
 //+kubebuilder:object:root=true

@@ -63,6 +63,10 @@ spec:
                           type: string
                       type: object
                       x-kubernetes-map-type: atomic
+                    oci:
+                      description: OCI is an OCI-compliant container image that contains
+                        a Kustomize directory.
+                      type: string
                     secret:
                       description: Secret is a v1.Secret that contains a number of
                         Kustomize files. Mutually-exclusive with URL and ConfigMap.

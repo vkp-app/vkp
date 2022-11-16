@@ -59,10 +59,8 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, nil
 	}
 	// basic reconciliation
-	if res, err := r.reconcileNamespaces(ctx, cr); err != nil {
-		return ctrl.Result{}, err
-	} else if res.Requeue {
-		return res, nil
+	if res, err := r.reconcileNamespaces(ctx, cr); err != nil || res.Requeue {
+		return res, err
 	}
 
 	// collect a list of managed clusters
