@@ -1,7 +1,7 @@
 import React, {ReactNode} from "react";
 import {Card, CardHeader, Grid, Skeleton, Typography} from "@mui/material";
 import {ApolloError} from "@apollo/client";
-import SparkLine from "../../data/SparkLine";
+import SparkLine, {SparklineColours} from "../../data/SparkLine";
 import {Cluster, MetricFormat, MetricValue, useMetricsClusterQuery} from "../../../generated/graphql";
 import {formatBytes} from "../../../utils/fmt";
 import InlineError from "../../alert/InlineError";
@@ -11,6 +11,8 @@ interface Props {
 	clusterError?: ApolloError;
 	refresh?: boolean;
 }
+
+const colours: SparklineColours[] = ["primary", "success", "warning", "error"];
 
 const ClusterMetricsView: React.FC<Props> = ({cluster, refresh, clusterError}): JSX.Element => {
 	const {data, loading, error} = useMetricsClusterQuery({
@@ -67,7 +69,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, refresh, clusterError}): 
 		}
 	}
 
-	const metric = (data: MetricValue[], name: string, bz: boolean, fmt: (n: number) => string): ReactNode => {
+	const metric = (colour: SparklineColours, data: MetricValue[], name: string, bz: boolean, fmt: (n: number) => string): ReactNode => {
 		const numData = data.map(i => Number(i.value));
 		const last = data.length === 0 ? 0 : Number(data[data.length - 1].value);
 		const max = Math.max(...numData);
@@ -77,6 +79,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, refresh, clusterError}): 
 			xs={6}>
 			<CardHeader
 				title={<SparkLine
+					color={colour}
 					width={1000}
 					data={numData}
 					baseZero={bz}
@@ -117,7 +120,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, refresh, clusterError}): 
 		/>}
 		<Grid container>
 			{loading && loadingData()}
-			{!loading && data?.clusterMetrics.map(m => metric(m.values as MetricValue[], m.name, false, getFormatter(m.format)))}
+			{!loading && data?.clusterMetrics.map((m, i) => metric(colours[i % colours.length], m.values as MetricValue[], m.name, false, getFormatter(m.format)))}
 		</Grid>
 	</Card>
 }

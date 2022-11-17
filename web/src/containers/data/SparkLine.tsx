@@ -29,11 +29,13 @@ const Root = styled("svg")(({theme}) => ({
 	},
 }));
 
+export type SparklineColours = "primary" | "secondary" | "inherit" | "success" | "warning" | "error";
+
 interface Props {
 	width?: number;
 	height?: number;
 	data: number[];
-	color?: "primary" | "secondary" | "inherit" | "success" | "warning" | "error";
+	color?: SparklineColours;
 	sx?: SxProps;
 	baseZero?: boolean;
 }
