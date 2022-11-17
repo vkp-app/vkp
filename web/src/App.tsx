@@ -65,13 +65,22 @@ const App: React.FC = (): JSX.Element => {
 						variant: "outlined"
 					},
 					styleOverrides: {
-						root: {
-							fontFamily: "Manrope",
-							fontWeight: 600,
-							fontSize: 13,
+						root: ({theme, ownerState}) => ({
+							fontFamily: "Figtree",
+							fontWeight: 500,
+							fontSize: 14,
 							textTransform: "none",
-							minHeight: 28,
-							height: 28
+							minHeight: 30,
+							height: 30,
+							borderRadius: ownerState.variant === "outlined" ? theme.spacing(1) : undefined
+						})
+					}
+				},
+				MuiDialogTitle: {
+					styleOverrides: {
+						root: {
+							fontFamily: "Figtree",
+							fontWeight: 500
 						}
 					}
 				},

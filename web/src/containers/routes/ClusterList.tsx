@@ -114,6 +114,7 @@ const ClusterList: React.FC = (): JSX.Element => {
 			variant="outlined">
 			<CardHeader
 				title="Clusters"
+				titleTypographyProps={{fontFamily: "Figtree"}}
 				action={<Button
 					sx={{fontFamily: "Manrope", fontSize: 13, fontWeight: 600, height: 24, minHeight: 24, textTransform: "none"}}
 					variant="outlined"

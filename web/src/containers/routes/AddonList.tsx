@@ -99,6 +99,7 @@ const AddonList: React.FC = (): JSX.Element => {
 			sx={{p: 2}}>
 			<CardHeader
 				title="Addon marketplace"
+				titleTypographyProps={{fontFamily: "Figtree", fontWeight: 400, mb: 1}}
 				subheader="Browse, install and modify pre-packaged applications, configuration and capability provided by us, your administrators and the community."
 				subheaderTypographyProps={{fontSize: 14}}
 			/>

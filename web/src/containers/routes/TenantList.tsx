@@ -87,6 +87,7 @@ const TenantList: React.FC = (): JSX.Element => {
 			variant="outlined">
 			<CardHeader
 				title="Tenants"
+				titleTypographyProps={{fontFamily: "Figtree"}}
 				action={<Button
 					component={Link}
 					to="/new/tenant">

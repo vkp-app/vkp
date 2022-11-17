@@ -28,9 +28,9 @@ import ClusterSettingsView from "./cluster/ClusterSettingsView";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	title: {
-		fontFamily: "Manrope",
-		fontSize: 24,
-		fontWeight: 500,
+		fontFamily: "Figtree",
+		fontSize: 30,
+		fontWeight: 400,
 		paddingBottom: theme.spacing(1)
 	}
 }));

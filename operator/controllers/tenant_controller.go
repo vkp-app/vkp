@@ -18,9 +18,12 @@ package controllers
 
 import (
 	"context"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
@@ -62,6 +65,9 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if res, err := r.reconcileNamespaces(ctx, cr); err != nil || res.Requeue {
 		return res, err
 	}
+	if err := r.reconcileAddons(ctx, cr); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	// collect a list of managed clusters
 	clusters := &paasv1alpha1.ClusterList{}
@@ -96,6 +102,50 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
+}
+
+func (r *TenantReconciler) reconcileAddons(ctx context.Context, tr *paasv1alpha1.Tenant) error {
+	log := logging.FromContext(ctx).WithValues("tenant", tr.GetName())
+	log.Info("reconciling addons")
+
+	found := cluster.Addons(tr)
+	for _, addon := range found {
+		if err := r.reconcileAddon(ctx, &addon, tr); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *TenantReconciler) reconcileAddon(ctx context.Context, car *paasv1alpha1.ClusterAddon, tr *paasv1alpha1.Tenant) error {
+	log := logging.FromContext(ctx).WithValues("addon", car.GetName(), "tenant", tr.GetName())
+	log.Info("reconciling addon")
+
+	found := &paasv1alpha1.ClusterAddon{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tr.GetNamespace(), Name: car.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			if err := ctrl.SetControllerReference(tr, car, r.Scheme); err != nil {
+				log.Error(err, "failed to set controller reference")
+				return err
+			}
+			if err := r.Create(ctx, car); err != nil {
+				log.Error(err, "failed to create addon")
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	if err := ctrl.SetControllerReference(tr, car, r.Scheme); err != nil {
+		log.Error(err, "failed to set controller reference")
+		return err
+	}
+
+	// reconcile any changes
+	if !reflect.DeepEqual(car.Spec, found.Spec) {
+		return r.SafeUpdate(ctx, found, car)
+	}
+	return nil
 }
 
 func (r *TenantReconciler) reconcileNamespaces(ctx context.Context, cr *paasv1alpha1.Tenant) (ctrl.Result, error) {
@@ -133,4 +183,13 @@ func (r *TenantReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&paasv1alpha1.Tenant{}).
 		Owns(&corev1.Namespace{}).
 		Complete(r)
+}
+
+// SafeUpdate calls Update with hacks required to ensure that
+// the update is applied correctly.
+//
+// https://github.com/argoproj/argo-cd/issues/3657
+func (r *TenantReconciler) SafeUpdate(ctx context.Context, old, new client.Object, option ...client.UpdateOption) error {
+	new.SetResourceVersion(old.GetResourceVersion())
+	return r.Update(ctx, new, option...)
 }

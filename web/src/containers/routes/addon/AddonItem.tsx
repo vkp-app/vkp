@@ -65,7 +65,7 @@ const AddonItem: React.FC<Props> = ({item, phase, loading, readOnly, onInstall, 
 					variant="text"
 					width="60%"
 				/>}
-				titleTypographyProps={{fontFamily: "Manrope", fontWeight: "bold"}}
+				titleTypographyProps={{fontFamily: "Figtree", fontWeight: "500", fontSize: 16}}
 				subheaderTypographyProps={{fontSize: 14}}
 				avatar={item != null ? <Avatar
 					src={item.logo}
