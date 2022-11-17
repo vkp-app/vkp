@@ -3,3 +3,4 @@ resources:
   - clusterapi
   - idp
   - prometheus
+  - ingress-nginx

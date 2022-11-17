@@ -101,8 +101,8 @@ const ClusterView: React.FC = (): JSX.Element => {
 				<ListItem>
 					<ListItemText
 						primaryTypographyProps={{className: classes.title}}
-						primary={loading ? <Skeleton variant="text" height={30} width="40%"/> : data?.cluster.name}
-						secondary={loading ? <Skeleton variant="text" height={20} width="20%"/> : <ClusterVersionIndicator showLabel version={data?.cluster.status.kubeVersion || ""}/>}
+						primary={loading ? <Skeleton variant="text" height={50} width="40%"/> : data?.cluster.name}
+						secondary={loading ? <Skeleton variant="text" height={25} width="20%"/> : <ClusterVersionIndicator showLabel version={data?.cluster.status.kubeVersion || ""}/>}
 					/>
 					<ListItemSecondaryAction>
 						<FormControlLabel

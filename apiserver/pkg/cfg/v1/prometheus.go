@@ -32,6 +32,11 @@ func NewPrometheusConfig() PrometheusConfig {
 				Metric: `sum by (namespace) (kube_pod_status_ready{namespace="%s", pod=~".*-%s|%s-.+", condition="true"})`,
 				Format: model.MetricFormatPlain,
 			},
+			{
+				Name:   "Request volume",
+				Metric: `sum by (exported_namespace) (irate(nginx_ingress_controller_requests{exported_namespace="%s", exported_service=~".*-%s|%s-.+"}[2m]))`,
+				Format: model.MetricFormatPlain,
+			},
 		},
 	}
 }

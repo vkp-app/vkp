@@ -1,0 +1,23 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ingress-nginx-controller-metrics
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: metrics
+    app.kubernetes.io/name: ingress-nginx
+spec:
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: metrics
+      protocol: TCP
+      port: 10254
+      targetPort: 10254
+  internalTrafficPolicy: Cluster
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: ingress-nginx

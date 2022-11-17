@@ -53,7 +53,9 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, refresh, clusterError}): 
 		if (!+n || !Number.isFinite(n)) {
 			return "0";
 		}
-		return `${n}`;
+		if (n >= 10 || n % 1 === 0)
+			return n.toFixed(0);
+		return n.toFixed(2);
 	}
 
 	const getFormatter = (f: MetricFormat): (n: number) => string => {
@@ -81,6 +83,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, refresh, clusterError}): 
 				title={<SparkLine
 					color={colour}
 					width={1000}
+					height={75}
 					data={numData}
 					baseZero={bz}
 				/>}
@@ -102,7 +105,7 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, refresh, clusterError}): 
 				item
 				xs={6}>
 				<CardHeader
-					title={<Skeleton height={35}/>}
+					title={<Skeleton height={60}/>}
 					subheader={<Skeleton width="50%"/>}
 					disableTypography
 				/>
