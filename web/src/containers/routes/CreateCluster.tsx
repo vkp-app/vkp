@@ -173,6 +173,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 			variant="outlined">
 			<CardHeader
 				title="Create a Kubernetes cluster"
+				titleTypographyProps={{fontFamily: "Figtree"}}
 			/>
 			{!loading && error && <InlineError
 				message="Unable to lodge cluster creation request"

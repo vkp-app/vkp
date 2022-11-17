@@ -16,7 +16,7 @@ const (
 	roleView         = "view"
 )
 
-func OwnerBinding(cr *paasv1alpha1.Tenant) *authv1.ClusterRoleBinding {
+func OwnerBinding(tr *paasv1alpha1.Tenant) *authv1.ClusterRoleBinding {
 	return &authv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "cluster-admin-owner",
@@ -30,7 +30,7 @@ func OwnerBinding(cr *paasv1alpha1.Tenant) *authv1.ClusterRoleBinding {
 			{
 				Kind:     authv1.UserKind,
 				APIGroup: rbacAPIGroup,
-				Name:     cr.Spec.Owner,
+				Name:     tr.Spec.Owner,
 			},
 		},
 	}

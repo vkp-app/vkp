@@ -122,7 +122,7 @@ func (r *TenantReconciler) reconcileAddon(ctx context.Context, car *paasv1alpha1
 	log.Info("reconciling addon")
 
 	found := &paasv1alpha1.ClusterAddon{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: tr.GetNamespace(), Name: car.GetName()}, found); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tr.GetName(), Name: car.GetName()}, found); err != nil {
 		if errors.IsNotFound(err) {
 			if err := ctrl.SetControllerReference(tr, car, r.Scheme); err != nil {
 				log.Error(err, "failed to set controller reference")
@@ -148,13 +148,13 @@ func (r *TenantReconciler) reconcileAddon(ctx context.Context, car *paasv1alpha1
 	return nil
 }
 
-func (r *TenantReconciler) reconcileNamespaces(ctx context.Context, cr *paasv1alpha1.Tenant) (ctrl.Result, error) {
+func (r *TenantReconciler) reconcileNamespaces(ctx context.Context, tr *paasv1alpha1.Tenant) (ctrl.Result, error) {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling namespaces")
 
-	if cr.Spec.NamespaceStrategy == "" {
-		cr.Spec.NamespaceStrategy = paasv1alpha1.StrategySingle
-		if err := r.Update(ctx, cr); err != nil {
+	if tr.Spec.NamespaceStrategy == "" {
+		tr.Spec.NamespaceStrategy = paasv1alpha1.StrategySingle
+		if err := r.Update(ctx, tr); err != nil {
 			log.Error(err, "failed to set tenant default namespace strategy")
 			return ctrl.Result{}, err
 		}
@@ -163,11 +163,11 @@ func (r *TenantReconciler) reconcileNamespaces(ctx context.Context, cr *paasv1al
 
 	// single namespaces have been pre-prepared (since they contain the tenant)
 	// so we don't need to do anything
-	if cr.Spec.NamespaceStrategy == paasv1alpha1.StrategySingle {
+	if tr.Spec.NamespaceStrategy == paasv1alpha1.StrategySingle {
 		log.Info("skipping namespace reconciliation due to namespace strategy")
-		if len(cr.Status.ObservedNamespaces) == 0 || cr.Status.ObservedNamespaces[0] != cr.GetNamespace() {
-			cr.Status.ObservedNamespaces = []string{cr.GetNamespace()}
-			if err := r.Status().Update(ctx, cr); err != nil {
+		if len(tr.Status.ObservedNamespaces) == 0 || tr.Status.ObservedNamespaces[0] != tr.GetName() {
+			tr.Status.ObservedNamespaces = []string{tr.GetName()}
+			if err := r.Status().Update(ctx, tr); err != nil {
 				log.Error(err, "failed to update tenant namespace list")
 				return ctrl.Result{}, err
 			}

@@ -59,7 +59,7 @@ func (r *Resolver) canAccessTenant(ctx context.Context, tenant string, requiresW
 
 	// fetch the tenant resource
 	tr := &paasv1alpha1.Tenant{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: tenant}, tr); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: tenant}, tr); err != nil {
 		log.Error(err, "failed to retrieve tenant resource")
 		return false, err
 	}
@@ -106,7 +106,7 @@ func (r *Resolver) canAccessCluster(ctx context.Context, tenant, cluster string,
 	// short-circuit the request if the user
 	// owns it
 	tr := &paasv1alpha1.Tenant{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: tenant}, tr); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: tenant}, tr); err != nil {
 		log.Error(err, "failed to retrieve tenant resource")
 		return false, err
 	}

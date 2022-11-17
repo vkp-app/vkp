@@ -81,8 +81,7 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, tenant string) (*pa
 	// create the tenant
 	tr := &paasv1alpha1.Tenant{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      tenant,
-			Namespace: tenant,
+			Name: tenant,
 		},
 		Spec: paasv1alpha1.TenantSpec{
 			Owner:             user.Username,
@@ -114,7 +113,7 @@ func (r *mutationResolver) CreateCluster(ctx context.Context, tenant string, inp
 	user, _ := userctx.CtxUser(ctx)
 	// validate the tenant
 	tenantResource := &paasv1alpha1.Tenant{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: tenant}, tenantResource); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: tenant}, tenantResource); err != nil {
 		log.Error(err, "failed to retrieve tenant information")
 		return nil, err
 	}
@@ -246,7 +245,7 @@ func (r *mutationResolver) ApproveTenant(ctx context.Context, tenant string) (bo
 	log.Info("approving tenant")
 	// validate the tenant
 	tenantResource := &paasv1alpha1.Tenant{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: tenant}, tenantResource); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: tenant}, tenantResource); err != nil {
 		log.Error(err, "failed to retrieve tenant information")
 		return false, err
 	}
@@ -305,7 +304,7 @@ func (r *queryResolver) Tenant(ctx context.Context, tenant string) (*paasv1alpha
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
 	log.Info("fetching tenant")
 	tr := &paasv1alpha1.Tenant{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: tenant}, tr); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: tenant}, tr); err != nil {
 		log.Error(err, "failed to get tenant")
 		return nil, err
 	}

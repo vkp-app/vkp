@@ -88,10 +88,15 @@ plugin:
             name: "{{ .Name }}-dex"
             key: client_secret
     rbac:
+      clusterRole:
+        extraRules:
+          - apiGroups: ["paas.dcas.dev"]
+            resources: ["tenants"]
+            verbs: ["get", "list", "watch"]
       role:
         extraRules:
           - apiGroups: ["paas.dcas.dev"]
-            resources: ["tenants", "clusters", "clusteraddons"]
+            resources: ["clusters", "clusteraddons"]
             verbs: ["get", "list", "watch"]
           - apiGroups: ["paas.dcas.dev"]
             resources: ["clusteraddonbindings"]

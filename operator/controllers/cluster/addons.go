@@ -11,7 +11,7 @@ func Addons(tr *paasv1alpha1.Tenant) []paasv1alpha1.ClusterAddon {
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "dashboard-k8s",
-				Namespace: tr.GetNamespace(),
+				Namespace: tr.GetName(),
 				Labels:    labels,
 			},
 			Spec: paasv1alpha1.ClusterAddonSpec{
@@ -31,7 +31,7 @@ func Addons(tr *paasv1alpha1.Tenant) []paasv1alpha1.ClusterAddon {
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "dashboard-okd",
-				Namespace: tr.GetNamespace(),
+				Namespace: tr.GetName(),
 				Labels:    labels,
 			},
 			Spec: paasv1alpha1.ClusterAddonSpec{
@@ -51,7 +51,7 @@ func Addons(tr *paasv1alpha1.Tenant) []paasv1alpha1.ClusterAddon {
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "podinfo",
-				Namespace: tr.GetNamespace(),
+				Namespace: tr.GetName(),
 				Labels:    labels,
 			},
 			Spec: paasv1alpha1.ClusterAddonSpec{

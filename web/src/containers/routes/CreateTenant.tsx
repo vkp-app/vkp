@@ -50,6 +50,7 @@ const CreateTenant: React.FC = (): JSX.Element => {
 			variant="outlined">
 			<CardHeader
 				title="Request a tenancy"
+				titleTypographyProps={{fontFamily: "Figtree"}}
 			/>
 			{!loading && error && <InlineError
 				message="Unable to lodge tenant creation request"
