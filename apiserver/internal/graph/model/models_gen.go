@@ -28,9 +28,9 @@ type MetricValue struct {
 }
 
 type NewCluster struct {
-	Name  string `json:"name"`
-	Track Track  `json:"track"`
-	Ha    bool   `json:"ha"`
+	Name  string                `json:"name"`
+	Track v1alpha1.ReleaseTrack `json:"track"`
+	Ha    bool                  `json:"ha"`
 }
 
 type User struct {
@@ -121,50 +121,5 @@ func (e *Role) UnmarshalGQL(v interface{}) error {
 }
 
 func (e Role) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type Track string
-
-const (
-	TrackStable  Track = "STABLE"
-	TrackRegular Track = "REGULAR"
-	TrackRapid   Track = "RAPID"
-	TrackBeta    Track = "BETA"
-)
-
-var AllTrack = []Track{
-	TrackStable,
-	TrackRegular,
-	TrackRapid,
-	TrackBeta,
-}
-
-func (e Track) IsValid() bool {
-	switch e {
-	case TrackStable, TrackRegular, TrackRapid, TrackBeta:
-		return true
-	}
-	return false
-}
-
-func (e Track) String() string {
-	return string(e)
-}
-
-func (e *Track) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = Track(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid Track", str)
-	}
-	return nil
-}
-
-func (e Track) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

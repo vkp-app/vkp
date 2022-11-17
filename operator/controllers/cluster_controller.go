@@ -22,6 +22,7 @@ import (
 	"github.com/dexidp/dex/api/v2"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/release"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	corev1 "k8s.io/api/core/v1"
@@ -169,7 +170,12 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 	log := logging.FromContext(ctx)
 	log.Info("reconciling vcluster")
 
-	vcluster, err := cluster.VCluster(ctx, cr)
+	latestVersion, err := release.GetLatest(ctx, r.Client, cr.Spec.Track)
+	if err != nil {
+		return err
+	}
+
+	vcluster, err := cluster.VCluster(ctx, cr, latestVersion)
 	if err != nil {
 		return err
 	}
@@ -191,9 +197,8 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 	}
 	cr.Status.Phase = vcluster.Status.Phase
 	cr.Status.KubeURL = vcluster.Spec.ControlPlaneEndpoint.Host
-	if vcluster.Spec.KubernetesVersion != nil {
-		cr.Status.KubeVersion = *vcluster.Spec.KubernetesVersion
-	}
+	cr.Status.KubeVersion = latestVersion.Status.VersionNumber.String()
+	cr.Status.PlatformVersion = latestVersion.GetName()
 	// reconcile by forcibly overwriting
 	// any changes
 	if !reflect.DeepEqual(vcluster.Spec, found.Spec) {

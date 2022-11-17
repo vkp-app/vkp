@@ -70,7 +70,7 @@ spec:
                 type: object
               track:
                 description: Track defines the frequency of system updates.
-                type: integer
+                type: string
             type: object
           status:
             description: ClusterStatus defines the observed state of Cluster

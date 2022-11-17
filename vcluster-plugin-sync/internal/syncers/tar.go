@@ -9,6 +9,7 @@ import (
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+// untar unpacks a tarball into the given directory.
 func untar(ctx context.Context, r io.Reader, dst string) error {
 	log := logging.FromContext(ctx).WithValues("dst", dst)
 	log.V(1).Info("unpacking tar")

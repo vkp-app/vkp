@@ -1,0 +1,27 @@
+# permissions for end users to view clusterversions.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: clusterversion-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: operator
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+  name: clusterversion-viewer-role
+rules:
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - clusterversions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - clusterversions/status
+  verbs:
+  - get

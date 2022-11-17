@@ -16,6 +16,7 @@ sync:
   ingresses:
     enabled: true
 vcluster:
+  image: {{ .Image }}
   extraArgs:
     - --kube-apiserver-arg="--oidc-issuer-url={{ .IDP.URL }}"
     - --kube-apiserver-arg="--oidc-client-id=$(DEX_CLIENT_ID)"

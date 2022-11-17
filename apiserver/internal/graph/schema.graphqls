@@ -13,11 +13,11 @@ enum AddonPhase {
   Deleting
 }
 
-enum Track {
-  STABLE,
-  REGULAR,
-  RAPID,
-  BETA
+enum ReleaseTrack {
+  Stable,
+  Regular,
+  Rapid,
+  Beta
 }
 
 enum TenantPhase {
@@ -45,7 +45,7 @@ type NamespacedName {
 type Cluster {
   name: ID!
   tenant: ID!
-  track: Track!
+  track: ReleaseTrack!
 
   status: ClusterStatus!
 }
@@ -125,7 +125,7 @@ type Query {
 
 input NewCluster {
   name: String!
-  track: Track!
+  track: ReleaseTrack!
   ha: Boolean!
 }
 

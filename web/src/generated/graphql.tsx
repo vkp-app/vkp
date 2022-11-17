@@ -40,7 +40,7 @@ export type Cluster = {
   name: Scalars['ID'];
   status: ClusterStatus;
   tenant: Scalars['ID'];
-  track: Track;
+  track: ReleaseTrack;
 };
 
 export type ClusterAddon = {
@@ -137,7 +137,7 @@ export type NamespacedName = {
 export type NewCluster = {
   ha: Scalars['Boolean'];
   name: Scalars['String'];
-  track: Track;
+  track: ReleaseTrack;
 };
 
 export type Query = {
@@ -213,6 +213,13 @@ export type QueryTenantArgs = {
   tenant: Scalars['ID'];
 };
 
+export enum ReleaseTrack {
+  Beta = 'Beta',
+  Rapid = 'Rapid',
+  Regular = 'Regular',
+  Stable = 'Stable'
+}
+
 export enum Role {
   Admin = 'ADMIN',
   User = 'USER'
@@ -235,13 +242,6 @@ export type TenantStatus = {
   __typename?: 'TenantStatus';
   phase: TenantPhase;
 };
-
-export enum Track {
-  Beta = 'BETA',
-  Rapid = 'RAPID',
-  Regular = 'REGULAR',
-  Stable = 'STABLE'
-}
 
 export type User = {
   __typename?: 'User';
@@ -295,7 +295,7 @@ export type ClusterQueryVariables = Exact<{
 }>;
 
 
-export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: Track, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string } }, clusterInstalledAddons: Array<{ __typename?: 'AddonBindingStatus', phase: AddonPhase, name: string }> };
+export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: ReleaseTrack, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string } }, clusterInstalledAddons: Array<{ __typename?: 'AddonBindingStatus', phase: AddonPhase, name: string }> };
 
 export type CreateClusterMutationVariables = Exact<{
   tenant: Scalars['ID'];

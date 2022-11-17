@@ -29,7 +29,7 @@ import {useTheme} from "@mui/material/styles";
 import {Circles, CircleSquare, Hexagon, Icon, TriangleSquareCircle} from "tabler-icons-react";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import StandardLayout from "../layout/StandardLayout";
-import {Track, useCreateClusterMutation} from "../../generated/graphql";
+import {ReleaseTrack, useCreateClusterMutation} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import AddonChip from "./addon/AddonChip";
 
@@ -50,7 +50,7 @@ interface TrackItem {
 	description: string;
 	colour: string;
 	icon: Icon;
-	track: Track;
+	track: ReleaseTrack;
 }
 
 const TRACKS = (theme: Theme): TrackItem[] => [
@@ -59,28 +59,28 @@ const TRACKS = (theme: Theme): TrackItem[] => [
 		description: "Prioritise stability over new features. Updates are released on a less-frequent basis (excluding security updates) once faster tracks have extensively validated features.",
 		colour: theme.palette.success.main,
 		icon: Hexagon,
-		track: Track.Stable
+		track: ReleaseTrack.Stable
 	},
 	{
 		label: "Regular (recommended)",
 		description: "Access features reasonably soon after upstream release but after they have had some time to be validated in the Rapid and Beta tracks. Offers a balance between stability and new features and is recommended for most users.",
 		colour: theme.palette.primary.main,
 		icon: CircleSquare,
-		track: Track.Regular
+		track: ReleaseTrack.Regular
 	},
 	{
 		label: "Rapid",
 		description: "Access features as they are released upstream. The cluster will be updated frequently to stay on the latest version, and deliver new Kubernetes features and capability.",
 		colour: theme.palette.warning.main,
 		icon: Circles,
-		track: Track.Rapid
+		track: ReleaseTrack.Rapid
 	},
 	{
 		label: "Beta",
 		description: "New versions and features hot off the press through the use of Release Candidate versions provided by the upstream. This track should not be used in a production capacity as normal SLAs can not be guaranteed.",
 		colour: theme.palette.error.main,
 		icon: TriangleSquareCircle,
-		track: Track.Beta
+		track: ReleaseTrack.Beta
 	}
 ];
 
@@ -107,7 +107,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 	const [createCluster, {loading, error}] = useCreateClusterMutation();
 
 	// local state
-	const [track, setTrack] = useState<Track>(Track.Regular);
+	const [track, setTrack] = useState<ReleaseTrack>(ReleaseTrack.Regular);
 	const [trackIdx, setTrackIdx] = useState<number>(1);
 	const [name, setName] = useState<string>("");
 	const [ha, setHA] = useState<boolean>(false);
@@ -126,7 +126,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 			description: "Best choice for general usage or if you are not sure what to choose.",
 			onClick: () => {
 				setHA(() => false);
-				setTrack(() => Track.Regular);
+				setTrack(() => ReleaseTrack.Regular);
 				setTrackIdx(() => 1);
 			}
 		},
@@ -136,7 +136,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 			description: "Operators, CRDs or anything else that requires significant and uninterrupted interaction with the Kubernetes API.",
 			onClick: () => {
 				setHA(() => true);
-				setTrack(() => Track.Stable);
+				setTrack(() => ReleaseTrack.Stable);
 				setTrackIdx(() => 0);
 			}
 		},
@@ -146,7 +146,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 			description: "Our configuration for testing the latest and greatest.",
 			onClick: () => {
 				setHA(() => false);
-				setTrack(() => Track.Beta);
+				setTrack(() => ReleaseTrack.Beta);
 				setTrackIdx(() => 3);
 			}
 		}

@@ -25,6 +25,7 @@ type ValuesTemplate struct {
 	Storage   paasv1alpha1.Storage
 	HA        bool
 	OpenShift bool
+	Image     string
 }
 
 type ValuesIngress struct {

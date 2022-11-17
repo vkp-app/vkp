@@ -29,8 +29,8 @@ func (r *clusterResolver) Tenant(ctx context.Context, obj *paasv1alpha1.Cluster)
 }
 
 // Track is the resolver for the track field.
-func (r *clusterResolver) Track(ctx context.Context, obj *paasv1alpha1.Cluster) (model.Track, error) {
-	return model.FromDAO(obj.Spec.Track), nil
+func (r *clusterResolver) Track(ctx context.Context, obj *paasv1alpha1.Cluster) (paasv1alpha1.ReleaseTrack, error) {
+	return obj.Spec.Track, nil
 }
 
 // DisplayName is the resolver for the displayName field.
@@ -135,7 +135,7 @@ func (r *mutationResolver) CreateCluster(ctx context.Context, tenant string, inp
 			},
 		},
 		Spec: paasv1alpha1.ClusterSpec{
-			Track: input.Track.ToDAO(),
+			Track: input.Track,
 			HA: paasv1alpha1.HighAvailability{
 				Enabled: input.Ha,
 			},

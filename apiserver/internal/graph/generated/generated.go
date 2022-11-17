@@ -139,7 +139,7 @@ type ComplexityRoot struct {
 
 type ClusterResolver interface {
 	Tenant(ctx context.Context, obj *v1alpha1.Cluster) (string, error)
-	Track(ctx context.Context, obj *v1alpha1.Cluster) (model.Track, error)
+	Track(ctx context.Context, obj *v1alpha1.Cluster) (v1alpha1.ReleaseTrack, error)
 }
 type ClusterAddonResolver interface {
 	DisplayName(ctx context.Context, obj *v1alpha1.ClusterAddon) (string, error)
@@ -698,11 +698,11 @@ enum AddonPhase {
   Deleting
 }
 
-enum Track {
-  STABLE,
-  REGULAR,
-  RAPID,
-  BETA
+enum ReleaseTrack {
+  Stable,
+  Regular,
+  Rapid,
+  Beta
 }
 
 enum TenantPhase {
@@ -730,7 +730,7 @@ type NamespacedName {
 type Cluster {
   name: ID!
   tenant: ID!
-  track: Track!
+  track: ReleaseTrack!
 
   status: ClusterStatus!
 }
@@ -810,7 +810,7 @@ type Query {
 
 input NewCluster {
   name: String!
-  track: Track!
+  track: ReleaseTrack!
   ha: Boolean!
 }
 
@@ -1678,9 +1678,9 @@ func (ec *executionContext) _Cluster_track(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.Track)
+	res := resTmp.(v1alpha1.ReleaseTrack)
 	fc.Result = res
-	return ec.marshalNTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTrack(ctx, field.Selections, res)
+	return ec.marshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐReleaseTrack(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Cluster_track(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1690,7 +1690,7 @@ func (ec *executionContext) fieldContext_Cluster_track(ctx context.Context, fiel
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Track does not have child fields")
+			return nil, errors.New("field of type ReleaseTrack does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6290,7 +6290,7 @@ func (ec *executionContext) unmarshalInputNewCluster(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track"))
-			it.Track, err = ec.unmarshalNTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTrack(ctx, v)
+			it.Track, err = ec.unmarshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐReleaseTrack(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7987,6 +7987,22 @@ func (ec *executionContext) unmarshalNNewCluster2gitlabᚗdcasᚗdevᚋk8sᚋkub
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐReleaseTrack(ctx context.Context, v interface{}) (v1alpha1.ReleaseTrack, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := v1alpha1.ReleaseTrack(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐReleaseTrack(ctx context.Context, sel ast.SelectionSet, v v1alpha1.ReleaseTrack) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
 	var res model.Role
 	err := res.UnmarshalGQL(v)
@@ -8120,16 +8136,6 @@ func (ec *executionContext) marshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkube
 
 func (ec *executionContext) marshalNTenantStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantStatus(ctx context.Context, sel ast.SelectionSet, v v1alpha1.TenantStatus) graphql.Marshaler {
 	return ec._TenantStatus(ctx, sel, &v)
-}
-
-func (ec *executionContext) unmarshalNTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTrack(ctx context.Context, v interface{}) (model.Track, error) {
-	var res model.Track
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐTrack(ctx context.Context, sel ast.SelectionSet, v model.Track) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalNUser2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {

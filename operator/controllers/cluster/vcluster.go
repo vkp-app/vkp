@@ -20,7 +20,7 @@ var valuesTemplate string
 
 var valuesTpl = template.Must(template.New("values.yaml").Parse(valuesTemplate))
 
-func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1alpha1.VCluster, error) {
+func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv1alpha1.ClusterVersion) (*vclusterv1alpha1.VCluster, error) {
 	log := logging.FromContext(ctx)
 	hostname := getHostname(cluster)
 	values := new(bytes.Buffer)
@@ -37,6 +37,7 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1al
 		Storage:   cluster.Spec.Storage,
 		HA:        cluster.Spec.HA.Enabled,
 		OpenShift: getEnv(EnvIsOpenShift, "false") == "true",
+		Image:     version.Spec.Image.String(),
 	}
 	log.V(3).Info("templating values.yaml file", "Template", valuesTemplate, "Overrides", valuesConfig)
 	if err := valuesTpl.Execute(values, valuesConfig); err != nil {
@@ -62,7 +63,8 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster) (*vclusterv1al
 				},
 				Values: values.String(),
 			},
-			// todo support release configuration (e.g. stable vs fast-track)
+			// this will be ignored since we're manually setting the image version
+			// above
 			KubernetesVersion: pointer.String(getEnv(EnvKubeVersion, "1.24")),
 		},
 	}, nil
