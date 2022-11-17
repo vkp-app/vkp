@@ -89,6 +89,19 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, nil
 	}
 	cr.Status.WebURL = fmt.Sprintf("console.%s.%s", cr.Status.ClusterID, cr.Status.ClusterDomain)
+	// add the release track to the labels
+	// so that we can use a labelSelector
+	// to find it.
+	if val := cr.Labels[paasv1alpha1.LabelTrackRef]; val != string(cr.Spec.Track) {
+		if cr.Labels == nil {
+			cr.Labels = map[string]string{}
+		}
+		cr.Labels[paasv1alpha1.LabelTrackRef] = string(cr.Spec.Track)
+		if err := r.Update(ctx, cr); err != nil {
+			log.Error(err, "failed to update cluster resource")
+			return ctrl.Result{}, err
+		}
+	}
 
 	if err := r.reconcileID(ctx, cr); err != nil {
 		return ctrl.Result{}, err
