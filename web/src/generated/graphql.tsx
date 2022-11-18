@@ -72,6 +72,7 @@ export type ClusterStatus = {
   __typename?: 'ClusterStatus';
   kubeURL: Scalars['String'];
   kubeVersion: Scalars['String'];
+  platformVersion: Scalars['String'];
   webURL: Scalars['String'];
 };
 
@@ -325,7 +326,7 @@ export type ClusterQueryVariables = Exact<{
 }>;
 
 
-export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: ReleaseTrack, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string }, accessors: Array<{ __typename?: 'AccessRef', user: string, group: string, readOnly: boolean }> }, clusterInstalledAddons: Array<{ __typename?: 'AddonBindingStatus', phase: AddonPhase, name: string }> };
+export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: ReleaseTrack, status: { __typename?: 'ClusterStatus', kubeVersion: string, platformVersion: string, kubeURL: string, webURL: string }, accessors: Array<{ __typename?: 'AccessRef', user: string, group: string, readOnly: boolean }> }, clusterInstalledAddons: Array<{ __typename?: 'AddonBindingStatus', phase: AddonPhase, name: string }> };
 
 export type CreateClusterMutationVariables = Exact<{
   tenant: Scalars['ID'];
@@ -629,6 +630,7 @@ export const ClusterDocument = gql`
     track
     status {
       kubeVersion
+      platformVersion
       kubeURL
       webURL
     }

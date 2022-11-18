@@ -16,6 +16,7 @@ query cluster($tenant: ID!, $cluster: ID!) {
         track
         status {
             kubeVersion
+            platformVersion
             kubeURL
             webURL
         }

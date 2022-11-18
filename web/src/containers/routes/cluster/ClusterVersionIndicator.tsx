@@ -6,10 +6,11 @@ import {KUBERNETES_VERSION_LATEST, KUBERNETES_VERSION_MAX, KUBERNETES_VERSION_MI
 
 interface Props {
 	version: string | number;
+	platform?: string;
 	showLabel?: boolean;
 }
 
-const ClusterVersionIndicator: React.FC<Props> = ({version, showLabel = false}): JSX.Element => {
+const ClusterVersionIndicator: React.FC<Props> = ({version, platform, showLabel = false}): JSX.Element => {
 	// hooks
 	const theme = useTheme();
 
@@ -57,6 +58,7 @@ const ClusterVersionIndicator: React.FC<Props> = ({version, showLabel = false}):
 			target="_blank">
 			v1.{num}
 		</Link>
+		{platform && <span>&nbsp;({platform})</span>}
 		<Tooltip title={tooltip}>
 			<IconButton
 				sx={{ml: 1}}

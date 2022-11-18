@@ -54,6 +54,7 @@ type Cluster {
 
 type ClusterStatus {
   kubeVersion: String!
+  platformVersion: String!
   kubeURL: String!
   webURL: String!
 }

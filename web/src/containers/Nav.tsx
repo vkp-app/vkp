@@ -129,13 +129,20 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 						<Avatar
 							className={classes.avatar}
 							src="/src/img/kubernetes-icon-color.svg"
-							alt="KubeGlass logo"
+							alt="VKP logo"
 						/>
 						<Typography
 							className={classes.brand}
 							variant="h6"
+							color="textPrimary">
+							VKP
+						</Typography>
+						<Typography
+							className={classes.brand}
+							sx={{ml: 1}}
+							variant="h6"
 							color="textSecondary">
-							KubeGlass
+							Virtual Kubernetes Platform
 						</Typography>
 					</ButtonBase>
 					<div className={classes.grow}/>
