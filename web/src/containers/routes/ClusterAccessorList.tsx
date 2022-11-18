@@ -3,7 +3,12 @@ import {Card, CardHeader, IconButton, ListSubheader} from "@mui/material";
 import {Link, useParams} from "react-router-dom";
 import {ArrowLeft} from "tabler-icons-react";
 import StandardLayout from "../layout/StandardLayout";
-import {AccessRef, useCanEditClusterQuery, useClusterQuery} from "../../generated/graphql";
+import {
+	AccessRef,
+	useCanEditClusterQuery,
+	useClusterQuery,
+	useSetClusterAccessorsMutation
+} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import AccessorList from "./access/AccessorList";
 
@@ -22,6 +27,18 @@ const ClusterAccessorList: React.FC = (): JSX.Element => {
 		variables: {tenant: tenantName, cluster: clusterName},
 		skip: !tenantName || !clusterName
 	});
+
+	const [setAccessors, setAccessorsResult] = useSetClusterAccessorsMutation();
+
+	const handleSetAccessors = (r: AccessRef[]): void => {
+		setAccessors({
+			variables: {tenant: tenantName, cluster: clusterName, accessors: r}
+		}).then(r => {
+			if (r.data) {
+				void cluster.refetch();
+			}
+		});
+	}
 
 	return <StandardLayout>
 		<ListSubheader
@@ -52,10 +69,10 @@ const ClusterAccessorList: React.FC = (): JSX.Element => {
 		</Card>
 		<AccessorList
 			accessors={(cluster.data?.cluster.accessors || []) as AccessRef[]}
-			loading={cluster.loading}
-			error={cluster.error}
+			loading={setAccessorsResult.loading || cluster.loading}
+			error={setAccessorsResult.error || cluster.error}
 			readOnly={!canEditCluster.data?.hasClusterAccess ?? true}
-			onUpdate={() => {}}
+			onUpdate={handleSetAccessors}
 		/>
 	</StandardLayout>
 }

@@ -1,4 +1,4 @@
-import React, {useMemo} from "react";
+import React from "react";
 import {Card, CardHeader, IconButton, ListSubheader} from "@mui/material";
 import {Link, useParams} from "react-router-dom";
 import {ArrowLeft} from "tabler-icons-react";
@@ -27,14 +27,8 @@ const TenantAccessorList: React.FC = (): JSX.Element => {
 			if (r.data) {
 				void tenant.refetch();
 			}
-		})
+		});
 	}
-
-	const accessors = useMemo(() => {
-		if (tenant.data == null)
-			return [];
-		return (tenant.data?.tenant.accessors || []) as AccessRef[];
-	}, [tenant]);
 
 	return <StandardLayout>
 		<ListSubheader
@@ -64,7 +58,7 @@ const TenantAccessorList: React.FC = (): JSX.Element => {
 			/>}
 		</Card>
 		<AccessorList
-			accessors={accessors}
+			accessors={(tenant.data?.tenant.accessors || []) as AccessRef[]}
 			loading={setAccessorsResult.loading || tenant.loading}
 			error={setAccessorsResult.error || tenant.error}
 			readOnly={!tenant.data?.hasTenantAccess ?? true}
