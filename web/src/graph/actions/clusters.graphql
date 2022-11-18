@@ -19,6 +19,11 @@ query cluster($tenant: ID!, $cluster: ID!) {
             kubeURL
             webURL
         }
+        accessors {
+            user
+            group
+            readOnly
+        }
     }
     clusterInstalledAddons(tenant: $tenant, cluster: $cluster) {
         phase
@@ -34,6 +39,10 @@ mutation createCluster($tenant: ID!, $input: NewCluster!) {
 
 mutation deleteCluster($tenant: ID!, $cluster: ID!) {
     deleteCluster(tenant: $tenant, cluster: $cluster)
+}
+
+mutation setClusterAccessors($tenant: ID!, $cluster: ID!, $accessors: [AccessRefInput!]!) {
+    setClusterAccessors(tenant: $tenant, cluster: $cluster, accessors: $accessors)
 }
 
 query kubeConfig($tenant: ID!, $cluster: ID!) {

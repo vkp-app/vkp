@@ -13,7 +13,7 @@ import {
 	ListItemSecondaryAction,
 	ListItemText
 } from "@mui/material";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {Cluster, useDeleteClusterMutation} from "../../../generated/graphql";
 import InlineError from "../../alert/InlineError";
 
@@ -45,6 +45,20 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element 
 		variant="outlined"
 		sx={{p: 2}}>
 		<List>
+			<ListItem>
+				<ListItemText
+					primary="Permissions"
+					secondary="Control who can access this cluster and what they can do."
+				/>
+				<ListItemSecondaryAction>
+					<Button
+						disabled={readOnly || cluster == null}
+						component={Link}
+						to={`/clusters/${cluster?.tenant}/cluster/${cluster?.name}/-/accessors`}>
+						Open
+					</Button>
+				</ListItemSecondaryAction>
+			</ListItem>
 			<ListItem>
 				<ListItemText
 					primary="Delete cluster"

@@ -31,6 +31,7 @@ type Tenant {
   observedClusters: [NamespacedName!]!
 
   status: TenantStatus!
+  accessors: [AccessRef!]!
 }
 
 type TenantStatus {
@@ -48,6 +49,7 @@ type Cluster {
   track: ReleaseTrack!
 
   status: ClusterStatus!
+  accessors: [AccessRef!]!
 }
 
 type ClusterStatus {
@@ -102,6 +104,18 @@ type Metric {
   values: [MetricValue!]!
 }
 
+type AccessRef {
+  user: String!
+  group: String!
+  readOnly: Boolean!
+}
+
+input AccessRefInput {
+  user: String!
+  group: String!
+  readOnly: Boolean!
+}
+
 type Query {
   tenants: [Tenant!]! @hasRole(role: USER)
   tenant(tenant: ID! @hasTenantAccess(write: false)): Tenant! @hasRole(role: USER)
@@ -133,9 +147,11 @@ type Mutation {
   createTenant(tenant: String!): Tenant! @hasRole(role: USER)
   createCluster(tenant: ID!, input: NewCluster! @hasTenantAccess(write: true)): Cluster! @hasRole(role: USER)
   deleteCluster(tenant: ID!, cluster: ID! @hasTenantAccess(write: true)): Boolean! @hasRole(role: USER)
+  setClusterAccessors(tenant: ID!, cluster: ID!, accessors: [AccessRefInput!]!, @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
 
   installAddon(tenant: ID!, cluster: ID!, addon: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
   uninstallAddon(tenant: ID!, cluster: ID!, addon: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
 
   approveTenant(tenant: ID!): Boolean! @hasRole(role: ADMIN)
+  setTenantAccessors(tenant: ID!, accessors: [AccessRefInput!]! @hasTenantAccess(write: true)): Boolean! @hasRole(role: USER)
 }

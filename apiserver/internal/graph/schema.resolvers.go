@@ -33,6 +33,11 @@ func (r *clusterResolver) Track(ctx context.Context, obj *paasv1alpha1.Cluster) 
 	return obj.Spec.Track, nil
 }
 
+// Accessors is the resolver for the accessors field.
+func (r *clusterResolver) Accessors(ctx context.Context, obj *paasv1alpha1.Cluster) ([]paasv1alpha1.AccessRef, error) {
+	return obj.Spec.Accessors, nil
+}
+
 // DisplayName is the resolver for the displayName field.
 func (r *clusterAddonResolver) DisplayName(ctx context.Context, obj *paasv1alpha1.ClusterAddon) (string, error) {
 	return obj.Spec.DisplayName, nil
@@ -185,6 +190,35 @@ func (r *mutationResolver) DeleteCluster(ctx context.Context, tenant string, clu
 	return true, nil
 }
 
+// SetClusterAccessors is the resolver for the setClusterAccessors field.
+func (r *mutationResolver) SetClusterAccessors(ctx context.Context, tenant string, cluster string, accessors []model.AccessRefInput) (bool, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster)
+	log.Info("updating cluster accessors")
+
+	// fetch the cluster
+	cr := &paasv1alpha1.Cluster{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: cluster}, cr); err != nil {
+		log.Error(err, "failed to retrieve cluster resource")
+		return false, err
+	}
+	newAccess := make([]paasv1alpha1.AccessRef, len(accessors))
+	for i := range accessors {
+		newAccess[i] = paasv1alpha1.AccessRef{
+			ReadOnly: accessors[i].ReadOnly,
+			User:     accessors[i].User,
+			Group:    accessors[i].Group,
+		}
+	}
+	log.V(1).Info("applying new accessors", "old", cr.Spec.Accessors, "new", newAccess)
+	cr.Spec.Accessors = newAccess
+	// save changes
+	if err := r.Update(ctx, cr); err != nil {
+		log.Error(err, "failed to update cluster")
+		return false, err
+	}
+	return true, nil
+}
+
 // InstallAddon is the resolver for the installAddon field.
 func (r *mutationResolver) InstallAddon(ctx context.Context, tenant string, cluster string, addon string) (bool, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster, "addon", addon)
@@ -260,6 +294,35 @@ func (r *mutationResolver) ApproveTenant(ctx context.Context, tenant string) (bo
 	tenantResource.Status.Phase = paasv1alpha1.PhaseReady
 	if err := r.Status().Update(ctx, tenantResource); err != nil {
 		log.Error(err, "failed to update tenant phase")
+		return false, err
+	}
+	return true, nil
+}
+
+// SetTenantAccessors is the resolver for the setTenantAccessors field.
+func (r *mutationResolver) SetTenantAccessors(ctx context.Context, tenant string, accessors []model.AccessRefInput) (bool, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
+	log.Info("updating tenant accessors")
+
+	// fetch the tenant
+	tr := &paasv1alpha1.Tenant{}
+	if err := r.Get(ctx, types.NamespacedName{Name: tenant}, tr); err != nil {
+		log.Error(err, "failed to retrieve cluster resource")
+		return false, err
+	}
+	newAccess := make([]paasv1alpha1.AccessRef, len(accessors))
+	for i := range accessors {
+		newAccess[i] = paasv1alpha1.AccessRef{
+			ReadOnly: accessors[i].ReadOnly,
+			User:     accessors[i].User,
+			Group:    accessors[i].Group,
+		}
+	}
+	log.V(1).Info("applying new accessors", "old", tr.Spec.Accessors, "new", newAccess)
+	tr.Spec.Accessors = newAccess
+	// save changes
+	if err := r.Update(ctx, tr); err != nil {
+		log.Error(err, "failed to update tenant")
 		return false, err
 	}
 	return true, nil
@@ -502,6 +565,11 @@ func (r *tenantResolver) Owner(ctx context.Context, obj *paasv1alpha1.Tenant) (s
 // ObservedClusters is the resolver for the observedClusters field.
 func (r *tenantResolver) ObservedClusters(ctx context.Context, obj *paasv1alpha1.Tenant) ([]paasv1alpha1.NamespacedName, error) {
 	return obj.Status.ObservedClusters, nil
+}
+
+// Accessors is the resolver for the accessors field.
+func (r *tenantResolver) Accessors(ctx context.Context, obj *paasv1alpha1.Tenant) ([]paasv1alpha1.AccessRef, error) {
+	return obj.Spec.Accessors, nil
 }
 
 // Cluster returns generated.ClusterResolver implementation.

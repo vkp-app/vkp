@@ -14,6 +14,8 @@ import CreateCluster from "./containers/routes/CreateCluster";
 import TenantList from "./containers/routes/TenantList";
 import AddonList from "./containers/routes/AddonList";
 import CreateTenant from "./containers/routes/CreateTenant";
+import ClusterAccessorList from "./containers/routes/ClusterAccessorList";
+import TenantAccessorList from "./containers/routes/TenantAccessorList";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -48,6 +50,16 @@ const App: React.FC = (): JSX.Element => {
 				mode: prefersDarkMode ? "dark" : "light"
 			},
 			components: {
+				MuiCheckbox: {
+					defaultProps: {
+						centerRipple: false
+					}
+				},
+				MuiIconButton: {
+					defaultProps: {
+						centerRipple: false
+					}
+				},
 				MuiCard: {
 					styleOverrides: {
 						root: ({theme, ownerState}) => ({
@@ -147,12 +159,20 @@ const App: React.FC = (): JSX.Element => {
 								element={<AddonList/>}
 							/>
 							<Route
+								path="/clusters/:tenant/cluster/:name/-/accessors"
+								element={<ClusterAccessorList/>}
+							/>
+							<Route
 								path="/clusters/:tenant/cluster/:name"
 								element={<ClusterView/>}
 							/>
 							<Route
 								path="/clusters/:tenant"
 								element={<ClusterList/>}
+							/>
+							<Route
+								path="/clusters/:tenant/-/accessors"
+								element={<TenantAccessorList/>}
 							/>
 							<Route
 								path="/new/cluster/:tenant"

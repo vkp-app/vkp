@@ -16,6 +16,19 @@ export type Scalars = {
   Float: number;
 };
 
+export type AccessRef = {
+  __typename?: 'AccessRef';
+  group: Scalars['String'];
+  readOnly: Scalars['Boolean'];
+  user: Scalars['String'];
+};
+
+export type AccessRefInput = {
+  group: Scalars['String'];
+  readOnly: Scalars['Boolean'];
+  user: Scalars['String'];
+};
+
 export type AddonBindingStatus = {
   __typename?: 'AddonBindingStatus';
   name: Scalars['String'];
@@ -37,6 +50,7 @@ export enum AddonSource {
 
 export type Cluster = {
   __typename?: 'Cluster';
+  accessors: Array<AccessRef>;
   name: Scalars['ID'];
   status: ClusterStatus;
   tenant: Scalars['ID'];
@@ -89,6 +103,8 @@ export type Mutation = {
   createTenant: Tenant;
   deleteCluster: Scalars['Boolean'];
   installAddon: Scalars['Boolean'];
+  setClusterAccessors: Scalars['Boolean'];
+  setTenantAccessors: Scalars['Boolean'];
   uninstallAddon: Scalars['Boolean'];
 };
 
@@ -118,6 +134,19 @@ export type MutationDeleteClusterArgs = {
 export type MutationInstallAddonArgs = {
   addon: Scalars['String'];
   cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
+export type MutationSetClusterAccessorsArgs = {
+  accessors: Array<AccessRefInput>;
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
+export type MutationSetTenantAccessorsArgs = {
+  accessors: Array<AccessRefInput>;
   tenant: Scalars['ID'];
 };
 
@@ -227,6 +256,7 @@ export enum Role {
 
 export type Tenant = {
   __typename?: 'Tenant';
+  accessors: Array<AccessRef>;
   name: Scalars['ID'];
   observedClusters: Array<NamespacedName>;
   owner: Scalars['String'];
@@ -295,7 +325,7 @@ export type ClusterQueryVariables = Exact<{
 }>;
 
 
-export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: ReleaseTrack, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string } }, clusterInstalledAddons: Array<{ __typename?: 'AddonBindingStatus', phase: AddonPhase, name: string }> };
+export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: ReleaseTrack, status: { __typename?: 'ClusterStatus', kubeVersion: string, kubeURL: string, webURL: string }, accessors: Array<{ __typename?: 'AccessRef', user: string, group: string, readOnly: boolean }> }, clusterInstalledAddons: Array<{ __typename?: 'AddonBindingStatus', phase: AddonPhase, name: string }> };
 
 export type CreateClusterMutationVariables = Exact<{
   tenant: Scalars['ID'];
@@ -312,6 +342,15 @@ export type DeleteClusterMutationVariables = Exact<{
 
 
 export type DeleteClusterMutation = { __typename?: 'Mutation', deleteCluster: boolean };
+
+export type SetClusterAccessorsMutationVariables = Exact<{
+  tenant: Scalars['ID'];
+  cluster: Scalars['ID'];
+  accessors: Array<AccessRefInput> | AccessRefInput;
+}>;
+
+
+export type SetClusterAccessorsMutation = { __typename?: 'Mutation', setClusterAccessors: boolean };
 
 export type KubeConfigQueryVariables = Exact<{
   tenant: Scalars['ID'];
@@ -364,7 +403,7 @@ export type TenantQueryVariables = Exact<{
 }>;
 
 
-export type TenantQuery = { __typename?: 'Query', tenant: { __typename?: 'Tenant', name: string, owner: string, status: { __typename?: 'TenantStatus', phase: TenantPhase } } };
+export type TenantQuery = { __typename?: 'Query', tenant: { __typename?: 'Tenant', name: string, owner: string, status: { __typename?: 'TenantStatus', phase: TenantPhase }, accessors: Array<{ __typename?: 'AccessRef', user: string, group: string, readOnly: boolean }> } };
 
 export type ApproveTenancyMutationVariables = Exact<{
   tenant: Scalars['ID'];
@@ -593,6 +632,11 @@ export const ClusterDocument = gql`
       kubeURL
       webURL
     }
+    accessors {
+      user
+      group
+      readOnly
+    }
   }
   clusterInstalledAddons(tenant: $tenant, cluster: $cluster) {
     phase
@@ -695,6 +739,39 @@ export function useDeleteClusterMutation(baseOptions?: Apollo.MutationHookOption
 export type DeleteClusterMutationHookResult = ReturnType<typeof useDeleteClusterMutation>;
 export type DeleteClusterMutationResult = Apollo.MutationResult<DeleteClusterMutation>;
 export type DeleteClusterMutationOptions = Apollo.BaseMutationOptions<DeleteClusterMutation, DeleteClusterMutationVariables>;
+export const SetClusterAccessorsDocument = gql`
+    mutation setClusterAccessors($tenant: ID!, $cluster: ID!, $accessors: [AccessRefInput!]!) {
+  setClusterAccessors(tenant: $tenant, cluster: $cluster, accessors: $accessors)
+}
+    `;
+export type SetClusterAccessorsMutationFn = Apollo.MutationFunction<SetClusterAccessorsMutation, SetClusterAccessorsMutationVariables>;
+
+/**
+ * __useSetClusterAccessorsMutation__
+ *
+ * To run a mutation, you first call `useSetClusterAccessorsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetClusterAccessorsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setClusterAccessorsMutation, { data, loading, error }] = useSetClusterAccessorsMutation({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      cluster: // value for 'cluster'
+ *      accessors: // value for 'accessors'
+ *   },
+ * });
+ */
+export function useSetClusterAccessorsMutation(baseOptions?: Apollo.MutationHookOptions<SetClusterAccessorsMutation, SetClusterAccessorsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetClusterAccessorsMutation, SetClusterAccessorsMutationVariables>(SetClusterAccessorsDocument, options);
+      }
+export type SetClusterAccessorsMutationHookResult = ReturnType<typeof useSetClusterAccessorsMutation>;
+export type SetClusterAccessorsMutationResult = Apollo.MutationResult<SetClusterAccessorsMutation>;
+export type SetClusterAccessorsMutationOptions = Apollo.BaseMutationOptions<SetClusterAccessorsMutation, SetClusterAccessorsMutationVariables>;
 export const KubeConfigDocument = gql`
     query kubeConfig($tenant: ID!, $cluster: ID!) {
   renderKubeconfig(tenant: $tenant, cluster: $cluster)
@@ -949,6 +1026,11 @@ export const TenantDocument = gql`
     owner
     status {
       phase
+    }
+    accessors {
+      user
+      group
+      readOnly
     }
   }
 }

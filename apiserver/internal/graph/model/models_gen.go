@@ -10,6 +10,12 @@ import (
 	"gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 )
 
+type AccessRefInput struct {
+	User     string `json:"user"`
+	Group    string `json:"group"`
+	ReadOnly bool   `json:"readOnly"`
+}
+
 type AddonBindingStatus struct {
 	Name  string              `json:"name"`
 	Phase v1alpha1.AddonPhase `json:"phase"`
