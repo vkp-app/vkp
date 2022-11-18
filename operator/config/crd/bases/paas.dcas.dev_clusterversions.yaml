@@ -35,6 +35,15 @@ spec:
           spec:
             description: ClusterVersionSpec defines the desired state of ClusterVersion
             properties:
+              chart:
+                properties:
+                  name:
+                    type: string
+                  repository:
+                    type: string
+                  version:
+                    type: string
+                type: object
               image:
                 properties:
                   registry:

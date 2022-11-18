@@ -57,15 +57,15 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv
 			},
 			HelmRelease: &vclusterv1alpha1.VirtualClusterHelmRelease{
 				Chart: vclusterv1alpha1.VirtualClusterHelmChart{
-					Name:    getEnv(EnvChartName, "vcluster"),
-					Repo:    getEnv(EnvChartRepo, "https://charts.loft.sh"),
-					Version: getEnv(EnvChartVersion, "0.12.2"),
+					Name:    getOrDefault(version.Spec.Chart.Name, getEnv(EnvChartName, "vcluster")),
+					Repo:    getOrDefault(version.Spec.Chart.Repository, getEnv(EnvChartRepo, "https://charts.loft.sh")),
+					Version: getOrDefault(version.Spec.Chart.Version, getEnv(EnvChartVersion, "0.13.0")),
 				},
 				Values: values.String(),
 			},
 			// this will be ignored since we're manually setting the image version
 			// above
-			KubernetesVersion: pointer.String(getEnv(EnvKubeVersion, "1.24")),
+			KubernetesVersion: pointer.String(getEnv(EnvKubeVersion, "1.25")),
 		},
 	}, nil
 }
@@ -76,4 +76,14 @@ func getEnv(key, defaultValue string) string {
 		return defaultValue
 	}
 	return val
+}
+
+// getOrDefault returns the first argument if
+// it is a non-empty string. Otherwise, it returns
+// the second argument.
+func getOrDefault(v1, v2 string) string {
+	if v1 != "" {
+		return v1
+	}
+	return v2
 }

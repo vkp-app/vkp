@@ -27,7 +27,14 @@ const LabelTrackRef = "paas.dcas.dev/release-track"
 // ClusterVersionSpec defines the desired state of ClusterVersion
 type ClusterVersionSpec struct {
 	Image ClusterVersionImage `json:"image"`
+	Chart ClusterVersionChart `json:"chart,omitempty"`
 	Track ReleaseTrack        `json:"track"`
+}
+
+type ClusterVersionChart struct {
+	Repository string `json:"repository,omitempty"`
+	Name       string `json:"name,omitempty"`
+	Version    string `json:"version,omitempty"`
 }
 
 type ClusterVersionImage struct {
