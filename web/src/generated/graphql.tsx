@@ -280,6 +280,13 @@ export type User = {
   username: Scalars['String'];
 };
 
+export type TenantAccessQueryVariables = Exact<{
+  tenant: Scalars['ID'];
+}>;
+
+
+export type TenantAccessQuery = { __typename?: 'Query', hasTenantAccess: boolean, tenant: { __typename?: 'Tenant', name: string, owner: string, status: { __typename?: 'TenantStatus', phase: TenantPhase }, accessors: Array<{ __typename?: 'AccessRef', user: string, group: string, readOnly: boolean }> } };
+
 export type AllAddonsQueryVariables = Exact<{
   tenant: Scalars['ID'];
   cluster: Scalars['ID'];
@@ -420,7 +427,60 @@ export type CreateTenantMutationVariables = Exact<{
 
 export type CreateTenantMutation = { __typename?: 'Mutation', createTenant: { __typename?: 'Tenant', name: string } };
 
+export type SetTenantAccessorsMutationVariables = Exact<{
+  tenant: Scalars['ID'];
+  accessors: Array<AccessRefInput> | AccessRefInput;
+}>;
 
+
+export type SetTenantAccessorsMutation = { __typename?: 'Mutation', setTenantAccessors: boolean };
+
+
+export const TenantAccessDocument = gql`
+    query tenantAccess($tenant: ID!) {
+  tenant(tenant: $tenant) {
+    name
+    owner
+    status {
+      phase
+    }
+    accessors {
+      user
+      group
+      readOnly
+    }
+  }
+  hasTenantAccess(tenant: $tenant, write: true)
+}
+    `;
+
+/**
+ * __useTenantAccessQuery__
+ *
+ * To run a query within a React component, call `useTenantAccessQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTenantAccessQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTenantAccessQuery({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *   },
+ * });
+ */
+export function useTenantAccessQuery(baseOptions: Apollo.QueryHookOptions<TenantAccessQuery, TenantAccessQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TenantAccessQuery, TenantAccessQueryVariables>(TenantAccessDocument, options);
+      }
+export function useTenantAccessLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TenantAccessQuery, TenantAccessQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TenantAccessQuery, TenantAccessQueryVariables>(TenantAccessDocument, options);
+        }
+export type TenantAccessQueryHookResult = ReturnType<typeof useTenantAccessQuery>;
+export type TenantAccessLazyQueryHookResult = ReturnType<typeof useTenantAccessLazyQuery>;
+export type TenantAccessQueryResult = Apollo.QueryResult<TenantAccessQuery, TenantAccessQueryVariables>;
 export const AllAddonsDocument = gql`
     query allAddons($tenant: ID!, $cluster: ID!) {
   clusterAddons(tenant: $tenant) {
@@ -1129,6 +1189,38 @@ export function useCreateTenantMutation(baseOptions?: Apollo.MutationHookOptions
 export type CreateTenantMutationHookResult = ReturnType<typeof useCreateTenantMutation>;
 export type CreateTenantMutationResult = Apollo.MutationResult<CreateTenantMutation>;
 export type CreateTenantMutationOptions = Apollo.BaseMutationOptions<CreateTenantMutation, CreateTenantMutationVariables>;
+export const SetTenantAccessorsDocument = gql`
+    mutation setTenantAccessors($tenant: ID!, $accessors: [AccessRefInput!]!) {
+  setTenantAccessors(tenant: $tenant, accessors: $accessors)
+}
+    `;
+export type SetTenantAccessorsMutationFn = Apollo.MutationFunction<SetTenantAccessorsMutation, SetTenantAccessorsMutationVariables>;
+
+/**
+ * __useSetTenantAccessorsMutation__
+ *
+ * To run a mutation, you first call `useSetTenantAccessorsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetTenantAccessorsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setTenantAccessorsMutation, { data, loading, error }] = useSetTenantAccessorsMutation({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      accessors: // value for 'accessors'
+ *   },
+ * });
+ */
+export function useSetTenantAccessorsMutation(baseOptions?: Apollo.MutationHookOptions<SetTenantAccessorsMutation, SetTenantAccessorsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetTenantAccessorsMutation, SetTenantAccessorsMutationVariables>(SetTenantAccessorsDocument, options);
+      }
+export type SetTenantAccessorsMutationHookResult = ReturnType<typeof useSetTenantAccessorsMutation>;
+export type SetTenantAccessorsMutationResult = Apollo.MutationResult<SetTenantAccessorsMutation>;
+export type SetTenantAccessorsMutationOptions = Apollo.BaseMutationOptions<SetTenantAccessorsMutation, SetTenantAccessorsMutationVariables>;
 
       export interface PossibleTypesResultData {
         possibleTypes: {

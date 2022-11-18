@@ -32,3 +32,7 @@ mutation createTenant($tenant: String!) {
         name
     }
 }
+
+mutation setTenantAccessors($tenant: ID!, $accessors: [AccessRefInput!]!) {
+    setTenantAccessors(tenant: $tenant, accessors: $accessors)
+}

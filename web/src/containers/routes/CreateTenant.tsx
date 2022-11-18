@@ -62,7 +62,7 @@ const CreateTenant: React.FC = (): JSX.Element => {
 				<FormGroup>
 					<FormLabel
 						className={classes.formLabel}>
-								Name
+						Name
 					</FormLabel>
 					<TextField
 						size="small"
@@ -78,7 +78,7 @@ const CreateTenant: React.FC = (): JSX.Element => {
 						className={classes.button}
 						disabled={loading}
 						onClick={() => navigate(-1)}>
-							Cancel
+						Cancel
 					</Button>
 					<Button
 						className={classes.button}

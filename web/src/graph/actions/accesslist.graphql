@@ -1,0 +1,15 @@
+query tenantAccess($tenant: ID!) {
+    tenant(tenant: $tenant) {
+        name
+        owner
+        status {
+            phase
+        }
+        accessors {
+            user
+            group
+            readOnly
+        }
+    }
+    hasTenantAccess(tenant: $tenant, write: true)
+}

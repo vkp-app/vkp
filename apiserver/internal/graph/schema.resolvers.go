@@ -312,10 +312,17 @@ func (r *mutationResolver) SetTenantAccessors(ctx context.Context, tenant string
 	}
 	newAccess := make([]paasv1alpha1.AccessRef, len(accessors))
 	for i := range accessors {
+		groupName := accessors[i].Group
+		// add the 'oidc:' prefix if
+		// the user doesn't specify it
+		// themselves
+		if groupName != "" && !strings.HasPrefix(groupName, "oidc:") {
+			groupName = "oidc:" + groupName
+		}
 		newAccess[i] = paasv1alpha1.AccessRef{
 			ReadOnly: accessors[i].ReadOnly,
 			User:     accessors[i].User,
-			Group:    accessors[i].Group,
+			Group:    groupName,
 		}
 	}
 	log.V(1).Info("applying new accessors", "old", tr.Spec.Accessors, "new", newAccess)

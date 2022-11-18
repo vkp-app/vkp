@@ -3,7 +3,7 @@ import {Card, CardHeader, IconButton, ListSubheader} from "@mui/material";
 import {Link, useParams} from "react-router-dom";
 import {ArrowLeft} from "tabler-icons-react";
 import StandardLayout from "../layout/StandardLayout";
-import {AccessRef, useTenantQuery} from "../../generated/graphql";
+import {AccessRef, useSetTenantAccessorsMutation, useTenantAccessQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import AccessorList from "./access/AccessorList";
 
@@ -13,16 +13,27 @@ const TenantAccessorList: React.FC = (): JSX.Element => {
 
 	const tenantName = params["tenant"] || "";
 
-	const tenant = useTenantQuery({
+	const tenant = useTenantAccessQuery({
 		variables: {tenant: tenantName},
 		skip: !tenantName
 	});
 
+	const [setAccessors, setAccessorsResult] = useSetTenantAccessorsMutation();
+
+	const handleSetAccessors = (r: AccessRef[]): void => {
+		setAccessors({
+			variables: {tenant: tenantName, accessors: r}
+		}).then(r => {
+			if (r.data) {
+				void tenant.refetch();
+			}
+		})
+	}
+
 	const accessors = useMemo(() => {
 		if (tenant.data == null)
 			return [];
-		const data = (tenant.data?.tenant.accessors || []) as AccessRef[];
-		return [{user: tenant.data.tenant.owner, group: "", readOnly: false}, ...data];
+		return (tenant.data?.tenant.accessors || []) as AccessRef[];
 	}, [tenant]);
 
 	return <StandardLayout>
@@ -54,9 +65,10 @@ const TenantAccessorList: React.FC = (): JSX.Element => {
 		</Card>
 		<AccessorList
 			accessors={accessors}
-			loading={tenant.loading}
-			error={tenant.error}
-			readOnly={true}
+			loading={setAccessorsResult.loading || tenant.loading}
+			error={setAccessorsResult.error || tenant.error}
+			readOnly={!tenant.data?.hasTenantAccess ?? true}
+			onUpdate={handleSetAccessors}
 		/>
 	</StandardLayout>
 }

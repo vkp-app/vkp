@@ -1,28 +1,53 @@
-import React, {useMemo} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Box, Button, Card, Table, TableBody, TableCell, TableHead, TableRow} from "@mui/material";
 import {ApolloError} from "@apollo/client";
 import {AccessRef} from "../../../generated/graphql";
 import InlineNotFound from "../../alert/InlineNotFound";
+import InlineError from "../../alert/InlineError";
 import AccessorItem from "./AccessorItem";
+import AccessorDialog from "./AccessorDialog";
 
 interface Props {
 	accessors: AccessRef[];
 	loading: boolean;
 	error?: ApolloError;
 	readOnly: boolean;
+	onUpdate: (a: AccessRef[]) => void;
 }
 
-const AccessorList: React.FC<Props> = ({accessors, loading, error, readOnly}): JSX.Element => {
+const AccessorList: React.FC<Props> = ({accessors, loading, error, readOnly, onUpdate}): JSX.Element => {
+	// local state
+	const [showAdd, setShowAdd] = useState<boolean>(false);
+	const [newData, setNewData] = useState<AccessRef[]>(accessors);
+	const [dirty, setDirty] = useState<boolean>(false);
+
+	const handleReset = (): void => {
+		setNewData(() => accessors);
+		setDirty(() => false);
+	}
+
+	const handleUpdate = (): void => {
+		onUpdate(newData);
+	}
+
+	useEffect(() => {
+		handleReset();
+	}, [accessors]);
 
 	const accessData = useMemo(() => {
 		if (loading || error)
 			return [];
-		return accessors.map((c, idx) => <AccessorItem
+		const data = (newData || accessors);
+		return data.map((c, idx) => <AccessorItem
 			key={idx}
 			item={c}
-			readOnly={readOnly}
+			readOnly={readOnly || data.length === 1}
+			onDelete={() => {
+				setNewData((d) => d.filter(i => i !== c));
+				setDirty(() => true);
+			}}
 		/>);
-	}, [loading, error, accessors]);
+	}, [loading, error, accessors, newData]);
 
 	const loadingData = (): JSX.Element[] => {
 		const items = [];
@@ -31,6 +56,7 @@ const AccessorList: React.FC<Props> = ({accessors, loading, error, readOnly}): J
 				key={i}
 				item={null}
 				readOnly
+				onDelete={() => {}}
 			/>);
 		}
 		return items;
@@ -53,6 +79,9 @@ const AccessorList: React.FC<Props> = ({accessors, loading, error, readOnly}): J
 					{loading ? loadingData() : accessData}
 				</TableBody>
 			</Table>
+			{!loading && error && <InlineError
+				error={error}
+			/>}
 			{accessors.length === 0 && <InlineNotFound
 				title="No permissions"
 			/>}
@@ -60,15 +89,31 @@ const AccessorList: React.FC<Props> = ({accessors, loading, error, readOnly}): J
 		<Box
 			sx={{display: "flex", p: 1, pt: 2}}>
 			<Button
-				disabled>
+				disabled={readOnly}
+				onClick={() => setShowAdd(() => true)}>
 				Add
 			</Button>
 			<Box sx={{flexGrow: 1}}/>
 			<Button
-				disabled>
+				disabled={!dirty}
+				onClick={handleReset}>
+				Reset
+			</Button>
+			<Button
+				sx={{ml: 1}}
+				disabled={!dirty}
+				onClick={handleUpdate}>
 				Update
 			</Button>
 		</Box>
+		<AccessorDialog
+			open={showAdd}
+			setOpen={setShowAdd}
+			onAdd={v => {
+				setNewData(d => [...d, v]);
+				setDirty(() => true);
+			}}
+		/>
 	</React.Fragment>
 }
 export default AccessorList;

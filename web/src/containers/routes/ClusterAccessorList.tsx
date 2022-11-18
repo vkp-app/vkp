@@ -55,6 +55,7 @@ const ClusterAccessorList: React.FC = (): JSX.Element => {
 			loading={cluster.loading}
 			error={cluster.error}
 			readOnly={!canEditCluster.data?.hasClusterAccess ?? true}
+			onUpdate={() => {}}
 		/>
 	</StandardLayout>
 }

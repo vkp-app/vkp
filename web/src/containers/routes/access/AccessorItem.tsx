@@ -6,9 +6,10 @@ import {AccessRef} from "../../../generated/graphql";
 interface Props {
 	item: AccessRef | null;
 	readOnly: boolean;
+	onDelete: () => void;
 }
 
-const AccessorItem: React.FC<Props> = ({item, readOnly}): JSX.Element => {
+const AccessorItem: React.FC<Props> = ({item, readOnly, onDelete}): JSX.Element => {
 	const refName = item?.user || item?.group;
 	const refType = item?.user ? "User" : "Group";
 
@@ -37,7 +38,8 @@ const AccessorItem: React.FC<Props> = ({item, readOnly}): JSX.Element => {
 		<TableCell
 			align="right">
 			<IconButton
-				disabled
+				disabled={readOnly}
+				onClick={onDelete}
 				color="error">
 				<Trash/>
 			</IconButton>
