@@ -42,7 +42,6 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element 
 	}
 
 	return <Card
-		variant="outlined"
 		sx={{p: 2}}>
 		<List>
 			<ListItem>

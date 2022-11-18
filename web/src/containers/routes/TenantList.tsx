@@ -83,8 +83,7 @@ const TenantList: React.FC = (): JSX.Element => {
 
 
 	return <StandardLayout>
-		<Card
-			variant="outlined">
+		<Card>
 			<CardHeader
 				title="Tenants"
 				titleTypographyProps={{fontFamily: "Figtree"}}

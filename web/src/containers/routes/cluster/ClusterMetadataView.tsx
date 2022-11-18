@@ -9,7 +9,6 @@ interface Props {
 
 const ClusterMetadataView: React.FC<Props> = ({cluster, loading}): JSX.Element => {
 	return <Card
-		variant="outlined"
 		sx={{p: 2}}>
 		<Alert
 			severity="warning">

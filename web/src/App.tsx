@@ -33,6 +33,8 @@ const useStyles = makeStyles()((theme: Theme) => ({
 	},
 }));
 
+const USE_OUTLINED_MODE = false;
+
 const App: React.FC = (): JSX.Element => {
 	// hooks
 	const {classes} = useStyles();
@@ -47,7 +49,11 @@ const App: React.FC = (): JSX.Element => {
 	const theme = useMemo(() => {
 		return createTheme({
 			palette: {
-				mode: prefersDarkMode ? "dark" : "light"
+				mode: prefersDarkMode ? "dark" : "light",
+				background: {
+					default: prefersDarkMode ? "#1d1d1d" : "#F0F0F4",
+					paper: prefersDarkMode ? "#2d2d2d" : "#ffffff"
+				}
 			},
 			components: {
 				MuiCheckbox: {
@@ -60,7 +66,15 @@ const App: React.FC = (): JSX.Element => {
 						centerRipple: false
 					}
 				},
+				MuiAppBar: {
+					defaultProps: {
+						variant: USE_OUTLINED_MODE ? "outlined" : "elevation"
+					},
+				},
 				MuiCard: {
+					defaultProps: {
+						variant: USE_OUTLINED_MODE ? "outlined" : "elevation"
+					},
 					styleOverrides: {
 						root: ({theme, ownerState}) => ({
 							borderRadius: ownerState.variant === "outlined" ? theme.spacing(2) : undefined

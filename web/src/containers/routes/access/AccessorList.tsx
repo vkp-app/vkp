@@ -64,7 +64,6 @@ const AccessorList: React.FC<Props> = ({accessors, loading, error, readOnly, onU
 
 	return <React.Fragment>
 		<Card
-			variant="outlined"
 			sx={{p: 2, mt: 2}}>
 			<Table>
 				<TableHead>

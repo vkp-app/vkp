@@ -44,7 +44,6 @@ const TenantAccessorList: React.FC = (): JSX.Element => {
 			Back to cluster
 		</ListSubheader>
 		<Card
-			variant="outlined"
 			sx={{p: 2}}>
 			<CardHeader
 				title="Tenant permissions"

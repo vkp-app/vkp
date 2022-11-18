@@ -8,7 +8,7 @@ import InlineError from "../alert/InlineError";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	button: {
-		marginRight: theme.spacing(1)
+		marginLeft: theme.spacing(1)
 	},
 	formLabel: {
 		fontFamily: "Manrope",
@@ -46,8 +46,7 @@ const CreateTenant: React.FC = (): JSX.Element => {
 
 	return <StandardLayout>
 		<Card
-			sx={{p: 2, pl: 0, pt: 0}}
-			variant="outlined">
+			sx={{p: 2, pl: 0, pt: 0}}>
 			<CardHeader
 				title="Request a tenancy"
 				titleTypographyProps={{fontFamily: "Figtree"}}

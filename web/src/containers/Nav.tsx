@@ -21,6 +21,7 @@ import {
 	Avatar,
 	ButtonBase,
 	Divider,
+	Fade,
 	IconButton,
 	ListItem,
 	ListItemButton,
@@ -51,7 +52,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
 		[theme.breakpoints.up("sm")]: {
 			paddingRight: 0
 		},
-		fontFamily: "Manrope",
+		fontFamily: "Figtree",
 		fontWeight: 500,
 		pointerEvents: "none"
 	},
@@ -60,7 +61,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
 		[theme.breakpoints.up("sm")]: {
 			display: "block"
 		},
-		fontFamily: "Manrope",
+		fontFamily: "Figtree",
 		pointerEvents: "none"
 	},
 	sectionDesktop: {
@@ -75,8 +76,8 @@ const useStyles = makeStyles()((theme: Theme) => ({
 		paddingRight: theme.spacing(1)
 	},
 	avatar: {
-		width: 24,
-		height: 24,
+		width: 32,
+		height: 32,
 		margin: theme.spacing(1.5),
 		borderRadius: 0
 	},
@@ -107,6 +108,7 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 
 	// local state
 	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+	const [expanded, setExpanded] = useState<boolean>(false);
 
 	const handleMenuClose = (): void => {
 		setAnchorEl(null);
@@ -115,14 +117,15 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 	return (
 		<div>
 			<AppBar
-				elevation={0}
-				variant="outlined"
+				elevation={2}
 				position="fixed"
 				color="inherit">
 				<Toolbar
 					className={classes.toolbar}
 					variant="dense">
 					<ButtonBase
+						onMouseEnter={() => setExpanded(() => true)}
+						onMouseLeave={() => setExpanded(() => false)}
 						className={classes.brandButton}
 						component={Link}
 						to="/">
@@ -134,16 +137,19 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 						<Typography
 							className={classes.brand}
 							variant="h6"
-							color="textPrimary">
+							color="primary.main">
 							VKP
 						</Typography>
-						<Typography
-							className={classes.brand}
-							sx={{ml: 1}}
-							variant="h6"
-							color="textSecondary">
-							Virtual Kubernetes Platform
-						</Typography>
+						<Fade
+							in={expanded}>
+							<Typography
+								className={classes.brand}
+								sx={{ml: 1}}
+								variant="h6"
+								color="text.secondary">
+								Virtual Kubernetes Platform
+							</Typography>
+						</Fade>
 					</ButtonBase>
 					<div className={classes.grow}/>
 					<div className={classes.sectionDesktop}>
@@ -155,7 +161,7 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 							size="small"
 							color="inherit"
 							to="/help/overview">
-							<Help color={theme.palette.text.secondary}/>
+							<Help color={theme.palette.primary.main}/>
 						</IconButton>
 						<ButtonBase
 							className={classes.brandButton}
@@ -165,12 +171,12 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 							onClick={e => setAnchorEl(e.currentTarget)}>
 							<User
 								size={22}
-								color={theme.palette.text.secondary}
+								color={theme.palette.primary.main}
 							/>
 							<ChevronDown
 								style={{marginLeft: theme.spacing(1)}}
 								size={16}
-								color={theme.palette.text.secondary}
+								color={theme.palette.primary.main}
 							/>
 						</ButtonBase>
 					</div>

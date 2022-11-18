@@ -110,8 +110,7 @@ const ClusterList: React.FC = (): JSX.Element => {
 			</IconButton>
 			Back to tenants
 		</ListSubheader>
-		<Card
-			variant="outlined">
+		<Card>
 			<CardHeader
 				title="Clusters"
 				titleTypographyProps={{fontFamily: "Figtree"}}

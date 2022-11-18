@@ -115,7 +115,6 @@ const ClusterMetricsView: React.FC<Props> = ({cluster, refresh, clusterError}): 
 	}
 
 	return <Card
-		variant="outlined"
 		sx={{p: 2}}>
 		{!loading && (error || clusterError) && <InlineError
 			message="Unable to load cluster metrics"

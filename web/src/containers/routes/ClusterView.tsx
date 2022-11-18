@@ -91,8 +91,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 			Back to clusters
 		</ListSubheader>
 		<Card
-			variant="outlined"
-			sx={{p: 2}}>
+			sx={{p: 2, pt: 0}}>
 			{!loading && error && <InlineError
 				message="Unable to load cluster information"
 				error={error}
@@ -100,7 +99,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 			<List>
 				<ListItem>
 					<ListItemText
-						primaryTypographyProps={{className: classes.title}}
+						primaryTypographyProps={{className: classes.title, textTransform: "capitalize"}}
 						primary={loading ? <Skeleton variant="text" height={50} width="40%"/> : data?.cluster.name}
 						secondary={loading ? <Skeleton variant="text" height={25} width="20%"/> : <ClusterVersionIndicator
 							showLabel

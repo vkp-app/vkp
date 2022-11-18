@@ -49,8 +49,7 @@ const AddonItem: React.FC<Props> = ({item, phase, loading, readOnly, onInstall, 
 	return <Grid2
 		xs={6}>
 		<Card
-			variant="outlined"
-			sx={{maxHeight: 200, minHeight: 200}}>
+			sx={{maxHeight: 250, minHeight: 250, p: 1}}>
 			<CardHeader
 				disableTypography={item == null}
 				title={item?.displayName || <Skeleton

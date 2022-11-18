@@ -35,7 +35,7 @@ import AddonChip from "./addon/AddonChip";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	button: {
-		marginRight: theme.spacing(1)
+		marginLeft: theme.spacing(1)
 	},
 	formLabel: {
 		fontFamily: "Manrope",
@@ -169,8 +169,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 
 	return <StandardLayout>
 		<Card
-			sx={{p: 2, pl: 0, pt: 0}}
-			variant="outlined">
+			sx={{p: 2, pl: 0, pt: 0}}>
 			<CardHeader
 				title="Create a Kubernetes cluster"
 				titleTypographyProps={{fontFamily: "Figtree"}}
