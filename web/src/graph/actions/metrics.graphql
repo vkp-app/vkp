@@ -5,6 +5,7 @@ query metricsCluster($tenant: ID!, $cluster: ID!) {
         format
         values {
             value
+            time
         }
     }
 }

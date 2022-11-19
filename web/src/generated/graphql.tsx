@@ -88,6 +88,7 @@ export enum MetricFormat {
   Bytes = 'Bytes',
   Cpu = 'CPU',
   Plain = 'Plain',
+  Rps = 'RPS',
   Time = 'Time'
 }
 
@@ -399,7 +400,7 @@ export type MetricsClusterQueryVariables = Exact<{
 }>;
 
 
-export type MetricsClusterQuery = { __typename?: 'Query', clusterMetrics: Array<{ __typename?: 'Metric', name: string, metric: string, format: MetricFormat, values: Array<{ __typename?: 'MetricValue', value: string }> }> };
+export type MetricsClusterQuery = { __typename?: 'Query', clusterMetrics: Array<{ __typename?: 'Metric', name: string, metric: string, format: MetricFormat, values: Array<{ __typename?: 'MetricValue', value: string, time: number }> }> };
 
 export type TenantsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1010,6 +1011,7 @@ export const MetricsClusterDocument = gql`
     format
     values {
       value
+      time
     }
   }
 }

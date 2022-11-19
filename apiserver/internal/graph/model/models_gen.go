@@ -50,6 +50,7 @@ const (
 	MetricFormatBytes MetricFormat = "Bytes"
 	MetricFormatCPU   MetricFormat = "CPU"
 	MetricFormatTime  MetricFormat = "Time"
+	MetricFormatRps   MetricFormat = "RPS"
 	MetricFormatPlain MetricFormat = "Plain"
 )
 
@@ -57,12 +58,13 @@ var AllMetricFormat = []MetricFormat{
 	MetricFormatBytes,
 	MetricFormatCPU,
 	MetricFormatTime,
+	MetricFormatRps,
 	MetricFormatPlain,
 }
 
 func (e MetricFormat) IsValid() bool {
 	switch e {
-	case MetricFormatBytes, MetricFormatCPU, MetricFormatTime, MetricFormatPlain:
+	case MetricFormatBytes, MetricFormatCPU, MetricFormatTime, MetricFormatRps, MetricFormatPlain:
 		return true
 	}
 	return false

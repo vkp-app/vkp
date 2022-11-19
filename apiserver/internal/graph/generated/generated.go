@@ -859,6 +859,7 @@ enum MetricFormat {
   Bytes,
   CPU,
   Time,
+  RPS,
   Plain
 }
 

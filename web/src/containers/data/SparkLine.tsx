@@ -37,14 +37,15 @@ interface Props {
 	data: number[];
 	color?: SparklineColours;
 	sx?: SxProps;
-	baseZero?: boolean;
+	selectedIndex?: number;
+	onSetSelectedIndex?: (v?: number) => void;
 }
 
 /**
  * Largely borrowed from https://github.com/Janpot/mui-plus/blob/master/packages/mui-plus/src/Sparkline/Sparkline.tsx
  * @licence MIT
  */
-const SparkLine: React.FC<Props> = ({width = 150, height = 25, data, color = "primary", sx, baseZero = false}): JSX.Element => {
+const SparkLine: React.FC<Props> = ({width = 150, height = 25, data, color = "primary", sx, selectedIndex, onSetSelectedIndex}): JSX.Element => {
 	const margin = 3;
 	const dotRadius = 3;
 
@@ -55,13 +56,17 @@ const SparkLine: React.FC<Props> = ({width = 150, height = 25, data, color = "pr
 	}
 
 	const [scaleX, scaleY] = useMemo(() => {
-		const min = baseZero ? Math.min(0, ...data) : Math.min(...data);
+		const min = Math.min(...data);
 		const max = Math.max(...data);
 		return [
 			scaleLinear(0, data.length, margin, width - margin),
 			scaleLinear(min, max, margin, height - margin),
 		];
 	}, [data, margin, width, height]);
+
+	const selectedX = useMemo(() => {
+		return scaleX(selectedIndex || 0);
+	}, [selectedIndex]);
 
 	const path = [];
 	for (let i = 0; i < data.length; i++) {
@@ -70,11 +75,9 @@ const SparkLine: React.FC<Props> = ({width = 150, height = 25, data, color = "pr
 		);
 	}
 
-	const cx = scaleX(data.length - 1) || 0;
-	const cy = scaleY(data[data.length - 1]) || 0;
-
 	return (
 		<Root
+			onMouseLeave={() => onSetSelectedIndex?.()}
 			className={classes[`${color}Color` as keyof typeof classes]}
 			transform="scale(1,-1)"
 			sx={sx}
@@ -87,7 +90,32 @@ const SparkLine: React.FC<Props> = ({width = 150, height = 25, data, color = "pr
 				stroke="currentcolor"
 				fill="none"
 			/>
-			<circle cx={cx} cy={cy} r={dotRadius} fill="currentcolor"></circle>
+			{selectedIndex != null && <path
+				d={`M${selectedX} 0 L${selectedX} ${height}`}
+				strokeWidth={2}
+				stroke="currentcolor"
+			/>}
+			{data.map((d, i) => {
+				const cx = scaleX(i) || 0;
+				const cy = scaleY(d) || 0;
+				const selected = selectedIndex != null && selectedX === cx;
+				return <React.Fragment
+					key={`${d}${i}`}>
+					<path
+						onMouseEnter={() => onSetSelectedIndex?.(i)}
+						d={`M${cx} 0 L${cx} ${height}`}
+						strokeWidth={10}
+						stroke="transparent"
+					/>
+					{(selected || i === data.length - 1) && <circle
+						onMouseEnter={() => onSetSelectedIndex?.(i)}
+						cx={cx}
+						cy={cy}
+						r={selected ? dotRadius * 2 : dotRadius}
+						fill="currentcolor"
+					/>}
+				</React.Fragment>
+			})}
 		</Root>
 	);
 }
