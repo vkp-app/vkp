@@ -1,5 +1,6 @@
 import React, {useMemo} from "react";
 import {styled, SxProps} from "@mui/material";
+import {FF_METRIC_BASE_ZERO} from "../../App";
 
 const classes = {
 	primaryColor: "primaryColor",
@@ -56,7 +57,7 @@ const SparkLine: React.FC<Props> = ({width = 150, height = 25, data, color = "pr
 	}
 
 	const [scaleX, scaleY] = useMemo(() => {
-		const min = Math.min(...data);
+		const min = FF_METRIC_BASE_ZERO ? Math.min(0, ...data) : Math.min(...data);
 		const max = Math.max(...data);
 		return [
 			scaleLinear(0, data.length, margin, width - margin),

@@ -33,8 +33,10 @@ const useStyles = makeStyles()((theme: Theme) => ({
 	},
 }));
 
-const USE_OUTLINED_MODE = false;
 export const DEFAULT_LOAD_DELAY_MS = 200;
+// todo convert to feature flags (see #28)
+export const FF_USE_OUTLINED_MODE = false;
+export const FF_METRIC_BASE_ZERO = false;
 
 const App: React.FC = (): JSX.Element => {
 	// hooks
@@ -69,12 +71,12 @@ const App: React.FC = (): JSX.Element => {
 				},
 				MuiAppBar: {
 					defaultProps: {
-						variant: USE_OUTLINED_MODE ? "outlined" : "elevation"
+						variant: FF_USE_OUTLINED_MODE ? "outlined" : "elevation"
 					},
 				},
 				MuiCard: {
 					defaultProps: {
-						variant: USE_OUTLINED_MODE ? "outlined" : "elevation"
+						variant: FF_USE_OUTLINED_MODE ? "outlined" : "elevation"
 					},
 					styleOverrides: {
 						root: ({theme, ownerState}) => ({
