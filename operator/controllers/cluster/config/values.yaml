@@ -12,6 +12,10 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 12345
 {{- end }}
+podAnnotations:
+  paas.dcas.dev/metric-target: "{{ .Name }}"
+podLabels:
+  paas.dcas.dev/metric-target: "{{ .Name }}"
 sync:
   ingresses:
     enabled: true
@@ -65,6 +69,8 @@ plugin:
     env:
       - name: VCLUSTER_CLUSTER_DOMAIN
         value: "{{ .Ingress.Host }}"
+      - name: VCLUSTER_CLUSTER_NAME
+        value: "{{ .Name }}"
   glass-sync:
     image: dev.local/kube-glass/vcluster-plugin-sync:latest
     imagePullPolicy: Never

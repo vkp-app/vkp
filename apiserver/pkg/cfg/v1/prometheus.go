@@ -19,17 +19,17 @@ func NewPrometheusConfig() PrometheusConfig {
 		ClusterMetrics: []PrometheusMetric{
 			{
 				Name:   "Memory usage",
-				Metric: `sum by (namespace) (container_memory_usage_bytes{namespace="%s", pod=~".*-%s|%s-.+"})`,
+				Metric: `sum by (namespace) (topk(1, container_memory_usage_bytes{namespace="{namespace}"}) * on (pod,namespace) group_right kube_pod_labels{label_paas_dcas_dev_metric_target="{cluster}"})`,
 				Format: model.MetricFormatBytes,
 			},
 			{
 				Name:   "CPU usage",
-				Metric: `sum(rate(container_cpu_usage_seconds_total{namespace="%s", pod=~".*-%s|%s-.+"}[1m])) by (namespace)`,
+				Metric: `sum(rate(container_cpu_usage_seconds_total{namespace="{namespace}", pod=~".*-{cluster}|{cluster}-.+"}[1m])) by (namespace)`,
 				Format: model.MetricFormatCPU,
 			},
 			{
 				Name:   "Pod count",
-				Metric: `sum by (namespace) (kube_pod_status_ready{namespace="%s", pod=~".*-%s|%s-.+", condition="true"})`,
+				Metric: `sum by (namespace) (kube_pod_status_ready{namespace="{namespace}", condition="true"} * on (pod,namespace) group_right kube_pod_labels{label_paas_dcas_dev_metric_target="{cluster}"})`,
 				Format: model.MetricFormatPlain,
 			},
 			{

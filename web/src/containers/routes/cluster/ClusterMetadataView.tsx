@@ -29,12 +29,6 @@ const ClusterMetadataView: React.FC<Props> = ({cluster, loading}): JSX.Element =
 			</ListItem>
 			<ListItem>
 				<ListItemText
-					primary="Management API"
-					secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : "VCluster"}
-				/>
-			</ListItem>
-			<ListItem>
-				<ListItemText
 					primary="Management namespace"
 					secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : cluster?.tenant || "Unknown"}
 				/>

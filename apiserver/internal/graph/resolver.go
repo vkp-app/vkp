@@ -3,7 +3,6 @@ package graph
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/go-logr/logr"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	prommodel "github.com/prometheus/common/model"
@@ -11,6 +10,7 @@ import (
 	v1 "gitlab.dcas.dev/k8s/kube-glass/apiserver/pkg/cfg/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 	"time"
 )
 
@@ -37,12 +37,18 @@ type Resolver struct {
 }
 
 func (r *Resolver) GetMetrics(ctx context.Context, tenant, cluster string) ([]model.Metric, error) {
+	srp := strings.NewReplacer(
+		"{namespace}", tenant,
+		"{cluster}", cluster,
+	)
 	var metrics []model.Metric
 	for _, m := range r.PrometheusConfig.ClusterMetrics {
-		metric := fmt.Sprintf(m.Metric, tenant, cluster, cluster)
-		values, err := r.GetMetric(ctx, metric)
-		if err != nil {
-			continue
+		metric := srp.Replace(m.Metric)
+		// fetch metrics from prometheus. If there's
+		// an error, swallow it and return an empty list
+		values, _ := r.GetMetric(ctx, metric)
+		if values == nil {
+			values = []model.MetricValue{}
 		}
 		metrics = append(metrics, model.Metric{
 			Name:   m.Name,
