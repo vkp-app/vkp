@@ -34,7 +34,7 @@ func NewPrometheusConfig() PrometheusConfig {
 			},
 			{
 				Name:   "Request volume",
-				Metric: `sum by (exported_namespace) (irate(nginx_ingress_controller_requests{exported_namespace="%s", exported_service=~".*-%s|%s-.+"}[2m]))`,
+				Metric: `sum by (exported_namespace) (irate(nginx_ingress_controller_requests{exported_namespace="{namespace}", exported_service=~".*-{cluster}|{cluster}-.+"}[2m]))`,
 				Format: model.MetricFormatRps,
 			},
 		},
