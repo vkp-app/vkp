@@ -15,7 +15,8 @@ import {
 	Theme
 } from "@mui/material";
 import {makeStyles} from "tss-react/mui";
-import {ExternalLink} from "tabler-icons-react";
+import Icon from "@mdi/react";
+import {mdiOpenInNew} from "@mdi/js";
 import InlineError from "../alert/InlineError";
 import {Cluster, useCanEditClusterQuery, useClusterQuery, useKubeConfigLazyQuery} from "../../generated/graphql";
 import StandardLayout from "../layout/StandardLayout";
@@ -132,8 +133,9 @@ const ClusterView: React.FC = (): JSX.Element => {
 					<ListItemSecondaryAction>
 						<Button
 							disabled={loading || !data?.cluster.status.webURL || installedAddons.find(i => i.startsWith(`${clusterName}-dashboard-`)) == null}
-							startIcon={<ExternalLink
-								size={18}
+							startIcon={<Icon
+								path={mdiOpenInNew}
+								size={0.7}
 							/>}
 							href={`https://${data?.cluster.status.webURL}`}
 							target="_blank">

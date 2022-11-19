@@ -16,6 +16,7 @@ import AddonList from "./containers/routes/AddonList";
 import CreateTenant from "./containers/routes/CreateTenant";
 import ClusterAccessorList from "./containers/routes/ClusterAccessorList";
 import TenantAccessorList from "./containers/routes/TenantAccessorList";
+import About from "./containers/routes/About";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -145,6 +146,15 @@ const App: React.FC = (): JSX.Element => {
 							fontWeight: 500
 						}
 					}
+				},
+				MuiPopover: {
+					defaultProps: {
+						PaperProps: {
+							variant: FF_USE_OUTLINED_MODE ? "outlined" : "elevation",
+							elevation: FF_USE_OUTLINED_MODE ? 0 : 4,
+							sx: {minWidth: 200}
+						}
+					}
 				}
 			}
 		});
@@ -198,6 +208,10 @@ const App: React.FC = (): JSX.Element => {
 							<Route
 								path="/new/tenant"
 								element={<CreateTenant/>}
+							/>
+							<Route
+								path="/about"
+								element={<About/>}
 							/>
 							<Route
 								path={"/*"}

@@ -35,7 +35,8 @@ import {
 import {Link} from "react-router-dom";
 import {useTheme} from "@mui/material/styles";
 import {makeStyles} from "tss-react/mui";
-import {ChevronDown, Help, User} from "tabler-icons-react";
+import Icon from "@mdi/react";
+import {mdiAccountCircle, mdiChevronDown, mdiHelpCircle} from "@mdi/js";
 import {useCurrentUserQuery} from "../generated/graphql";
 
 const useStyles = makeStyles()((theme: Theme) => ({
@@ -161,7 +162,11 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 							size="small"
 							color="inherit"
 							to="/help/overview">
-							<Help color={theme.palette.primary.main}/>
+							<Icon
+								path={mdiHelpCircle}
+								size={1}
+								color={theme.palette.primary.main}
+							/>
 						</IconButton>
 						<ButtonBase
 							className={classes.brandButton}
@@ -169,13 +174,15 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 							focusRipple
 							disabled={loading}
 							onClick={e => setAnchorEl(e.currentTarget)}>
-							<User
-								size={22}
+							<Icon
+								path={mdiAccountCircle}
+								size={1}
 								color={theme.palette.primary.main}
 							/>
-							<ChevronDown
-								style={{marginLeft: theme.spacing(1)}}
-								size={16}
+							<Icon
+								style={{marginLeft: theme.spacing(0.5)}}
+								path={mdiChevronDown}
+								size={1}
 								color={theme.palette.primary.main}
 							/>
 						</ButtonBase>
@@ -184,7 +191,6 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 			</AppBar>
 			<Popover
 				sx={{mt: 1.5}}
-				PaperProps={{variant: "outlined", elevation: 0, sx: {minWidth: 200}}}
 				anchorEl={anchorEl}
 				anchorOrigin={{vertical: "bottom", horizontal: "right"}}
 				transformOrigin={{vertical: "top", horizontal: "right"}}
@@ -218,6 +224,13 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 					to="/profile/preferences"
 					disabled={!data}>
 					Preferences
+				</MenuItem>
+				<MenuItem
+					sx={{fontSize: 14}}
+					onClick={handleMenuClose}
+					component={Link}
+					to="/about">
+					About
 				</MenuItem>
 			</Popover>
 		</div>

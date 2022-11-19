@@ -1,6 +1,7 @@
 import React from "react";
 import {Checkbox, IconButton, Skeleton, TableCell, TableRow} from "@mui/material";
-import {Trash} from "tabler-icons-react";
+import Icon from "@mdi/react";
+import {mdiDelete} from "@mdi/js";
 import {AccessRef} from "../../../generated/graphql";
 
 interface Props {
@@ -41,7 +42,10 @@ const AccessorItem: React.FC<Props> = ({item, readOnly, onDelete}): JSX.Element 
 				disabled={readOnly}
 				onClick={onDelete}
 				color="error">
-				<Trash/>
+				<Icon
+					path={mdiDelete}
+					size={1}
+				/>
 			</IconButton>
 		</TableCell>
 	</TableRow>

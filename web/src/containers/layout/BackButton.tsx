@@ -1,7 +1,8 @@
 import {FormControlLabel, IconButton, ListSubheader, Typography} from "@mui/material";
 import {Link} from "react-router-dom";
-import {ArrowLeft} from "tabler-icons-react";
 import React from "react";
+import Icon from "@mdi/react";
+import {mdiArrowLeft} from "@mdi/js";
 
 interface Props {
 	title: string;
@@ -18,8 +19,9 @@ const BackButton: React.FC<Props> = ({title, to}): JSX.Element => {
 				size="small"
 				component={Link}
 				to={to}>
-				<ArrowLeft
-					size={18}
+				<Icon
+					path={mdiArrowLeft}
+					size={0.75}
 				/>
 			</IconButton>}
 			label={<Typography

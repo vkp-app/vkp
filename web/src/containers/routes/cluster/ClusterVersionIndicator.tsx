@@ -1,7 +1,8 @@
 import {Box, IconButton, Link, Tooltip} from "@mui/material";
 import React, {ReactNode, useEffect, useMemo, useState} from "react";
-import {AlertCircle, CircleCheck, InfoCircle} from "tabler-icons-react";
 import {useTheme} from "@mui/material/styles";
+import Icon from "@mdi/react";
+import {mdiAlertCircle, mdiCheckCircle, mdiInformation} from "@mdi/js";
 import {KUBERNETES_VERSION_LATEST, KUBERNETES_VERSION_MAX, KUBERNETES_VERSION_MIN} from "../../../config/constants";
 
 interface Props {
@@ -31,22 +32,22 @@ const ClusterVersionIndicator: React.FC<Props> = ({version, platform, showLabel 
 	useEffect(() => {
 		if (num === KUBERNETES_VERSION_LATEST) {
 			setTooltip(() => "Cluster is up-to-date");
-			setIcon(() => <CircleCheck size={18} color={theme.palette.success.main}/>);
+			setIcon(() => <Icon path={mdiCheckCircle} size={0.7} color={theme.palette.success.main}/>);
 		}
 		else if (num > KUBERNETES_VERSION_LATEST && num <= KUBERNETES_VERSION_MAX) {
 			setTooltip(() => "Cluster is ahead of the stable release");
-			setIcon(() => <InfoCircle size={18} color={theme.palette.info.main}/>);
+			setIcon(() => <Icon path={mdiInformation} size={0.7} color={theme.palette.info.main}/>);
 		}
 		else if (num >= KUBERNETES_VERSION_MIN && num < KUBERNETES_VERSION_LATEST) {
 			setTooltip(() => "Cluster is behind the stable release");
-			setIcon(() => <InfoCircle size={18} color={theme.palette.warning.main}/>);
+			setIcon(() => <Icon path={mdiInformation} size={0.7} color={theme.palette.warning.main}/>);
 		}
 		else if (num > 0 && num < KUBERNETES_VERSION_MIN) {
 			setTooltip(() => "Cluster is running an un-supported version of Kubernetes");
-			setIcon(() => <AlertCircle size={18} color={theme.palette.error.main}/>);
+			setIcon(() => <Icon path={mdiAlertCircle} size={0.7} color={theme.palette.error.main}/>);
 		} else {
 			setTooltip(() => "Unknown or unsupported version");
-			setIcon(() => <AlertCircle size={18} color={theme.palette.text.secondary}/>);
+			setIcon(() => <Icon path={mdiAlertCircle} size={0.7} color={theme.palette.text.secondary}/>);
 		}
 	}, [num]);
 

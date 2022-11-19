@@ -26,8 +26,9 @@ import {
 import {makeStyles} from "tss-react/mui";
 import {useNavigate, useParams} from "react-router-dom";
 import {useTheme} from "@mui/material/styles";
-import {Circles, CircleSquare, Hexagon, Icon, TriangleSquareCircle} from "tabler-icons-react";
 import Grid2 from "@mui/material/Unstable_Grid2";
+import {mdiHexagonMultiple, mdiHexagonSlice6, mdiSquareCircle, mdiSquareOpacity} from "@mdi/js";
+import Icon from "@mdi/react";
 import StandardLayout from "../layout/StandardLayout";
 import {ReleaseTrack, useCreateClusterMutation} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
@@ -49,7 +50,7 @@ interface TrackItem {
 	label: string;
 	description: string;
 	colour: string;
-	icon: Icon;
+	icon: string;
 	track: ReleaseTrack;
 }
 
@@ -58,28 +59,28 @@ const TRACKS = (theme: Theme): TrackItem[] => [
 		label: "Stable",
 		description: "Prioritise stability over new features. Updates are released on a less-frequent basis (excluding security updates) once faster tracks have extensively validated features.",
 		colour: theme.palette.success.main,
-		icon: Hexagon,
+		icon: mdiHexagonSlice6,
 		track: ReleaseTrack.Stable
 	},
 	{
 		label: "Regular (recommended)",
 		description: "Access features reasonably soon after upstream release but after they have had some time to be validated in the Rapid and Beta tracks. Offers a balance between stability and new features and is recommended for most users.",
 		colour: theme.palette.primary.main,
-		icon: CircleSquare,
+		icon: mdiHexagonMultiple,
 		track: ReleaseTrack.Regular
 	},
 	{
 		label: "Rapid",
 		description: "Access features as they are released upstream. The cluster will be updated frequently to stay on the latest version, and deliver new Kubernetes features and capability.",
 		colour: theme.palette.warning.main,
-		icon: Circles,
+		icon: mdiSquareCircle,
 		track: ReleaseTrack.Rapid
 	},
 	{
 		label: "Beta",
 		description: "New versions and features hot off the press through the use of Release Candidate versions provided by the upstream. This track should not be used in a production capacity as normal SLAs can not be guaranteed.",
 		colour: theme.palette.error.main,
-		icon: TriangleSquareCircle,
+		icon: mdiSquareOpacity,
 		track: ReleaseTrack.Beta
 	}
 ];
@@ -253,8 +254,10 @@ const CreateCluster: React.FC = (): JSX.Element => {
 										key={t.label}>
 										<StepButton
 											disableRipple
-											icon={<t.icon
+											icon={<Icon
+												path={t.icon}
 												color={t.colour}
+												size={1}
 											/>}
 											onClick={() => {
 												setTrack(() => t.track);
