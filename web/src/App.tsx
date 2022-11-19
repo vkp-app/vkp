@@ -17,6 +17,7 @@ import CreateTenant from "./containers/routes/CreateTenant";
 import ClusterAccessorList from "./containers/routes/ClusterAccessorList";
 import TenantAccessorList from "./containers/routes/TenantAccessorList";
 import About from "./containers/routes/About";
+import {FF_BANNER_ENABLED, FF_BANNER_HEIGHT} from "./config/constants";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -27,7 +28,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
 		alignItems: "center",
 		justifyContent: "flex-end",
 		padding: theme.spacing(0, 1),
-		height: 48
+		height: 48 + (FF_BANNER_ENABLED ? FF_BANNER_HEIGHT : 0)
 	},
 	content: {
 		flexGrow: 1
@@ -73,7 +74,7 @@ const App: React.FC = (): JSX.Element => {
 				MuiAppBar: {
 					defaultProps: {
 						variant: FF_USE_OUTLINED_MODE ? "outlined" : "elevation"
-					},
+					}
 				},
 				MuiCard: {
 					defaultProps: {

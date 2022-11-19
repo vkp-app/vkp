@@ -19,6 +19,7 @@ import React, {useState} from "react";
 import {
 	AppBar,
 	Avatar,
+	Box,
 	ButtonBase,
 	Divider,
 	Fade,
@@ -38,6 +39,7 @@ import {makeStyles} from "tss-react/mui";
 import Icon from "@mdi/react";
 import {mdiAccountCircle, mdiChevronDown, mdiHelpCircle} from "@mdi/js";
 import {useCurrentUserQuery} from "../generated/graphql";
+import {FF_BANNER_COLOUR, FF_BANNER_ENABLED, FF_BANNER_HEIGHT, FF_BANNER_TEXT} from "../config/constants";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	grow: {
@@ -95,6 +97,14 @@ const useStyles = makeStyles()((theme: Theme) => ({
 		justifyContent: "flex-end",
 		padding: theme.spacing(0, 1)
 	},
+	banner: {
+		display: "flex",
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: FF_BANNER_COLOUR,
+		width: "100%",
+		height: `${FF_BANNER_HEIGHT}px`
+	}
 }));
 
 interface NavProps {
@@ -121,6 +131,13 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 				elevation={2}
 				position="fixed"
 				color="inherit">
+				{FF_BANNER_ENABLED && <Box
+					className={classes.banner}>
+					<Typography
+						sx={{fontWeight: 500, color: theme.palette.getContrastText(FF_BANNER_COLOUR)}}>
+						{FF_BANNER_TEXT}
+					</Typography>
+				</Box>}
 				<Toolbar
 					className={classes.toolbar}
 					variant="dense">
