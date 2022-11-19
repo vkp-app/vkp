@@ -16,6 +16,7 @@ import StandardLayout from "../layout/StandardLayout";
 import InlineNotFound from "../alert/InlineNotFound";
 import {Tenant, useTenantsQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
+import Loadable from "../data/Loadable";
 
 const TenantList: React.FC = (): JSX.Element => {
 	// hooks
@@ -102,7 +103,11 @@ const TenantList: React.FC = (): JSX.Element => {
 					</TableRow>
 				</TableHead>
 				<TableBody>
-					{loading ? loadingData() : tenants}
+					<Loadable
+						data={tenants}
+						skeleton={loadingData()}
+						loading={loading}
+					/>
 				</TableBody>
 			</Table>
 			{!loading && error && <InlineError

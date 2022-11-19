@@ -12,6 +12,7 @@ import {
 	useUninstallAddonMutation
 } from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
+import Loadable from "../data/Loadable";
 import AddonItem from "./addon/AddonItem";
 
 const AddonList: React.FC = (): JSX.Element => {
@@ -111,7 +112,7 @@ const AddonList: React.FC = (): JSX.Element => {
 			sx={{mt: 2}}
 			container
 			spacing={2}>
-			{addons.loading ? loadingData() : addonData}
+			<Loadable data={addonData} skeleton={loadingData()} loading={addons.loading}/>
 		</Grid2>
 	</StandardLayout>
 }

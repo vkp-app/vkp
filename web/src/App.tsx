@@ -34,6 +34,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
 }));
 
 const USE_OUTLINED_MODE = false;
+export const DEFAULT_LOAD_DELAY_MS = 200;
 
 const App: React.FC = (): JSX.Element => {
 	// hooks

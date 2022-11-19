@@ -4,6 +4,7 @@ import {ApolloError} from "@apollo/client";
 import {AccessRef} from "../../../generated/graphql";
 import InlineNotFound from "../../alert/InlineNotFound";
 import InlineError from "../../alert/InlineError";
+import Loadable from "../../data/Loadable";
 import AccessorItem from "./AccessorItem";
 import AccessorDialog from "./AccessorDialog";
 
@@ -75,7 +76,7 @@ const AccessorList: React.FC<Props> = ({accessors, loading, error, readOnly, onU
 					</TableRow>
 				</TableHead>
 				<TableBody>
-					{loading ? loadingData() : accessData}
+					<Loadable data={accessData} skeleton={loadingData()} loading={loading}/>
 				</TableBody>
 			</Table>
 			{!loading && error && <InlineError

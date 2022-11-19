@@ -21,6 +21,7 @@ import StandardLayout from "../layout/StandardLayout";
 import InlineNotFound from "../alert/InlineNotFound";
 import {Cluster, TenantPhase, useApproveTenancyMutation, useClusterListQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
+import Loadable from "../data/Loadable";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 
 const ClusterList: React.FC = (): JSX.Element => {
@@ -150,7 +151,7 @@ const ClusterList: React.FC = (): JSX.Element => {
 					</TableRow>
 				</TableHead>
 				<TableBody>
-					{clusterList.loading ? loadingData() : clusterData}
+					<Loadable data={clusterData} skeleton={loadingData()} loading={clusterList.loading}/>
 				</TableBody>
 			</Table>
 			{!clusterList.loading && clusterList.error && <InlineError

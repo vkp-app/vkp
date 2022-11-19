@@ -1,22 +1,13 @@
 import React from "react";
-import {Box, Link as MuiLink, Typography} from "@mui/material";
-import {Link} from "react-router-dom";
+import {Box} from "@mui/material";
+import {Navigate} from "react-router-dom";
 import StandardLayout from "../layout/StandardLayout";
 
 const Home: React.FC = (): JSX.Element => {
 	return <StandardLayout>
 		<Box
 			sx={{p: 2}}>
-			<Typography>
-				This page is a dummy that will be overwritten by a branding page.
-				<br/>
-				You&apos;re probably looking for&nbsp;
-				<MuiLink
-					component={Link}
-					to="/tenants">
-					/tenants
-				</MuiLink>
-			</Typography>
+			<Navigate to="/tenants"/>
 		</Box>
 	</StandardLayout>
 }

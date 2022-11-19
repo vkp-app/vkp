@@ -128,7 +128,7 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 						onMouseLeave={() => setExpanded(() => false)}
 						className={classes.brandButton}
 						component={Link}
-						to="/">
+						to="/tenants">
 						<Avatar
 							className={classes.avatar}
 							src="/src/img/kubernetes-icon-color.svg"
