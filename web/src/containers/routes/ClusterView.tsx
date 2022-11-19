@@ -5,7 +5,6 @@ import {
 	Card,
 	CircularProgress,
 	FormControlLabel,
-	IconButton,
 	List,
 	ListItem,
 	ListItemSecondaryAction,
@@ -16,10 +15,11 @@ import {
 	Theme
 } from "@mui/material";
 import {makeStyles} from "tss-react/mui";
-import {ArrowLeft, ExternalLink} from "tabler-icons-react";
+import {ExternalLink} from "tabler-icons-react";
 import InlineError from "../alert/InlineError";
 import {Cluster, useCanEditClusterQuery, useClusterQuery, useKubeConfigLazyQuery} from "../../generated/graphql";
 import StandardLayout from "../layout/StandardLayout";
+import BackButton from "../layout/BackButton";
 import ClusterMetadataView from "./cluster/ClusterMetadataView";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 import ClusterMetricsView from "./cluster/ClusterMetricsView";
@@ -77,19 +77,10 @@ const ClusterView: React.FC = (): JSX.Element => {
 	}
 
 	return <StandardLayout>
-		<ListSubheader
-			sx={{display: "flex", alignItem: "center"}}>
-			<IconButton
-				size="small"
-				centerRipple={false}
-				component={Link}
-				to={`/clusters/${tenantName}`}>
-				<ArrowLeft
-					size={18}
-				/>
-			</IconButton>
-			Back to clusters
-		</ListSubheader>
+		<BackButton
+			title="Back to clusters"
+			to={`/clusters/${tenantName}`}
+		/>
 		<Card
 			sx={{p: 2, pt: 0}}>
 			{!loading && error && <InlineError

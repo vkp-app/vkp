@@ -1,7 +1,6 @@
 import React from "react";
-import {Card, CardHeader, IconButton, ListSubheader} from "@mui/material";
-import {Link, useParams} from "react-router-dom";
-import {ArrowLeft} from "tabler-icons-react";
+import {Card, CardHeader} from "@mui/material";
+import {useParams} from "react-router-dom";
 import StandardLayout from "../layout/StandardLayout";
 import {
 	AccessRef,
@@ -10,6 +9,7 @@ import {
 	useSetClusterAccessorsMutation
 } from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
+import BackButton from "../layout/BackButton";
 import AccessorList from "./access/AccessorList";
 
 const ClusterAccessorList: React.FC = (): JSX.Element => {
@@ -41,18 +41,10 @@ const ClusterAccessorList: React.FC = (): JSX.Element => {
 	}
 
 	return <StandardLayout>
-		<ListSubheader
-			sx={{display: "flex", alignItem: "center"}}>
-			<IconButton
-				size="small"
-				component={Link}
-				to={`/clusters/${tenantName}/cluster/${clusterName}`}>
-				<ArrowLeft
-					size={18}
-				/>
-			</IconButton>
-			Back to cluster
-		</ListSubheader>
+		<BackButton
+			title="Back to cluster"
+			to={`/clusters/${tenantName}/cluster/${clusterName}`}
+		/>
 		<Card
 			sx={{p: 2}}>
 			<CardHeader

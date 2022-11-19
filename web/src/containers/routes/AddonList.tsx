@@ -1,7 +1,6 @@
 import React, {useMemo} from "react";
-import {Card, CardHeader, IconButton, ListSubheader} from "@mui/material";
-import {Link, useParams} from "react-router-dom";
-import {ArrowLeft} from "tabler-icons-react";
+import {Card, CardHeader} from "@mui/material";
+import {useParams} from "react-router-dom";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import StandardLayout from "../layout/StandardLayout";
 import {
@@ -13,6 +12,7 @@ import {
 } from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import Loadable from "../data/Loadable";
+import BackButton from "../layout/BackButton";
 import AddonItem from "./addon/AddonItem";
 
 const AddonList: React.FC = (): JSX.Element => {
@@ -82,19 +82,10 @@ const AddonList: React.FC = (): JSX.Element => {
 	}
 
 	return <StandardLayout>
-		<ListSubheader
-			sx={{display: "flex", alignItem: "center"}}>
-			<IconButton
-				size="small"
-				centerRipple={false}
-				component={Link}
-				to={`/clusters/${tenantName}/cluster/${clusterName}`}>
-				<ArrowLeft
-					size={18}
-				/>
-			</IconButton>
-			Back to cluster
-		</ListSubheader>
+		<BackButton
+			title="Back to cluster"
+			to={`/clusters/${tenantName}/cluster/${clusterName}`}
+		/>
 		<Card
 			sx={{p: 2}}>
 			<CardHeader

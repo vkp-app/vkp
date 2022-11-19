@@ -5,9 +5,7 @@ import {
 	Card,
 	CardHeader,
 	Collapse,
-	IconButton,
 	Link as MuiLink,
-	ListSubheader,
 	Skeleton,
 	Table,
 	TableBody,
@@ -16,12 +14,12 @@ import {
 	TableRow
 } from "@mui/material";
 import {Link, useNavigate, useParams} from "react-router-dom";
-import {ArrowLeft} from "tabler-icons-react";
 import StandardLayout from "../layout/StandardLayout";
 import InlineNotFound from "../alert/InlineNotFound";
 import {Cluster, TenantPhase, useApproveTenancyMutation, useClusterListQuery} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
 import Loadable from "../data/Loadable";
+import BackButton from "../layout/BackButton";
 import ClusterVersionIndicator from "./cluster/ClusterVersionIndicator";
 
 const ClusterList: React.FC = (): JSX.Element => {
@@ -98,19 +96,10 @@ const ClusterList: React.FC = (): JSX.Element => {
 
 
 	return <StandardLayout>
-		<ListSubheader
-			sx={{display: "flex", alignItem: "center"}}>
-			<IconButton
-				size="small"
-				centerRipple={false}
-				component={Link}
-				to="/tenants">
-				<ArrowLeft
-					size={18}
-				/>
-			</IconButton>
-			Back to tenants
-		</ListSubheader>
+		<BackButton
+			title="Back to tenants"
+			to="/tenants"
+		/>
 		<Card>
 			<CardHeader
 				title="Clusters"
