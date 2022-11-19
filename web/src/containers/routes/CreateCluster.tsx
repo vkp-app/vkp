@@ -244,7 +244,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 								Release track
 							</FormLabel>
 							<Card
-								sx={{p: 2}}
+								sx={{p: 2, borderRadius: 2}}
 								variant="outlined">
 								<Stepper
 									nonLinear
