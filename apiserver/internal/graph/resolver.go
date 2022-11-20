@@ -9,6 +9,7 @@ import (
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
 	v1 "gitlab.dcas.dev/k8s/kube-glass/apiserver/pkg/cfg/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
@@ -30,10 +31,34 @@ type Resolver struct {
 	client.Client
 	Scheme *runtime.Scheme
 
-	Prometheus       promv1.API
-	PrometheusConfig *v1.PrometheusConfig
+	prometheusAPI    promv1.API
+	prometheusConfig *v1.PrometheusConfig
 
-	DexURL string
+	dexURL string
+	dexCA  string
+}
+
+func NewResolver(ctx context.Context, client client.Client, scheme *runtime.Scheme, prometheus promv1.API, prometheusConfig *v1.PrometheusConfig, dexURL string, dexCA string) (*Resolver, error) {
+	log := logr.FromContextOrDiscard(ctx)
+	var caData string
+	if dexCA != "" {
+		log.Info("reading dex CA file", "path", dexCA)
+		data, err := os.ReadFile(dexCA)
+		if err != nil {
+			log.Error(err, "failed to read dex CA file", "path", dexCA)
+			return nil, err
+		}
+		caData = string(data)
+	}
+
+	return &Resolver{
+		Client:           client,
+		Scheme:           scheme,
+		prometheusAPI:    prometheus,
+		prometheusConfig: prometheusConfig,
+		dexURL:           dexURL,
+		dexCA:            caData,
+	}, nil
 }
 
 func (r *Resolver) GetMetrics(ctx context.Context, tenant, cluster string) ([]model.Metric, error) {
@@ -42,7 +67,7 @@ func (r *Resolver) GetMetrics(ctx context.Context, tenant, cluster string) ([]mo
 		"{cluster}", cluster,
 	)
 	var metrics []model.Metric
-	for _, m := range r.PrometheusConfig.ClusterMetrics {
+	for _, m := range r.prometheusConfig.ClusterMetrics {
 		metric := srp.Replace(m.Metric)
 		// fetch metrics from prometheus. If there's
 		// an error, swallow it and return an empty list
@@ -64,7 +89,7 @@ func (r *Resolver) GetMetric(ctx context.Context, promQL string) ([]model.Metric
 	log := logr.FromContextOrDiscard(ctx)
 	log.V(1).Info("preparing prometheus query", "promql", promQL)
 
-	resp, _, err := r.Prometheus.QueryRange(ctx, promQL, promv1.Range{
+	resp, _, err := r.prometheusAPI.QueryRange(ctx, promQL, promv1.Range{
 		Start: time.Now().Add(-time.Hour),
 		End:   time.Now(),
 		Step:  time.Minute,

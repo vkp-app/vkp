@@ -35,5 +35,7 @@ type ValuesIngress struct {
 }
 
 type ValuesIDP struct {
-	URL string
+	URL        string
+	SecretName string
+	CustomCA   bool
 }

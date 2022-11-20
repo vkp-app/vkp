@@ -50,6 +50,7 @@ func main() {
 	fPrometheusMetrics := flag.Bool("prometheus-metrics", true, "Flag to indicate if Prometheus metrics should be exported.")
 
 	fDexURL := flag.String("dex-url", "", "URL of the Dex instance.")
+	fDexCA := flag.String("dex-ca-file", "", "File that contains the Certificate Authority for Dex. Will fallback to the Kubernetes API CA if not set.")
 
 	flag.Parse()
 
@@ -96,12 +97,11 @@ func main() {
 	}
 
 	// configure graphql
-	resolver := &graph.Resolver{
-		Client:           kubeClient,
-		Scheme:           scheme,
-		Prometheus:       promv1.NewAPI(promClient),
-		PrometheusConfig: promConfig,
-		DexURL:           *fDexURL,
+	resolver, err := graph.NewResolver(ctx, kubeClient, scheme, promv1.NewAPI(promClient), promConfig, *fDexURL, *fDexCA)
+	if err != nil {
+		log.Error(err, "failed to setup resolver")
+		os.Exit(1)
+		return
 	}
 	c := generated.Config{Resolvers: resolver}
 	c.Directives.HasRole = resolver.HasRole

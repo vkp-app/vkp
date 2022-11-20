@@ -27,20 +27,30 @@ vcluster:
     - --kube-apiserver-arg="--oidc-username-claim=email"
     - --kube-apiserver-arg="--oidc-username-prefix=-"
     - --kube-apiserver-arg="--oidc-groups-prefix=oidc:"
-    - --kube-apiserver-arg="--oidc-ca-file=/var/run/secrets/dcas.dev/tls/ca.crt"
+{{- if .IDP.CustomCA }}
+    - --kube-apiserver-arg="--oidc-ca-file=/var/run/secrets/paas.dcas.dev/dex/ca.crt"
+{{- else }}
+    - --kube-apiserver-arg="--oidc-ca-file=/var/run/secrets/paas.dcas.dev/tls/ca.crt"
+{{- end }}
   volumeMounts:
     - name: data
       mountPath: /data
     - name: tls
-      mountPath: /var/run/secrets/dcas.dev/tls
+      mountPath: /var/run/secrets/paas.dcas.dev/tls
+      readOnly: true
+    - name: dex
+      mountPath: /var/run/secrets/paas.dcas.dev/dex
       readOnly: true
   env:
     - name: DEX_CLIENT_ID
       valueFrom:
         secretKeyRef:
-          name: "{{ .Name }}-dex"
+          name: "{{ .IDP.SecretName }}"
           key: client_id
 volumes:
+  - name: dex
+    secret:
+      secretName: {{ .IDP.SecretName }}
   - name: tls
     secret:
       secretName: {{ .Ingress.TLSSecretName }}

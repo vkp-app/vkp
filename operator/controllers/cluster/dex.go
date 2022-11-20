@@ -11,13 +11,14 @@ import (
 const (
 	DexKeyID     = "client_id"
 	DexKeySecret = "client_secret"
+	DexKeyCA     = "ca.crt"
 )
 
 func DexSecretName(cluster string) string {
 	return fmt.Sprintf("%s-dex", cluster)
 }
 
-func DexSecret(cr *paasv1alpha1.Cluster) *corev1.Secret {
+func DexSecret(cr *paasv1alpha1.Cluster, ca string) *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      DexSecretName(cr.GetName()),
@@ -27,6 +28,7 @@ func DexSecret(cr *paasv1alpha1.Cluster) *corev1.Secret {
 		Data: map[string][]byte{
 			DexKeyID:     []byte(cr.GetUID()),
 			DexKeySecret: []byte(uuid.NewUUID()),
+			DexKeyCA:     []byte(ca),
 		},
 		Type: corev1.SecretTypeOpaque,
 	}

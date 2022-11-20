@@ -45,6 +45,7 @@ import (
 type ClusterReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	DexCA  string
 }
 
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters,verbs=get;list;watch;create;update;patch;delete
@@ -188,7 +189,7 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 		return err
 	}
 
-	vcluster, err := cluster.VCluster(ctx, cr, latestVersion)
+	vcluster, err := cluster.VCluster(ctx, cr, latestVersion, r.DexCA != "")
 	if err != nil {
 		return err
 	}
@@ -290,7 +291,7 @@ func (r *ClusterReconciler) reconcileDexSecret(ctx context.Context, cr *paasv1al
 	log := logging.FromContext(ctx)
 	log.Info("reconciling dex secret")
 
-	sec := cluster.DexSecret(cr)
+	sec := cluster.DexSecret(cr, r.DexCA)
 
 	found := &corev1.Secret{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: sec.GetName()}, found); err != nil {
@@ -317,16 +318,25 @@ func (r *ClusterReconciler) reconcileDexSecret(ctx context.Context, cr *paasv1al
 		return nil
 	}
 	// validate that the client id exists
-	if val, ok := found.Data[cluster.DexKeyID]; !ok || val == nil {
-		found.Data[cluster.DexKeyID] = sec.Data[cluster.DexKeyID]
-		if err := r.Update(ctx, found); err != nil {
-			log.Error(err, "failed to update dex secret")
-			return err
-		}
+	if err := r.updateSecretData(ctx, cluster.DexKeyID, found, sec); err != nil {
+		return err
 	}
 	// validate that the client secret exists
-	if val, ok := found.Data[cluster.DexKeySecret]; !ok || val == nil {
-		found.Data[cluster.DexKeySecret] = sec.Data[cluster.DexKeySecret]
+	if err := r.updateSecretData(ctx, cluster.DexKeySecret, found, sec); err != nil {
+		return err
+	}
+	// validate and update the CA certificate
+	if err := r.updateSecretData(ctx, cluster.DexKeyCA, found, sec); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *ClusterReconciler) updateSecretData(ctx context.Context, key string, found, sec *corev1.Secret) error {
+	log := logging.FromContext(ctx)
+	existing := sec.Data[key]
+	if val, ok := found.Data[key]; !ok || val == nil {
+		found.Data[key] = existing
 		if err := r.Update(ctx, found); err != nil {
 			log.Error(err, "failed to update dex secret")
 			return err

@@ -479,6 +479,16 @@ func (r *queryResolver) RenderKubeconfig(ctx context.Context, tenant string, clu
 	clusterName := fmt.Sprintf("%s-%s", tenant, cluster)
 	contextName := fmt.Sprintf("%s@%s", username, clusterName)
 
+	// figure out which CA we need to use
+	var caData []byte
+	// use the kube API CA if
+	// we don't have one for Dex.
+	if r.dexCA == "" {
+		caData = tlsSec.Data["ca.crt"]
+	} else {
+		caData = []byte(r.dexCA)
+	}
+
 	// create the kubeconfig struct and
 	// populate the information that the user
 	// will need
@@ -515,13 +525,13 @@ func (r *queryResolver) RenderKubeconfig(ctx context.Context, tenant string, clu
 						Args: []string{
 							"oidc-login",
 							"get-token",
-							fmt.Sprintf("--oidc-issuer-url=%s", r.DexURL),
+							fmt.Sprintf("--oidc-issuer-url=%s", r.dexURL),
 							fmt.Sprintf("--oidc-client-id=%s", string(dexSec.Data[cluster2.DexKeyID])),
 							fmt.Sprintf("--oidc-client-secret=%s", string(dexSec.Data[cluster2.DexKeySecret])),
 							"--oidc-extra-scope=profile",
 							"--oidc-extra-scope=email",
 							"--oidc-extra-scope=groups",
-							fmt.Sprintf("--certificate-authority-data=%s", base64.StdEncoding.EncodeToString(tlsSec.Data["ca.crt"])),
+							fmt.Sprintf("--certificate-authority-data=%s", base64.StdEncoding.EncodeToString(caData)),
 						},
 						InstallHint: "kubectl krew install oidc-login",
 					},

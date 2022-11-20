@@ -62,13 +62,29 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	fDexCA := flag.String("dex-ca-file", "", "File that contains the Certificate Authority for Dex. Will fallback to the Kubernetes API CA if not set.")
 	opts := zap.Options{
 		Development: true,
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	log := zap.New(zap.UseFlagOptions(&opts))
+
+	// read the Dex CA
+	var dexCA string
+	if *fDexCA != "" {
+		log.Info("reading dex CA", "path", *fDexCA)
+		data, err := os.ReadFile(*fDexCA)
+		if err != nil {
+			log.Error(err, "failed to read dex CA file", *fDexCA)
+			os.Exit(1)
+			return
+		}
+		dexCA = string(data)
+	}
+
+	ctrl.SetLogger(log)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
@@ -97,6 +113,7 @@ func main() {
 	if err = (&controllers.ClusterReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		DexCA:  dexCA,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Cluster")
 		os.Exit(1)
