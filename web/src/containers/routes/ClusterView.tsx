@@ -168,14 +168,14 @@ const ClusterView: React.FC = (): JSX.Element => {
 			clusterError={error}
 			refresh={refresh}
 		/>
-		<ListSubheader>
-			Advanced settings
-		</ListSubheader>
-		<ClusterSettingsView
-			cluster={data?.cluster as Cluster | null}
-			readOnly={!canEditCluster.data?.hasClusterAccess ?? true}
-		/>
 		{canEditCluster.data?.hasClusterAccess === true && <React.Fragment>
+			<ListSubheader>
+				Advanced settings
+			</ListSubheader>
+			<ClusterSettingsView
+				cluster={data?.cluster as Cluster | null}
+				readOnly={!canEditCluster.data?.hasClusterAccess ?? true}
+			/>
 			<ListSubheader>
 				Metadata
 			</ListSubheader>

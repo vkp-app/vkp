@@ -6,6 +6,11 @@ import {
 	CardHeader,
 	Collapse,
 	Link as MuiLink,
+	List,
+	ListItem,
+	ListItemSecondaryAction,
+	ListItemText,
+	ListSubheader,
 	Skeleton,
 	Table,
 	TableBody,
@@ -120,10 +125,12 @@ const ClusterList: React.FC = (): JSX.Element => {
 			<Collapse
 				in={!clusterList.loading && !tenantApproved && !clusterList.error}>
 				<Alert
+					sx={{borderRadius: 0}}
 					severity="warning">
 					Kubernetes clusters cannot be provisioned as this tenancy is awaiting approval from an administrator or policy agent.
 				</Alert>
 				{clusterList.data?.hasRole === true && <Alert
+					sx={{borderRadius: 0}}
 					action={<Button
 						onClick={() => onApproveTenant()}>
 						Approve
@@ -152,6 +159,29 @@ const ClusterList: React.FC = (): JSX.Element => {
 				subtitle="This tenancy is empty. Create a cluster to get started"
 			/>}
 		</Card>
+		{clusterList.data?.hasTenantAccess && <React.Fragment>
+			<ListSubheader>
+				Advanced settings
+			</ListSubheader>
+			<Card
+				sx={{p: 2}}>
+				<List>
+					<ListItem>
+						<ListItemText
+							primary="Permissions"
+							secondary="Control who can access this tenant and what they can do."
+						/>
+						<ListItemSecondaryAction>
+							<Button
+								component={Link}
+								to={`/clusters/${tenantName}/-/accessors`}>
+								Open
+							</Button>
+						</ListItemSecondaryAction>
+					</ListItem>
+				</List>
+			</Card>
+		</React.Fragment>}
 	</StandardLayout>
 }
 export default ClusterList;
