@@ -18,9 +18,9 @@ package controllers
 
 import (
 	"context"
-	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/pkg/ociutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -95,7 +95,7 @@ func (r *ClusterAddonReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				log.Error(err, "failed to reconcile Secret")
 				continue
 			}
-		} else if rr.OCI != "" {
+		} else if rr.OCI.Name != "" {
 			if err := r.reconcileOCI(ctx, car, &rr); err != nil {
 				log.Error(err, "failed to reconcile OCI")
 				continue
@@ -161,20 +161,21 @@ func (r *ClusterAddonReconciler) reconcileOCI(ctx context.Context, car *paasv1al
 
 	// fetch the digest
 	log.V(1).Info("parsing OCI reference")
-	ref, err := name.ParseReference(res.OCI)
+	ref, err := name.ParseReference(res.OCI.Name)
 	if err != nil {
 		log.Error(err, "failed to parse OCI image reference")
 		return err
 	}
 
-	desc, err := remote.Head(ref, remote.WithAuthFromKeychain(authn.DefaultKeychain))
+	auth, _ := ociutil.GetAuth(ctx, r.Client, car.GetNamespace(), &res.OCI)
+	desc, err := remote.Head(ref, auth...)
 	if err != nil {
 		log.Error(err, "failed to HEAD image")
 		return err
 	}
 
 	// store the digest
-	car.Status.ResourceDigests[paasv1alpha1.OciDigestKey(res.OCI)] = desc.Digest.String()
+	car.Status.ResourceDigests[paasv1alpha1.OciDigestKey(res.OCI.Name)] = desc.Digest.String()
 	return nil
 }
 

@@ -110,3 +110,6 @@ plugin:
           - apiGroups: ["paas.dcas.dev"]
             resources: ["clusters/status", "clusteraddonbindings/status"]
             verbs: ["get", "update", "patch"]
+          - apiGroups: [""]
+            resources: ["secrets"]
+            verbs: ["get"]

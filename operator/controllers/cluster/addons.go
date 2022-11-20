@@ -17,7 +17,9 @@ func Addons(tr *paasv1alpha1.Tenant) []paasv1alpha1.ClusterAddon {
 			Spec: paasv1alpha1.ClusterAddonSpec{
 				Resources: []paasv1alpha1.RemoteRef{
 					{
-						OCI: "harbor.dcas.dev/kube-glass/addons/dashboard-k8s:1.0.0",
+						OCI: paasv1alpha1.OCIRemoteRef{
+							Name: "harbor.dcas.dev/kube-glass/addons/dashboard-k8s:1.0.0",
+						},
 					},
 				},
 				DisplayName: "Kubernetes Dashboard",
@@ -37,7 +39,9 @@ func Addons(tr *paasv1alpha1.Tenant) []paasv1alpha1.ClusterAddon {
 			Spec: paasv1alpha1.ClusterAddonSpec{
 				Resources: []paasv1alpha1.RemoteRef{
 					{
-						OCI: "harbor.dcas.dev/kube-glass/addons/dashboard-okd:1.0.0",
+						OCI: paasv1alpha1.OCIRemoteRef{
+							Name: "harbor.dcas.dev/kube-glass/addons/dashboard-okd:1.0.0",
+						},
 					},
 				},
 				DisplayName: "OpenShift Console",
@@ -57,7 +61,9 @@ func Addons(tr *paasv1alpha1.Tenant) []paasv1alpha1.ClusterAddon {
 			Spec: paasv1alpha1.ClusterAddonSpec{
 				Resources: []paasv1alpha1.RemoteRef{
 					{
-						OCI: "harbor.dcas.dev/kube-glass/addons/podinfo:1.0.0",
+						OCI: paasv1alpha1.OCIRemoteRef{
+							Name: "harbor.dcas.dev/kube-glass/addons/podinfo:1.0.0",
+						},
 					},
 				},
 				DisplayName: "PodInfo",

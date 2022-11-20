@@ -1,5 +1,7 @@
 package syncers
 
+import "github.com/google/go-containerregistry/pkg/authn"
+
 const (
 	MagicClusterURL      = "__GLASS_CLUSTER_URL__"
 	MagicDexURL          = "__GLASS_DEX_URL__"
@@ -11,3 +13,7 @@ const (
 )
 
 const finalizer = "addon.paas.dcas.dev"
+
+type DockerConfigJSON struct {
+	Auths map[string]authn.AuthConfig `json:"auths,omitempty"`
+}

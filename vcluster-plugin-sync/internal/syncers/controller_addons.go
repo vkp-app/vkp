@@ -2,13 +2,13 @@ package syncers
 
 import (
 	"context"
-	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/mutate"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/loft-sh/vcluster-sdk/syncer"
 	synccontext "github.com/loft-sh/vcluster-sdk/syncer/context"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/pkg/ociutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -163,7 +163,7 @@ func (r *AddonSyncer) kustomizeResources(ctx context.Context, cr *paasv1alpha1.C
 				return err
 			}
 			kustomizePath = dir
-		} else if manifest.OCI != "" {
+		} else if manifest.OCI.Name != "" {
 			dir, err := r.manifestsFromOCI(ctx, manifest.OCI)
 			if err != nil {
 				return err
@@ -250,8 +250,8 @@ func (r *AddonSyncer) finalizeAddon(ctx context.Context, cr *paasv1alpha1.Cluste
 	})
 }
 
-func (*AddonSyncer) manifestsFromOCI(ctx context.Context, refName string) (string, error) {
-	log := logging.FromContext(ctx).WithValues("oci", refName)
+func (r *AddonSyncer) manifestsFromOCI(ctx context.Context, ociRef paasv1alpha1.OCIRemoteRef) (string, error) {
+	log := logging.FromContext(ctx).WithValues("oci", ociRef.Name)
 	log.Info("fetching addon manifests from OCI image")
 
 	// prepare a temp directory we can
@@ -263,12 +263,15 @@ func (*AddonSyncer) manifestsFromOCI(ctx context.Context, refName string) (strin
 	}
 
 	log.Info("pulling OCI bundle")
-	ref, err := name.ParseReference(refName)
+	ref, err := name.ParseReference(ociRef.Name)
 	if err != nil {
 		log.Error(err, "failed to parse OCI image reference")
 		return "", err
 	}
-	img, err := remote.Image(ref, remote.WithAuthFromKeychain(authn.DefaultKeychain))
+	// fetch any authentication information we made need for this request
+	// (e.g. from an IPS or the default keychain)
+	auth, _ := ociutil.GetAuth(ctx, r.pClient, r.namespace, &ociRef)
+	img, err := remote.Image(ref, auth...)
 	if err != nil {
 		log.Error(err, "failed to locate remote OCI image")
 		return "", err

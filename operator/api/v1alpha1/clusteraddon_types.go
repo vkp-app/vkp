@@ -78,7 +78,14 @@ type RemoteRef struct {
 	Secret corev1.LocalObjectReference `json:"secret,omitempty"`
 	// OCI is an OCI-compliant container image that contains a Kustomize directory.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="OCI",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	OCI string `json:"oci,omitempty"`
+	OCI OCIRemoteRef `json:"oci,omitempty"`
+}
+
+type OCIRemoteRef struct {
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Image name",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	Name string `json:"name,omitempty"`
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Image Pull Secret",xDescriptors="urn:alm:descriptor:io.kubernetes:Secret"
+	ImagePullSecret corev1.LocalObjectReference `json:"imagePullSecret,omitempty"`
 }
 
 // ClusterAddonStatus defines the observed state of ClusterAddon
