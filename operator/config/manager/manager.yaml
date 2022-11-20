@@ -41,21 +41,6 @@ spec:
         - --v=5
         image: controller:latest
         name: manager
-        env:
-          - name: PAAS_HOSTNAME
-            value: k8s.192-168-49-2.nip.io
-          - name: PAAS_INGRESS_ISSUER
-            value: iss-kube
-          - name: PAAS_IDP_URL
-            value: https://dex.192-168-49-2.nip.io
-          - name: PAAS_IDP_CLIENT_ID
-            value: glass
-          - name: PAAS_IDP_GRPC_URL
-            value: dex.glass-system.svc.cluster.local:5557
-          - name: KUBERNETES_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

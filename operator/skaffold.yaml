@@ -47,4 +47,4 @@ build:
 deploy:
   kustomize:
     paths:
-    - config/default
+    - config/minikube
