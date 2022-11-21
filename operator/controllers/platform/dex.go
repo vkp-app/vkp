@@ -192,7 +192,7 @@ func DexDeployment(pr *paasv1alpha1.Platform) *appsv1.Deployment {
 							}, pr.Spec.Dex.ExtraArgs...),
 							Env: []corev1.EnvVar{
 								{
-									Name: "CLIENT_SECRET_VPK",
+									Name: "CLIENT_SECRET_VKP",
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
 											LocalObjectReference: corev1.LocalObjectReference{

@@ -12,7 +12,7 @@ spec:
     annotations:
       cert-manager.io/cluster-issuer: iss-kube
     secretRef:
-      name: tls-vpk
+      name: tls-vkp
   dex:
     image: harbor.dcas.dev/ghcr.io/dexidp/dex:v2.35.3
     imagePullPolicy: IfNotPresent

@@ -224,7 +224,7 @@ func ApiDeployment(pr *paasv1alpha1.Platform) *appsv1.Deployment {
 								fmt.Sprintf("--client-secret=%s", "todo"),
 								"--email-domain=*",
 								fmt.Sprintf("--oidc-issuer-url=https://dex.%s", pr.Spec.Domain),
-								fmt.Sprintf("--redirect-url=https://vpk.%s/oauth2/callback", pr.Spec.Domain),
+								fmt.Sprintf("--redirect-url=https://vkp.%s/oauth2/callback", pr.Spec.Domain),
 								"--prefer-email-to-user=true",
 								"--cookie-secure=true",
 								"--cookie-refresh=2h",

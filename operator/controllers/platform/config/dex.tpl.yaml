@@ -11,11 +11,11 @@ issuer: "https://dex.{{ .Domain }}"
 oauth2:
   skipApprovalScreen: true
 staticClients:
-  - id: vpk
+  - id: vkp
     name: VKP
     redirectURIs:
       - "https://vkp.{{ .Domain }}/oauth2/callback"
-    secretEnv: CLIENT_SECRET_VPK
+    secretEnv: CLIENT_SECRET_VKP
 storage:
   config:
     inCluster: true

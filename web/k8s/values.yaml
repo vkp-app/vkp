@@ -25,7 +25,7 @@ service:
     http: public
 ingress:
   enabled: true
-  hostname: glass.192-168-49-2.nip.io
+  hostname: vkp.192-168-49-2.nip.io
   #  annotations:
   #    cert-manager.io/cluster-issuer: "iss-kube"
   ingressClassName: nginx
@@ -46,14 +46,14 @@ sidecars:
     args:
       - --http-address=:8079
       - --provider=oidc
-      - --client-id=glass
-      - --client-secret=password
+      - --client-id=vkp
+      - --client-secret=MTgwMDRiYTk3ZTcwMzg5MmM0MWFiZGVjYTk2N2EyYzg=
       - --email-domain=*
       - --oidc-issuer-url=https://dex.192-168-49-2.nip.io
-      - --redirect-url=https://glass.192-168-49-2.nip.io/oauth2/callback
+      - --redirect-url=https://vkp.192-168-49-2.nip.io/oauth2/callback
       - --prefer-email-to-user=true
       - --cookie-secure=true
-      - --cookie-secret=q4kE_9htyXtMQDgfSkRJcMTxwLCXLjHKFLPGHCbcOgg=
+      - --cookie-secret=NTk4YzE3ZmZhZGRhYTZjMDY4MzA2OTY2Yzg4Yzg3MGI=
       - --cookie-refresh=2h
       - --code-challenge-method=S256
       - --upstream=http://localhost:8080
