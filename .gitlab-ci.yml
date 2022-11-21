@@ -10,7 +10,28 @@ build apiserver:
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
-    - when: on_success
+    - changes:
+      - apiserver/**/*
+
+build web:
+  stage: build
+  extends: .auto-build
+  dependencies: []
+  variables:
+    AUTO_CNB_BUILD_IMAGE: "${AUTO_DEVOPS_REGISTRY_GITLAB}registry.gitlab.com/autokubeops/buildpacks/lifecycle:0.3"
+    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
+    PROJECT_PATH: web
+    BP_STATIC_DIR: dist
+    BP_NODE_VERSION: "~16"
+    BP_STATIC_ENV: .env
+    BP_KEEP_FILES: .env
+  script:
+    - ${AUTO_CNB_BUILD_ENV_VARS} /main
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - changes:
+        - web/**/*
 
 include:
   - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/CNB.gitlab-ci.yml'
