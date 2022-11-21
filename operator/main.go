@@ -103,7 +103,7 @@ func main() {
 		// the manager stops, so would be fine to enable this option. However,
 		// if you are doing or is intended to do any operation such as perform cleanups
 		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
+		LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -144,6 +144,13 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ClusterVersion")
+		os.Exit(1)
+	}
+	if err = (&controllers.PlatformReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Platform")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

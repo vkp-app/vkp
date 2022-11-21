@@ -3,6 +3,8 @@ kind: Config
 metadata:
   name: apiserver
 build:
+  tagPolicy:
+    sha256: {}
   artifacts:
     - image: dev.local/kube-glass/apiserver
       ko:
@@ -21,18 +23,6 @@ manifests:
   kustomize:
     paths:
       - k8s/
-  helm:
-    releases:
-      - name: auto-deploy-app
-        remoteChart: https://av1o.gitlab.io/charts/auto-deploy-app-0.15.4.tgz
-        valuesFiles:
-          - k8s/values.yaml
-        namespace: glass-system
-        setValueTemplates:
-          image.repository: '{{.IMAGE_REPO}}'
-          image.tag: '{{.IMAGE_TAG}}'
-        createNamespace: true
-        upgradeOnChange: true
 deploy:
-  helm: {}
+  kubectl: {}
   kubeContext: minikube

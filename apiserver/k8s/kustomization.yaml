@@ -5,3 +5,4 @@ resources:
   - service_account.yaml
   - glass-admin.yaml
   - config.yaml
+  - platform.yaml
