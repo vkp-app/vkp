@@ -1,0 +1,15 @@
+stages:
+  - build
+
+build apiserver:
+  extends: .auto-build
+  variables:
+    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
+    PROJECT_PATH: apiserver
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - when: on_success
+
+include:
+  - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/CNB.gitlab-ci.yml'
