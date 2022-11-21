@@ -1,4 +1,4 @@
-namespace: glass-system
+namespace: vkp-system
 resources:
   - addons.yaml
 generatorOptions:

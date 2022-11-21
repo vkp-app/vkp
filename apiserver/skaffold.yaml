@@ -6,7 +6,7 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-    - image: dev.local/kube-glass/apiserver
+    - image: dev.local/vkp/apiserver
       ko:
         fromImage: harbor.dcas.dev/gcr.io/distroless/static:nonroot
         main: ./cmd/apiserver/

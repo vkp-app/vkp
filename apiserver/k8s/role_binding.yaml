@@ -1,12 +1,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: glass-apiserver-rolebinding
+  name: apiserver-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: glass-apiserver-role
+  name: apiserver-role
 subjects:
 - kind: ServiceAccount
   name: apiserver
-  namespace: glass-system
+  namespace: vkp-system

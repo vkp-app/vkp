@@ -73,16 +73,16 @@ openshift:
   enabled: true
 {{- end }}
 plugin:
-  glass-hook:
-    image: dev.local/kube-glass/vcluster-plugin-hooks:latest
+  vkp-hook:
+    image: dev.local/vkp/vcluster-plugin-hooks:latest
     imagePullPolicy: Never
     env:
       - name: VCLUSTER_CLUSTER_DOMAIN
         value: "{{ .Ingress.Host }}"
       - name: VCLUSTER_CLUSTER_NAME
         value: "{{ .Name }}"
-  glass-sync:
-    image: dev.local/kube-glass/vcluster-plugin-sync:latest
+  vkp-sync:
+    image: dev.local/vkp/vcluster-plugin-sync:latest
     imagePullPolicy: Never
     env:
       - name: VCLUSTER_CLUSTER_NAME

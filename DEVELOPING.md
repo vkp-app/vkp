@@ -23,7 +23,6 @@ Install the Operator:
 ```shell
 cd operator/
 skaffold run
-skaffold run -p default
 ```
 
 Install the APIServer:

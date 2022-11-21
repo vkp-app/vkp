@@ -20,7 +20,7 @@ spec:
           - name: PAAS_IDP_CLIENT_ID
             value: glass
           - name: PAAS_IDP_GRPC_URL
-            value: dex.glass-system.svc.cluster.local:5557
+            value: dex.svc:5557
           - name: KUBERNETES_NAMESPACE
             valueFrom:
               fieldRef:

@@ -1,0 +1,19 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: apiserver
+  labels:
+    app.kubernetes.io/name: vkp
+    app.kubernetes.io/component: apiserver
+    app.kubernetes.io/instance: vkp
+spec:
+  type: ClusterIP
+  ports:
+    - name: web
+      protocol: TCP
+      port: 80
+      targetPort: web
+  selector:
+    app.kubernetes.io/name: vkp
+    app.kubernetes.io/component: apiserver
+    app.kubernetes.io/instance: vkp

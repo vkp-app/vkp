@@ -9,7 +9,7 @@ manifests:
         remoteChart: https://charts.bitnami.com/bitnami/nginx-13.2.13.tgz
         valuesFiles:
           - k8s/values.yaml
-        namespace: glass-system
+        namespace: vkp-system
         skipBuildDependencies: true
         upgradeOnChange: true
 deploy:

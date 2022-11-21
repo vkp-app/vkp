@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apiserver
+  labels:
+    app.kubernetes.io/name: vkp
+    app.kubernetes.io/component: apiserver
+    app.kubernetes.io/instance: vkp
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vkp
+      app.kubernetes.io/component: apiserver
+      app.kubernetes.io/instance: vkp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vkp
+        app.kubernetes.io/component: apiserver
+        app.kubernetes.io/instance: vkp
+      annotations:
+        kubectl.kubernetes.io/default-container: apiserver
+    spec:
+      serviceAccountName: apiserver
+      volumes:
+        - name: tls
+          secret:
+            secretName: tls-vkp
+        - name: config
+          configMap:
+            name: apiserver-config
+      containers:
+        - name: apiserver
+          image: vkp/apiserver
+          args:
+            - --v=5
+            - --prometheus-url=http://prometheus-olm-prometheus.monitoring.svc.cluster.local:9090
+            - --prometheus-config-file=/etc/vkp/config/prometheus.yaml
+            - --dex-url=https://dex.192-168-49-2.nip.io
+          env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - mountPath: /var/run/secrets/paas.dcas.dev/tls
+              name: tls
+              readOnly: true
+            - name: config
+              mountPath: /etc/vkp/config
+              readOnly: true
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+            runAsGroup: 0
+            runAsNonRoot: true
+            runAsUser: 12848
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 15
+            timeoutSeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+        - name: oauth-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0-amd64
+          args:
+            - --http-address=:8079
+            - --provider=oidc
+            - --client-id=vkp
+            - --client-secret=password
+            - --email-domain=*
+            - --oidc-issuer-url=https://dex.192-168-49-2.nip.io
+            - --redirect-url=https://vkp.192-168-49-2.nip.io/oauth2/callback
+            - --prefer-email-to-user=true
+            - --cookie-secure=true
+            - --cookie-secret=NTk4YzE3ZmZhZGRhYTZjMDY4MzA2OTY2Yzg4Yzg3MGI=
+            - --cookie-refresh=2h
+            - --code-challenge-method=S256
+            - --upstream=http://localhost:8080
+            - --scope=openid profile email groups
+          env:
+            - name: SSL_CERT_FILE
+              value: /var/run/secrets/paas.dcas.dev/tls/ca.crt
+          ports:
+            - containerPort: 8079
+              name: web
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/run/secrets/paas.dcas.dev/tls
+              name: tls
+              readOnly: true

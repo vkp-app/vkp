@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: glass-apiserver-config
+  name: apiserver-config
 data:
   prometheus.yaml: |
     # nothing to see here

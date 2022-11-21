@@ -6,18 +6,6 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - apps
-  resources:
-  - deployments
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - cluster.x-k8s.io
   resources:
   - clusters
@@ -34,8 +22,6 @@ rules:
   resources:
   - configmaps
   verbs:
-  - create
-  - delete
   - get
   - list
   - patch
@@ -56,30 +42,6 @@ rules:
   - ""
   resources:
   - secrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - serviceaccounts
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - services
   verbs:
   - create
   - delete
@@ -212,32 +174,6 @@ rules:
   - paas.dcas.dev
   resources:
   - clusterversions/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - paas.dcas.dev
-  resources:
-  - platforms
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - paas.dcas.dev
-  resources:
-  - platforms/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - paas.dcas.dev
-  resources:
-  - platforms/status
   verbs:
   - get
   - patch

@@ -10,7 +10,7 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: dev.local/kube-glass/vcluster-plugin-sync
+  - image: dev.local/vkp/vcluster-plugin-sync
     ko:
       fromImage: harbor.dcas.dev/registry.gitlab.com/av1o/helm-install-image:v3-1.25
       main: ../vcluster-plugin-sync/cmd/sync/
@@ -21,7 +21,7 @@ build:
           - ../vcluster-plugin-sync/internal/
           - ../vcluster-plugin-sync/go.mod
           - ../vcluster-plugin-sync/go.sum
-  - image: dev.local/kube-glass/vcluster-plugin-hooks
+  - image: dev.local/vkp/vcluster-plugin-hooks
     ko:
       fromImage: harbor.dcas.dev/gcr.io/distroless/static:nonroot
       main: ../vcluster-plugin-hooks/cmd/hooks/

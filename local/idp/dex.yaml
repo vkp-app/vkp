@@ -8,10 +8,10 @@ config:
   oauth2:
     skipApprovalScreen: true
   staticClients:
-    - id: glass
+    - id: vkp
       redirectURIs:
-        - https://glass.192-168-49-2.nip.io/oauth2/callback
-      name: Glass
+        - https://vkp.192-168-49-2.nip.io/oauth2/callback
+      name: VKP
       secret: password
   connectors:
     - id: mock

@@ -1,8 +1,16 @@
-namespace: glass-system
+namespace: vkp-system
+namePrefix: vkp-
 resources:
   - role.yaml
   - role_binding.yaml
   - service_account.yaml
   - glass-admin.yaml
   - config.yaml
-  - platform.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+images:
+  - name: vkp/apiserver
+    newName: dev.local/vkp/apiserver
+patchesStrategicMerge:
+  - deployment_minikube_patch.yaml

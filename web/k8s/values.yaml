@@ -30,9 +30,9 @@ ingress:
   #    cert-manager.io/cluster-issuer: "iss-kube"
   ingressClassName: nginx
   extraTls:
-    - secretName: tls-apiserver
+    - secretName: tls-vkp
       hosts:
-        - glass.192-168-49-2.nip.io
+        - vkp.192-168-49-2.nip.io
 sidecars:
   - name: oauth-proxy
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0-amd64
@@ -47,7 +47,7 @@ sidecars:
       - --http-address=:8079
       - --provider=oidc
       - --client-id=vkp
-      - --client-secret=MTgwMDRiYTk3ZTcwMzg5MmM0MWFiZGVjYTk2N2EyYzg=
+      - --client-secret=password
       - --email-domain=*
       - --oidc-issuer-url=https://dex.192-168-49-2.nip.io
       - --redirect-url=https://vkp.192-168-49-2.nip.io/oauth2/callback
@@ -64,7 +64,7 @@ sidecars:
 extraVolumes:
   - name: tls
     secret:
-      secretName: tls-apiserver
+      secretName: tls-vkp
 extraVolumeMounts:
   - name: tls
     mountPath: /var/run/secrets/dcas.dev/tls
