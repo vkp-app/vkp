@@ -1,3 +1,6 @@
+variables:
+  BP_OCI_SOURCE: https://github.com/vkp-app/vkp
+
 stages:
   - build
   - pre-deploy
