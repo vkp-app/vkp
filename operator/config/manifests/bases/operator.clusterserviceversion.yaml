@@ -1,0 +1,200 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: operator.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: ClusterAddonBinding is the Schema for the clusteraddonbindings
+        API
+      displayName: Cluster Addon Binding
+      kind: ClusterAddonBinding
+      name: clusteraddonbindings.paas.dcas.dev
+      version: v1alpha1
+    - description: ClusterAddon is the Schema for the clusteraddons API
+      displayName: Cluster Addon
+      kind: ClusterAddon
+      name: clusteraddons.paas.dcas.dev
+      specDescriptors:
+      - description: Description is the human-readable description of the addon shown
+          in the addon marketplace.
+        displayName: Description
+        path: description
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: DisplayName is the human-readable name of the addon shown in
+          the addon marketplace.
+        displayName: Display name
+        path: displayName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Maintainer is the name/contact information of the addon.
+        displayName: Maintainer
+        path: maintainer
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - displayName: Resources
+        path: resources
+      - description: ConfigMap is a v1.ConfigMap that contains a number of Kustomize
+          files. Mutually-exclusive with URL and Secret.
+        displayName: ConfigMap
+        path: resources[0].configMap
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:ConfigMap
+      - description: OCI is an OCI-compliant container image that contains a Kustomize
+          directory.
+        displayName: OCI
+        path: resources[0].oci
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - displayName: Image Pull Secret
+        path: resources[0].oci.imagePullSecret
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:Secret
+      - displayName: Image name
+        path: resources[0].oci.name
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Secret is a v1.Secret that contains a number of Kustomize files.
+          Mutually-exclusive with URL and ConfigMap.
+        displayName: Secret
+        path: resources[0].secret
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:Secret
+      - description: URL is a Kustomize-compatible HTTPS URL to a Kustomize directory.
+          Mutually-exclusive with ConfigMap and Secret.
+        displayName: URL
+        path: resources[0].url
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Source indicates where the addon came from and how trustworthy
+          it should be considered.
+        displayName: Source
+        path: source
+      - description: SourceURL is an external HTTP address that can be used by users
+          to find more information about an addon.
+        displayName: Source URL
+        path: sourceURL
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      version: v1alpha1
+    - description: Cluster is the Schema for the clusters API
+      displayName: Cluster
+      kind: Cluster
+      name: clusters.paas.dcas.dev
+      specDescriptors:
+      - description: Accessors define who is authorised to interact with the cluster.
+        displayName: Accessors
+        path: accessors
+      - description: Group binds a group to the virtual cluster. Using groups should
+          be preferred as it allows you to manage membership outside of Kubernetes.
+          Mutually-exclusive with User.
+        displayName: Group
+        path: accessors[0].group
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: ReadOnly indicates that the user/group should only have view
+          access to the virtual cluster.
+        displayName: Read Only
+        path: accessors[0].readOnly
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: User binds a user to the virtual cluster. Mutually-exclusive
+          with, and preferred over Group.
+        displayName: User
+        path: accessors[0].user
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - displayName: Enabled
+        path: ha.enabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Size in Gi of the clusters backing disk.
+        displayName: Size (Gi)
+        path: storage.size
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - displayName: Storage class
+        path: storage.storageClassName
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:StorageClass
+      version: v1alpha1
+    - description: ClusterVersion is the Schema for the clusterversions API
+      displayName: Cluster Version
+      kind: ClusterVersion
+      name: clusterversions.paas.dcas.dev
+      version: v1alpha1
+    - description: Tenant is the Schema for the tenants API
+      displayName: Tenant
+      kind: Tenant
+      name: tenants.paas.dcas.dev
+      specDescriptors:
+      - description: Accessors define who is authorised to interact with the tenant.
+        displayName: Accessors
+        path: accessors
+      - description: Group binds a group to the virtual cluster. Using groups should
+          be preferred as it allows you to manage membership outside of Kubernetes.
+          Mutually-exclusive with User.
+        displayName: Group
+        path: accessors[0].group
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: ReadOnly indicates that the user/group should only have view
+          access to the virtual cluster.
+        displayName: Read Only
+        path: accessors[0].readOnly
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: User binds a user to the virtual cluster. Mutually-exclusive
+          with, and preferred over Group.
+        displayName: User
+        path: accessors[0].user
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Owner is the human user that owns the tenant. They will have
+          special privileges that will not be given to Accessors (e.g. ability to
+          delete the tenant).
+        displayName: Owner
+        path: owner
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      version: v1alpha1
+  description: The Virtual Kubernetes Platform (VKP) is a project that provides Kubernetes-as-a-Service
+    by taking advantage of the ClusterAPI and VCluster.
+  displayName: Virtual Kubernetes Platform
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - app
+  - operator
+  - kaas
+  links:
+  - name: Operator
+    url: https://operator.domain
+  maintainers:
+  - email: django@dcas.dev
+    name: Django Cass
+  maturity: alpha
+  provider:
+    name: VKP
+    url: https://github.com/vkp-app
+  version: 0.0.0

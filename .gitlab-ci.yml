@@ -1,5 +1,7 @@
 stages:
   - build
+  - pre-deploy
+  - deploy
 
 build apiserver:
   extends: .auto-build
@@ -22,6 +24,7 @@ build web:
     AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
     PROJECT_PATH: web
     BP_STATIC_DIR: dist
+    BP_NODE_OUTPUT_DIR: dist
     BP_NODE_VERSION: "~16"
     BP_STATIC_ENV: .env
     BP_KEEP_FILES: .env
@@ -33,5 +36,71 @@ build web:
     - changes:
         - web/**/*
 
+build operator:
+  extends: .auto-build
+  stage: build
+  variables:
+    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
+    PROJECT_PATH: operator
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - changes:
+        - operator/**/*
+
+build bundle:
+  stage: build
+  extends: .kaniko
+  dependencies: []
+  needs: []
+  variables:
+    KANIKO_DOCKERFILE: bundle.Dockerfile
+    KANIKO_CONTEXT: "$CI_PROJECT_DIR/operator"
+  before_script:
+    - export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE/bundle"
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - when: on_success
+
+prepare index:
+  stage: pre-deploy
+  dependencies: []
+  needs:
+    - build bundle
+  image:
+    name: quay.io/operator-framework/upstream-registry-builder
+    entrypoint: [""]
+  script:
+    - cd operator/
+    - |
+      if [ -z ${FIRST_RUN+x} ]; then
+        opm index add --bundles "$CI_REGISTRY_IMAGE/bundle:$CI_COMMIT_SHORT_SHA" --from-index "$CI_REGISTRY_IMAGE/index:main" --mode semver-skippatch --generate
+      else
+        opm index add --bundles "$CI_REGISTRY_IMAGE/bundle:$CI_COMMIT_SHORT_SHA" --mode semver-skippatch --generate
+      fi
+  artifacts:
+    paths:
+      - operator/database/index.db
+      - operator/index.Dockerfile
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - when: on_success
+
+build index:
+  stage: deploy
+  extends: .kaniko
+  dependencies:
+    - prepare index
+  needs:
+    - prepare index
+  variables:
+    KANIKO_DOCKERFILE: index.Dockerfile
+    KANIKO_CONTEXT: operator
+  before_script:
+    - export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE/index"
+
 include:
   - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/CNB.gitlab-ci.yml'
+  - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/Kaniko.gitlab-ci.yml'

@@ -1,0 +1,107 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.2
+  creationTimestamp: null
+  name: tenants.paas.dcas.dev
+spec:
+  group: paas.dcas.dev
+  names:
+    kind: Tenant
+    listKind: TenantList
+    plural: tenants
+    singular: tenant
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.owner
+      name: Owner
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Tenant is the Schema for the tenants API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TenantSpec defines the desired state of Tenant
+            properties:
+              accessors:
+                description: Accessors define who is authorised to interact with the
+                  tenant.
+                items:
+                  properties:
+                    group:
+                      description: Group binds a group to the virtual cluster. Using
+                        groups should be preferred as it allows you to manage membership
+                        outside of Kubernetes. Mutually-exclusive with User.
+                      type: string
+                    readOnly:
+                      description: ReadOnly indicates that the user/group should only
+                        have view access to the virtual cluster.
+                      type: boolean
+                    user:
+                      description: User binds a user to the virtual cluster. Mutually-exclusive
+                        with, and preferred over Group.
+                      type: string
+                  type: object
+                type: array
+              namespaceStrategy:
+                type: string
+              owner:
+                description: Owner is the human user that owns the tenant. They will
+                  have special privileges that will not be given to Accessors (e.g.
+                  ability to delete the tenant).
+                type: string
+            required:
+            - namespaceStrategy
+            - owner
+            type: object
+          status:
+            description: TenantStatus defines the observed state of Tenant
+            properties:
+              observedClusters:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  type: object
+                type: array
+              observedNamespaces:
+                items:
+                  type: string
+                type: array
+              phase:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions: null
