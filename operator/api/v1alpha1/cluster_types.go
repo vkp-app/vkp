@@ -104,6 +104,9 @@ type NestedInventory struct {
 //+kubebuilder:subresource:status
 
 // Cluster is the Schema for the clusters API
+// +kubebuilder:printcolumn:name="Version",type=string,JSONPath=`.status.kubeVersion`
+// +kubebuilder:printcolumn:name="API URL",type=string,JSONPath=`.status.kubeURL`
+// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 type Cluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

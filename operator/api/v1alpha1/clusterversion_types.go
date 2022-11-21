@@ -26,9 +26,11 @@ const LabelTrackRef = "paas.dcas.dev/release-track"
 
 // ClusterVersionSpec defines the desired state of ClusterVersion
 type ClusterVersionSpec struct {
+	//+kubebuilder:validation:Required
 	Image ClusterVersionImage `json:"image"`
 	Chart ClusterVersionChart `json:"chart,omitempty"`
-	Track ReleaseTrack        `json:"track"`
+	//+kubebuilder:validation:Required
+	Track ReleaseTrack `json:"track"`
 }
 
 type ClusterVersionChart struct {
@@ -38,9 +40,11 @@ type ClusterVersionChart struct {
 }
 
 type ClusterVersionImage struct {
-	Registry   string `json:"registry,omitempty"`
+	Registry string `json:"registry,omitempty"`
+	//+kubebuilder:validation:Required
 	Repository string `json:"repository"`
-	Tag        string `json:"tag"`
+	//+kubebuilder:validation:Required
+	Tag string `json:"tag"`
 }
 
 func (in *ClusterVersionImage) String() string {

@@ -67,6 +67,8 @@ type NamespacedName struct {
 //+kubebuilder:resource:scope=Cluster
 
 // Tenant is the Schema for the tenants API
+// +kubebuilder:printcolumn:name="Owner",type=string,JSONPath=`.spec.owner`
+// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 type Tenant struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -23,9 +23,12 @@ import (
 
 // PlatformSpec defines the desired state of Platform
 type PlatformSpec struct {
-	Namespace     string `json:"namespace"`
+	//+kubebuilder:validation:Required
+	Namespace string `json:"namespace"`
+	//+kubebuilder:validation:Required
 	PrometheusURL string `json:"prometheusURL"`
-	Domain        string `json:"domain"`
+	//+kubebuilder:validation:Required
+	Domain string `json:"domain"`
 
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	ImagePullPolicy  corev1.PullPolicy             `json:"imagePullPolicy,omitempty"`

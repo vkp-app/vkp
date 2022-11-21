@@ -36,7 +36,9 @@ const (
 
 // ClusterAddonBindingSpec defines the desired state of ClusterAddonBinding
 type ClusterAddonBindingSpec struct {
-	ClusterRef      corev1.LocalObjectReference `json:"clusterRef"`
+	//+kubebuilder:validation:Required
+	ClusterRef corev1.LocalObjectReference `json:"clusterRef"`
+	//+kubebuilder:validation:Required
 	ClusterAddonRef corev1.LocalObjectReference `json:"clusterAddonRef"`
 }
 

@@ -15,7 +15,17 @@ spec:
     singular: cluster
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .status.kubeVersion
+      name: Version
+      type: string
+    - jsonPath: .status.kubeURL
+      name: API URL
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Cluster is the Schema for the clusters API
