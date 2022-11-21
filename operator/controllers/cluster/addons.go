@@ -18,7 +18,7 @@ func Addons(tr *paasv1alpha1.Tenant) []paasv1alpha1.ClusterAddon {
 				Resources: []paasv1alpha1.RemoteRef{
 					{
 						OCI: paasv1alpha1.OCIRemoteRef{
-							Name: "harbor.dcas.dev/kube-glass/addons/dashboard-k8s:1.0.0",
+							Name: "ghcr.io/vkp-app/addons/dashboard-k8s:1.0.0",
 						},
 					},
 				},
@@ -40,7 +40,7 @@ func Addons(tr *paasv1alpha1.Tenant) []paasv1alpha1.ClusterAddon {
 				Resources: []paasv1alpha1.RemoteRef{
 					{
 						OCI: paasv1alpha1.OCIRemoteRef{
-							Name: "harbor.dcas.dev/kube-glass/addons/dashboard-okd:1.0.0",
+							Name: "ghcr.io/vkp-app/addons/dashboard-okd:1.0.0",
 						},
 					},
 				},
@@ -62,7 +62,7 @@ func Addons(tr *paasv1alpha1.Tenant) []paasv1alpha1.ClusterAddon {
 				Resources: []paasv1alpha1.RemoteRef{
 					{
 						OCI: paasv1alpha1.OCIRemoteRef{
-							Name: "harbor.dcas.dev/kube-glass/addons/podinfo:1.0.0",
+							Name: "ghcr.io/vkp-app/addons/podinfo:1.0.0",
 						},
 					},
 				},
