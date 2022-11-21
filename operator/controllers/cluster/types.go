@@ -13,6 +13,10 @@ const (
 	EnvIngressClass  = "PAAS_INGRESS_CLASS"
 	EnvIngressIssuer = "PAAS_INGRESS_ISSUER"
 
+	EnvSyncImage    = "PAAS_PLUGIN_SYNC_IMAGE"
+	EnvHookImage    = "PAAS_PLUGIN_HOOK_IMAGE"
+	EnvPluginPolicy = "PASS_PLUGIN_PULL_POLICY"
+
 	EnvIDPURL = "PAAS_IDP_URL"
 
 	EnvIsOpenShift = "PAAS_IS_OPENSHIFT"
@@ -26,6 +30,13 @@ type ValuesTemplate struct {
 	HA        bool
 	OpenShift bool
 	Image     string
+	Plugins   ValuesPlugins
+}
+
+type ValuesPlugins struct {
+	SyncImage  string
+	HookImage  string
+	PullPolicy string
 }
 
 type ValuesIngress struct {

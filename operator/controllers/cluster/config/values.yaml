@@ -74,16 +74,16 @@ openshift:
 {{- end }}
 plugin:
   vkp-hook:
-    image: dev.local/vkp/vcluster-plugin-hooks:latest
-    imagePullPolicy: Never
+    image: {{ .Plugins.HookImage }}
+    imagePullPolicy: {{ .Plugins.PullPolicy }}
     env:
       - name: VCLUSTER_CLUSTER_DOMAIN
         value: "{{ .Ingress.Host }}"
       - name: VCLUSTER_CLUSTER_NAME
         value: "{{ .Name }}"
   vkp-sync:
-    image: dev.local/vkp/vcluster-plugin-sync:latest
-    imagePullPolicy: Never
+    image: {{ .Plugins.SyncImage }}
+    imagePullPolicy: {{ .Plugins.PullPolicy }}
     env:
       - name: VCLUSTER_CLUSTER_NAME
         value: "{{ .Name }}"

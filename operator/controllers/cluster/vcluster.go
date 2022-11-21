@@ -40,6 +40,11 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv
 		HA:        cluster.Spec.HA.Enabled,
 		OpenShift: getEnv(EnvIsOpenShift, "false") == "true",
 		Image:     version.Spec.Image.String(),
+		Plugins: ValuesPlugins{
+			SyncImage:  getEnv(EnvSyncImage, "dev.local/vkp/vcluster-plugin-sync:latest"),
+			HookImage:  getEnv(EnvHookImage, "dev.local/vkp/vcluster-plugin-hooks:latest"),
+			PullPolicy: getEnv(EnvPluginPolicy, "Never"),
+		},
 	}
 	log.V(3).Info("templating values.yaml file", "Template", valuesTemplate, "Overrides", valuesConfig)
 	if err := valuesTpl.Execute(values, valuesConfig); err != nil {
