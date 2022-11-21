@@ -75,7 +75,7 @@ prepare index:
     - cd operator/
     - |
       if [ -z ${FIRST_RUN+x} ]; then
-        opm index add --bundles "$CI_REGISTRY_IMAGE/bundle:$CI_COMMIT_SHORT_SHA" --from-index "$CI_REGISTRY_IMAGE/index:main" --mode semver-skippatch --generate
+        opm index add --bundles "$CI_REGISTRY_IMAGE/bundle:$CI_COMMIT_SHORT_SHA" --from-index "$CI_REGISTRY_IMAGE/operator-catalog:main" --mode semver-skippatch --generate
       else
         opm index add --bundles "$CI_REGISTRY_IMAGE/bundle:$CI_COMMIT_SHORT_SHA" --mode semver-skippatch --generate
       fi
