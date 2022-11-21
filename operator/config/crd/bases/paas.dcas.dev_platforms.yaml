@@ -37,6 +37,10 @@ spec:
             properties:
               apiServer:
                 properties:
+                  extraArgs:
+                    items:
+                      type: string
+                    type: array
                   image:
                     type: string
                   imagePullPolicy:
@@ -45,6 +49,10 @@ spec:
                     type: string
                   oauthProxy:
                     properties:
+                      extraArgs:
+                        items:
+                          type: string
+                        type: array
                       image:
                         type: string
                       imagePullPolicy:
@@ -118,6 +126,10 @@ spec:
                 type: object
               dex:
                 properties:
+                  extraArgs:
+                    items:
+                      type: string
+                    type: array
                   image:
                     type: string
                   imagePullPolicy:
@@ -130,6 +142,8 @@ spec:
                         additionalProperties:
                           type: string
                         type: object
+                      ingressClassName:
+                        type: string
                       secretRef:
                         description: LocalObjectReference contains enough information
                           to let you locate the referenced object inside the same
@@ -201,6 +215,8 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  ingressClassName:
+                    type: string
                   secretRef:
                     description: LocalObjectReference contains enough information
                       to let you locate the referenced object inside the same namespace.
@@ -214,8 +230,6 @@ spec:
                 required:
                 - secretRef
                 type: object
-              ingressClassName:
-                type: string
               namespace:
                 type: string
               prometheusURL:

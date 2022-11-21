@@ -7,13 +7,15 @@ spec:
   prometheusURL: http://prometheus-olm-prometheus.monitoring.svc.cluster.local:9090
   domain: 192-168-49-2.nip.io
   imagePullPolicy: Never
-  ingressClassName: nginx
   ingress:
+    ingressClassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: iss-kube
     secretRef:
       name: tls-vpk
   dex:
+    image: harbor.dcas.dev/ghcr.io/dexidp/dex:v2.35.3
+    imagePullPolicy: IfNotPresent
     ingress:
       secretRef:
         name: tls-dex

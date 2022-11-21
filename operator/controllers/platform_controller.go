@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/platform"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
@@ -44,6 +45,7 @@ type PlatformReconciler struct {
 //+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -72,6 +74,9 @@ func (r *PlatformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := r.reconcileApiServer(ctx, pr); err != nil {
 		return ctrl.Result{}, err
 	}
+	if err := r.reconcileDex(ctx, pr); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -94,6 +99,9 @@ func (r *PlatformReconciler) reconcileApiServer(ctx context.Context, pr *paasv1a
 	if err := r.reconcileApiConfig(ctx, pr); err != nil {
 		return err
 	}
+	if err := r.reconcileSA(ctx, platform.ComponentApiServer, pr); err != nil {
+		return err
+	}
 	if err := r.reconcileApiDeployment(ctx, pr); err != nil {
 		return err
 	}
@@ -107,6 +115,29 @@ func (r *PlatformReconciler) reconcileApiServer(ctx context.Context, pr *paasv1a
 	return nil
 }
 
+func (r *PlatformReconciler) reconcileDex(ctx context.Context, pr *paasv1alpha1.Platform) error {
+	log := logging.FromContext(ctx)
+	log.Info("reconciling dex")
+
+	if err := r.reconcileDexConfig(ctx, pr); err != nil {
+		return err
+	}
+	if err := r.reconcileSA(ctx, platform.ComponentDex, pr); err != nil {
+		return err
+	}
+	if err := r.reconcileDexDeployment(ctx, pr); err != nil {
+		return err
+	}
+	if err := r.reconcileDexService(ctx, pr); err != nil {
+		return err
+	}
+	if err := r.reconcileDexIngress(ctx, pr); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *PlatformReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
@@ -114,6 +145,7 @@ func (r *PlatformReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.ConfigMap{}).
 		Owns(&corev1.Service{}).
+		Owns(&corev1.ServiceAccount{}).
 		Owns(&netv1.Ingress{}).
 		Complete(r)
 }

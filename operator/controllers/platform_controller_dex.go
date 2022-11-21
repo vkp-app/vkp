@@ -14,18 +14,18 @@ import (
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-func (r *PlatformReconciler) reconcileApiDeployment(ctx context.Context, pr *paasv1alpha1.Platform) error {
+func (r *PlatformReconciler) reconcileDexDeployment(ctx context.Context, pr *paasv1alpha1.Platform) error {
 	log := logging.FromContext(ctx)
-	log.Info("reconciling api server deployment")
+	log.Info("reconciling Dex server deployment")
 
-	dp := platform.ApiDeployment(pr)
+	dp := platform.DexDeployment(pr)
 
 	found := &appsv1.Deployment{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: dp.GetNamespace(), Name: dp.GetName()}, found); err != nil {
 		if errors.IsNotFound(err) {
 			_ = ctrl.SetControllerReference(pr, dp, r.Scheme)
 			if err := r.Create(ctx, dp); err != nil {
-				log.Error(err, "failed to create api server deployment")
+				log.Error(err, "failed to create Dex server deployment")
 				return err
 			}
 			return nil
@@ -35,24 +35,24 @@ func (r *PlatformReconciler) reconcileApiDeployment(ctx context.Context, pr *paa
 	_ = ctrl.SetControllerReference(pr, dp, r.Scheme)
 
 	// reconcile changes
-	//if !reflect.DeepEqual(dp.Spec, found.Spec) {
-	//	return r.SafeUpdate(ctx, found, dp)
-	//}
+	if !reflect.DeepEqual(dp.Spec, found.Spec) {
+		return r.SafeUpdate(ctx, found, dp)
+	}
 	return nil
 }
 
-func (r *PlatformReconciler) reconcileApiService(ctx context.Context, pr *paasv1alpha1.Platform) error {
+func (r *PlatformReconciler) reconcileDexService(ctx context.Context, pr *paasv1alpha1.Platform) error {
 	log := logging.FromContext(ctx)
-	log.Info("reconciling api server service")
+	log.Info("reconciling Dex server service")
 
-	svc := platform.ApiService(pr)
+	svc := platform.DexService(pr)
 
 	found := &corev1.Service{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: svc.GetNamespace(), Name: svc.GetName()}, found); err != nil {
 		if errors.IsNotFound(err) {
 			_ = ctrl.SetControllerReference(pr, svc, r.Scheme)
 			if err := r.Create(ctx, svc); err != nil {
-				log.Error(err, "failed to create api server service")
+				log.Error(err, "failed to create Dex server service")
 				return err
 			}
 			return nil
@@ -68,18 +68,21 @@ func (r *PlatformReconciler) reconcileApiService(ctx context.Context, pr *paasv1
 	return nil
 }
 
-func (r *PlatformReconciler) reconcileApiConfig(ctx context.Context, pr *paasv1alpha1.Platform) error {
+func (r *PlatformReconciler) reconcileDexConfig(ctx context.Context, pr *paasv1alpha1.Platform) error {
 	log := logging.FromContext(ctx)
-	log.Info("reconciling api server config")
+	log.Info("reconciling Dex server config")
 
-	cm := platform.ApiConfig(pr)
+	cm, err := platform.DexConfig(ctx, pr)
+	if err != nil {
+		return err
+	}
 
 	found := &corev1.ConfigMap{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: cm.GetNamespace(), Name: cm.GetName()}, found); err != nil {
 		if errors.IsNotFound(err) {
 			_ = ctrl.SetControllerReference(pr, cm, r.Scheme)
 			if err := r.Create(ctx, cm); err != nil {
-				log.Error(err, "failed to create api server config")
+				log.Error(err, "failed to create Dex server config")
 				return err
 			}
 			return nil
@@ -95,50 +98,30 @@ func (r *PlatformReconciler) reconcileApiConfig(ctx context.Context, pr *paasv1a
 	return nil
 }
 
-func (r *PlatformReconciler) reconcileApiIngress(ctx context.Context, pr *paasv1alpha1.Platform) error {
+func (r *PlatformReconciler) reconcileDexIngress(ctx context.Context, pr *paasv1alpha1.Platform) error {
 	log := logging.FromContext(ctx)
-	log.Info("reconciling api server ingress")
+	log.Info("reconciling Dex server ingress")
 
-	ing := platform.ApiIngress(pr)
+	ing := platform.DexIngress(pr)
 
 	found := &netv1.Ingress{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: ing.GetNamespace(), Name: ing.GetName()}, found); err != nil {
 		if errors.IsNotFound(err) {
 			_ = ctrl.SetControllerReference(pr, ing, r.Scheme)
 			if err := r.Create(ctx, ing); err != nil {
-				log.Error(err, "failed to create api server ingress")
+				log.Error(err, "failed to create Dex server ingress")
 				return err
 			}
 			return nil
 		}
 		return err
 	}
+
 	_ = ctrl.SetControllerReference(pr, ing, r.Scheme)
 
 	// reconcile changes
 	if !reflect.DeepEqual(ing.Spec, found.Spec) {
 		return r.SafeUpdate(ctx, found, ing)
-	}
-	return nil
-}
-
-func (r *PlatformReconciler) reconcileSA(ctx context.Context, component string, pr *paasv1alpha1.Platform) error {
-	log := logging.FromContext(ctx)
-	log.Info("reconciling service account")
-
-	sa := platform.ServiceAccount(component, pr)
-
-	found := &corev1.ServiceAccount{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: sa.GetNamespace(), Name: sa.GetName()}, found); err != nil {
-		if errors.IsNotFound(err) {
-			_ = ctrl.SetControllerReference(pr, sa, r.Scheme)
-			if err := r.Create(ctx, sa); err != nil {
-				log.Error(err, "failed to create api server service account")
-				return err
-			}
-			return nil
-		}
-		return err
 	}
 	return nil
 }

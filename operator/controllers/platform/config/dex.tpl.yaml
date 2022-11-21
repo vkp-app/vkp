@@ -1,0 +1,22 @@
+connectors:
+  - id: mock
+    name: Mock
+    type: mockCallback
+grpc:
+  addr: 0.0.0.0:5557
+  reflection: true
+  tlsCert: ""
+  tlsKey: ""
+issuer: "https://dex.{{ .Domain }}"
+oauth2:
+  skipApprovalScreen: true
+staticClients:
+  - id: vpk
+    name: VKP
+    redirectURIs:
+      - "https://vkp.{{ .Domain }}/oauth2/callback"
+    secretEnv: CLIENT_SECRET_VPK
+storage:
+  config:
+    inCluster: true
+  type: kubernetes

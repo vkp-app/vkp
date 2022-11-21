@@ -30,8 +30,7 @@ type PlatformSpec struct {
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	ImagePullPolicy  corev1.PullPolicy             `json:"imagePullPolicy,omitempty"`
 
-	IngressClassName string               `json:"ingressClassName,omitempty"`
-	Ingress          ComponentIngressSpec `json:"ingress"`
+	Ingress ComponentIngressSpec `json:"ingress"`
 
 	ApiServer ApiServerSpec `json:"apiServer,omitempty"`
 	Dex       DexSpec       `json:"dex"`
@@ -53,11 +52,13 @@ type ComponentSpec struct {
 	ImagePullPolicy corev1.PullPolicy           `json:"imagePullPolicy,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 	ReplicaCount    int32                       `json:"replicaCount,omitempty"`
+	ExtraArgs       []string                    `json:"extraArgs,omitempty"`
 }
 
 type ComponentIngressSpec struct {
-	Annotations map[string]string           `json:"annotations,omitempty"`
-	SecretRef   corev1.LocalObjectReference `json:"secretRef"`
+	Annotations      map[string]string           `json:"annotations,omitempty"`
+	SecretRef        corev1.LocalObjectReference `json:"secretRef"`
+	IngressClassName string                      `json:"ingressClassName,omitempty"`
 }
 
 // PlatformStatus defines the observed state of Platform

@@ -1,13 +1,15 @@
 package platform
 
 const annotationMainContainer = "kubectl.kubernetes.io/default-container"
+const annotationConfigHash = "paas.dcas.dev/config-hash"
 
 const SecretKeyOauthCookie = "cookieSecret"
+const SecretKeyDexClientSecret = "dexClientSecret"
 
 const (
-	componentApiServer  = "apiserver"
-	componentOauthProxy = "oauth-proxy"
+	ComponentApiServer  = "apiserver"
+	ComponentOauthProxy = "oauth-proxy"
 
-	componentWeb = "web"
-	componentDex = "dex"
+	ComponentWeb = "web"
+	ComponentDex = "dex"
 )

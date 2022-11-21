@@ -29,7 +29,7 @@ func ApiConfig(pr *paasv1alpha1.Platform) *corev1.ConfigMap {
 	}
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      componentApiServer,
+			Name:      ComponentApiServer,
 			Namespace: pr.Spec.Namespace,
 			Labels:    apiLabels(pr),
 		},
@@ -43,7 +43,7 @@ func ApiService(pr *paasv1alpha1.Platform) *corev1.Service {
 	labels := apiLabels(pr)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      componentApiServer,
+			Name:      ComponentApiServer,
 			Namespace: pr.Spec.Namespace,
 			Labels:    labels,
 		},
@@ -65,12 +65,13 @@ func ApiIngress(pr *paasv1alpha1.Platform) *netv1.Ingress {
 	pt := netv1.PathTypePrefix
 	return &netv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      componentApiServer,
-			Namespace: pr.Spec.Namespace,
-			Labels:    apiLabels(pr),
+			Name:        ComponentApiServer,
+			Namespace:   pr.Spec.Namespace,
+			Labels:      Labels(pr, ComponentApiServer),
+			Annotations: pr.Spec.Ingress.Annotations,
 		},
 		Spec: netv1.IngressSpec{
-			IngressClassName: &pr.Spec.IngressClassName,
+			IngressClassName: &pr.Spec.Ingress.IngressClassName,
 			Rules: []netv1.IngressRule{
 				{
 					Host: fmt.Sprintf("vkp.%s", pr.Spec.Domain),
@@ -82,7 +83,7 @@ func ApiIngress(pr *paasv1alpha1.Platform) *netv1.Ingress {
 									PathType: &pt,
 									Backend: netv1.IngressBackend{
 										Service: &netv1.IngressServiceBackend{
-											Name: componentApiServer,
+											Name: ComponentApiServer,
 											Port: netv1.ServiceBackendPort{
 												Name: portPublic,
 											},
@@ -107,14 +108,14 @@ func ApiIngress(pr *paasv1alpha1.Platform) *netv1.Ingress {
 }
 
 func ApiDeployment(pr *paasv1alpha1.Platform) *appsv1.Deployment {
-	labels := apiLabels(pr)
+	labels := Labels(pr, ComponentApiServer)
 	replicaCount := pr.Spec.ApiServer.ReplicaCount
 	if replicaCount <= 0 {
 		replicaCount = 1
 	}
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      componentApiServer,
+			Name:      ComponentApiServer,
 			Namespace: pr.Spec.Namespace,
 			Labels:    labels,
 		},
@@ -127,19 +128,19 @@ func ApiDeployment(pr *paasv1alpha1.Platform) *appsv1.Deployment {
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: labels,
 					Annotations: map[string]string{
-						annotationMainContainer: componentApiServer,
+						annotationMainContainer: ComponentApiServer,
 					},
 				},
 				Spec: corev1.PodSpec{
 					ImagePullSecrets:   pr.Spec.ImagePullSecrets,
-					ServiceAccountName: componentApiServer,
+					ServiceAccountName: ComponentApiServer,
 					Volumes: []corev1.Volume{
 						{
 							Name: volumeConfig,
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
-										Name: componentApiServer,
+										Name: ComponentApiServer,
 									},
 								},
 							},
@@ -155,15 +156,15 @@ func ApiDeployment(pr *paasv1alpha1.Platform) *appsv1.Deployment {
 					},
 					Containers: []corev1.Container{
 						{
-							Name:            componentApiServer,
+							Name:            ComponentApiServer,
 							Image:           pr.Spec.ApiServer.Image,
 							ImagePullPolicy: imagePullPolicy(&pr.Spec.ApiServer.ComponentSpec, pr),
-							Args: []string{
+							Args: append([]string{
 								"--v=5",
 								fmt.Sprintf("--prometheus-url=%s", pr.Spec.PrometheusURL),
 								"--prometheus-config-file=/etc/vkp/config/prometheus.yaml",
 								fmt.Sprintf("--dex-url=https://dex.%s", pr.Spec.Domain),
-							},
+							}, pr.Spec.ApiServer.ExtraArgs...),
 							Env: []corev1.EnvVar{
 								{
 									Name: "KUBERNETES_NAMESPACE",
@@ -213,10 +214,10 @@ func ApiDeployment(pr *paasv1alpha1.Platform) *appsv1.Deployment {
 							},
 						},
 						{
-							Name:            componentOauthProxy,
+							Name:            ComponentOauthProxy,
 							Image:           pr.Spec.ApiServer.OauthProxy.Image,
 							ImagePullPolicy: imagePullPolicy(&pr.Spec.ApiServer.OauthProxy, pr),
-							Args: []string{
+							Args: append([]string{
 								"--http-address=:8079",
 								"--provider=oidc",
 								fmt.Sprintf("--client-id=%s", "todo"),
@@ -230,7 +231,7 @@ func ApiDeployment(pr *paasv1alpha1.Platform) *appsv1.Deployment {
 								"--code-challenge-method=S256",
 								"--upstream=http://localhost:8080",
 								"--scope=openid profile email groups",
-							},
+							}, pr.Spec.ApiServer.OauthProxy.ExtraArgs...),
 							Env: []corev1.EnvVar{
 								{
 									Name: "OAUTH2_PROXY_COOKIE_SECRET",
@@ -263,6 +264,7 @@ func ApiDeployment(pr *paasv1alpha1.Platform) *appsv1.Deployment {
 									SubPath:   "ca.crt",
 								},
 							},
+							Resources: pr.Spec.ApiServer.OauthProxy.Resources,
 						},
 					},
 				},
