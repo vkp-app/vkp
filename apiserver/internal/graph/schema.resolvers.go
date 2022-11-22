@@ -287,7 +287,7 @@ func (r *mutationResolver) ApproveTenant(ctx context.Context, tenant string) (bo
 	}
 	// if the tenant doesn't require approval
 	// exit cleanly
-	if tenantResource.Status.Phase != paasv1alpha1.PhasePendingApproval && paaasv1alpha1.PhasePendingApproval != "" {
+	if tenantResource.Status.Phase != paasv1alpha1.PhasePendingApproval && paasv1alpha1.PhasePendingApproval != "" {
 		log.Info("tenant is not awaiting approval")
 		return false, nil
 	}
