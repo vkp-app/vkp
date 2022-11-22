@@ -103,10 +103,12 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, tenant string) (*pa
 		log.Error(err, "failed to create tenant")
 		return nil, err
 	}
-	// ensure that the correct phase is applied
+	// ensure that the correct phase is applied.
+	// this may fail in certain situations (e.g. OpenShift) so
+	// don't error on failure
 	if err := r.Status().Update(ctx, tr); err != nil {
 		log.Error(err, "failed to apply tenant status")
-		return nil, err
+		return tr, nil
 	}
 	return tr, nil
 }
@@ -285,7 +287,7 @@ func (r *mutationResolver) ApproveTenant(ctx context.Context, tenant string) (bo
 	}
 	// if the tenant doesn't require approval
 	// exit cleanly
-	if tenantResource.Status.Phase != paasv1alpha1.PhasePendingApproval {
+	if tenantResource.Status.Phase != paasv1alpha1.PhasePendingApproval && paaasv1alpha1.PhasePendingApproval != "" {
 		log.Info("tenant is not awaiting approval")
 		return false, nil
 	}
