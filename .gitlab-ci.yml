@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  CNB_TAGS: "0.0.6"
+  CNB_TAGS: "0.0.7"
   KANIKO_TAGS: $CNB_TAGS
   IMG_TAGS: $CNB_TAGS
 

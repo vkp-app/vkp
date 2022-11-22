@@ -1,7 +1,8 @@
 ingress:
   enabled: false
 {{- if .OpenShift }}
-securityContext: null
+openshift:
+  enable: true
 {{- else }}
 securityContext:
   allowPrivilegeEscalation: false
