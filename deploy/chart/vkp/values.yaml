@@ -1,8 +1,9 @@
 global:
+  caSecret: ""
   ingress:
     annotations: {}
-    domain: 192-168-49-2.nip.io # USER - set me!
-    ingressClassName: "" # USER - set me!
+    domain: example.org
+    ingressClassName: ""
     tlsSecret: ""
 
 prometheus:
@@ -12,27 +13,33 @@ idp:
   existingSecret: ""
   clientSecret: ""
   cookieSecret: ""
-  connectors: # USER - set me!
+  connectors:
     - id: mock
       name: Mock
       type: mockCallback
 
 api:
   logLevel: 0
-  image: todo
+  image: ghcr.io/vkp-app/vkp/apiserver:main
+  imagePullPolicy: IfNotPresent
+#  resources: {}
+#  podSecurityContext: {}
+#  containerSecurityContext: {}
 web:
-  image: todo
+  image: ghcr.io/vkp-app/vkp/web:main
+  imagePullPolicy: IfNotPresent
+#  resources: {}
+#  podSecurityContext: {}
+#  containerSecurityContext: {}
 oauthProxy:
   image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0-amd64
+  imagePullPolicy: IfNotPresent
+#  resources: {}
+#  containerSecurityContext: {}
 
 dex:
-  envVars:
-    - name: CLIENT_SECRET_VKP
-      value: "" # USER - set me!
-  configSecret:
-    create: false
-    name: dex
-  grpc:
-    enabled: true
-  ingress:
-    enabled: false
+  image: ghcr.io/dexidp/dex:v2.35.3
+  imagePullPolicy: IfNotPresent
+#  resources: {}
+#  podSecurityContext: {}
+#  containerSecurityContext: {}

@@ -1,40 +1,30 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: apiserver-config
-data:
-  prometheus.yaml: |
-    # nothing to see here
-    metrics: []
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: apiserver
   labels:
-    app.kubernetes.io/name: vkp
-    app.kubernetes.io/component: apiserver
-    app.kubernetes.io/instance: vkp
+    {{- include "api.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: vkp
-      app.kubernetes.io/component: apiserver
-      app.kubernetes.io/instance: vkp
+      {{- include "api.labels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: vkp
-        app.kubernetes.io/component: apiserver
-        app.kubernetes.io/instance: vkp
+        {{- include "api.labels" . | nindent 8 }}
       annotations:
         kubectl.kubernetes.io/default-container: apiserver
+        checksum/config: {{ tpl (print $.Template.BasePath "/api/config.yaml") . | sha256sum }}
     spec:
+      {{- if .Values.dex.podSecurityContext }}
+      securityContext: {{ toYaml .Values.dex.podSecurityContext | nindent 8 }}
+      {{- end }}
       serviceAccountName: apiserver
       volumes:
         - name: tls
           secret:
-            secretName: {{ .Values.global.ingress.tlsSecret }}
+            secretName: {{ .Values.global.caSecret | default .Values.global.ingress.tlsSecret }}
         - name: config
           configMap:
             name: apiserver-config
@@ -59,20 +49,9 @@ spec:
             - name: config
               mountPath: /etc/vkp/config
               readOnly: true
-          resources:
-            requests:
-              cpu: 200m
-              memory: 256Mi
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            seccompProfile:
-              type: RuntimeDefault
-            runAsGroup: 0
-            runAsNonRoot: true
-            runAsUser: 12848
+{{- if .Values.api.containerSecurityContext }}
+          securityContext: {{ toYaml .Values.api.containerSecurityContext | nindent 10 }}
+{{- end }}
           readinessProbe:
             httpGet:
               path: /readyz
@@ -93,19 +72,19 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 3
+          resources:
+{{ toYaml .Values.api.resources | indent 12 }}
         - name: oauth-proxy
           image: {{ .Values.oauthProxy.image }}
           args:
             - --http-address=:8079
             - --provider=oidc
             - --client-id=vkp
-            - --client-secret=password
             - --email-domain=*
             - --oidc-issuer-url=https://dex.{{ .Values.global.ingress.domain }}
             - --redirect-url=https://vkp.{{ .Values.global.ingress.domain }}/oauth2/callback
             - --prefer-email-to-user=true
             - --cookie-secure=true
-            - --cookie-secret=NTk4YzE3ZmZhZGRhYTZjMDY4MzA2OTY2Yzg4Yzg3MGI=
             - --cookie-refresh=2h
             - --code-challenge-method=S256
             - --upstream=http://localhost:8080
@@ -113,6 +92,16 @@ spec:
           env:
             - name: SSL_CERT_FILE
               value: /var/run/secrets/paas.dcas.dev/tls/ca.crt
+            - name: OAUTH2_PROXY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.idp.existingSecret | default "vkp-common" }}
+                  key: DEX_CLIENT_SECRET
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.idp.existingSecret | default "vkp-common" }}
+                  key: OAUTH2_PROXY_COOKIE_SECRET
           ports:
             - containerPort: 8079
               name: web
@@ -121,15 +110,22 @@ spec:
             - mountPath: /var/run/secrets/paas.dcas.dev/tls
               name: tls
               readOnly: true
+{{- if .Values.oauthProxy.containerSecurityContext }}
+          securityContext: {{ toYaml .Values.oauthProxy.containerSecurityContext | nindent 10 }}
+{{- end }}
+          resources:
+{{ toYaml .Values.oauthProxy.resources | indent 12 }}
 ---
 kind: Ingress
 apiVersion: networking.k8s.io/v1
 metadata:
   name: apiserver
+  annotations:
+{{- with .Values.global.ingress.annotations }}
+{{- toYaml . | nindent 4 }}
+{{- end }}
   labels:
-    app.kubernetes.io/name: vkp
-    app.kubernetes.io/component: apiserver
-    app.kubernetes.io/instance: vkp
+    {{- include "api.labels" . | nindent 4 }}
 spec:
   ingressClassName: {{ .Values.global.ingress.ingressClassName }}
   tls:
@@ -235,9 +231,7 @@ apiVersion: v1
 metadata:
   name: apiserver
   labels:
-    app.kubernetes.io/name: vkp
-    app.kubernetes.io/component: apiserver
-    app.kubernetes.io/instance: vkp
+    {{- include "api.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
   ports:
@@ -246,9 +240,7 @@ spec:
       port: 80
       targetPort: web
   selector:
-    app.kubernetes.io/name: vkp
-    app.kubernetes.io/component: apiserver
-    app.kubernetes.io/instance: vkp
+    {{- include "api.labels" . | nindent 4 }}
 ---
 apiVersion: v1
 kind: ServiceAccount

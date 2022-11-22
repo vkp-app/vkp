@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dex
+stringData:
+  config.yaml: |
+    connectors:
+  {{- toYaml .Values.idp.connectors | nindent 4}}
+    enablePasswordDB: false
+    grpc:
+      addr: 0.0.0.0:5557
+      reflection: true
+      tlsCert: ""
+      tlsKey: ""
+    issuer: https://dex.{{ .Values.global.ingress.domain }}
+    oauth2:
+      skipApprovalScreen: true
+    staticClients:
+    - id: vkp
+      name: VKP
+      redirectURIs:
+      - https://vkp.{{ .Values.global.ingress.domain }}/oauth2/callback
+      secretEnv: CLIENT_SECRET_VKP
+    storage:
+      config:
+        inCluster: true
+      type: kubernetes
