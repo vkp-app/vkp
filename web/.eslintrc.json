@@ -66,10 +66,6 @@
     "react/jsx-first-prop-new-line": [
       1,
       "multiline"
-    ],
-    "react/jsx-space-before-closing": [
-      1,
-      "never"
     ]
   }
 }

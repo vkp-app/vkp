@@ -16,7 +16,7 @@ const About: React.FC = (): JSX.Element => {
 				subheader="Management platform for Virtual Kubernetes Clusters."
 				avatar={<Avatar
 					sx={{width: 64, height: 64}}
-					src="/src/img/kubernetes-icon-color.svg"
+					src={process.env.PUBLIC_URL + "/kubernetes-icon-color.svg"}
 					alt="VKP icon"
 				/>}
 			/>

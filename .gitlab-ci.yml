@@ -26,8 +26,8 @@ build web:
     AUTO_CNB_BUILD_IMAGE: "${AUTO_DEVOPS_REGISTRY_GITLAB}registry.gitlab.com/autokubeops/buildpacks/lifecycle:0.3"
     AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
     PROJECT_PATH: web
-    BP_STATIC_DIR: dist
-    BP_NODE_OUTPUT_DIR: dist
+    BP_STATIC_DIR: build
+    BP_NODE_OUTPUT_DIR: build
     BP_NODE_VERSION: "~16"
     BP_STATIC_ENV: .env
     BP_KEEP_FILES: .env

@@ -149,7 +149,7 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 						to="/tenants">
 						<Avatar
 							className={classes.avatar}
-							src="/src/img/kubernetes-icon-color.svg"
+							src={process.env.PUBLIC_URL + "/kubernetes-icon-color.svg"}
 							alt="VKP logo"
 						/>
 						<Typography
@@ -226,22 +226,22 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 					<ListItemText primary={data?.currentUser.username || ""}/>
 				</ListItem>}
 				<Divider/>
-				<MenuItem
-					sx={{fontSize: 14}}
-					onClick={handleMenuClose}
-					component={Link}
-					to="/profile"
-					disabled={!data}>
-					Edit profile
-				</MenuItem>
-				<MenuItem
-					sx={{fontSize: 14}}
-					onClick={handleMenuClose}
-					component={Link}
-					to="/profile/preferences"
-					disabled={!data}>
-					Preferences
-				</MenuItem>
+				{/*<MenuItem*/}
+				{/*	sx={{fontSize: 14}}*/}
+				{/*	onClick={handleMenuClose}*/}
+				{/*	component={Link}*/}
+				{/*	to="/profile"*/}
+				{/*	disabled={!data}>*/}
+				{/*	Edit profile*/}
+				{/*</MenuItem>*/}
+				{/*<MenuItem*/}
+				{/*	sx={{fontSize: 14}}*/}
+				{/*	onClick={handleMenuClose}*/}
+				{/*	component={Link}*/}
+				{/*	to="/profile/preferences"*/}
+				{/*	disabled={!data}>*/}
+				{/*	Preferences*/}
+				{/*</MenuItem>*/}
 				<MenuItem
 					sx={{fontSize: 14}}
 					onClick={handleMenuClose}
