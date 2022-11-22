@@ -1,5 +1,8 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
+  CNB_TAGS: "0.0.4"
+  KANIKO_TAGS: $CNB_TAGS
+  IMG_TAGS: $CNB_TAGS
 
 stages:
   - build
@@ -17,6 +20,30 @@ build apiserver:
       when: never
     - changes:
       - apiserver/**/*
+
+build plugin-hooks:
+  extends: .auto-build
+  stage: build
+  variables:
+    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
+    PROJECT_PATH: vcluster-plugin-hooks
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - changes:
+        - vcluster-plugin-hooks/**/*
+
+build plugin-sync:
+  extends: .auto-build
+  stage: build
+  variables:
+    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
+    PROJECT_PATH: vcluster-plugin-sync
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - changes:
+        - vcluster-plugin-sync/**/*
 
 build web:
   stage: build
@@ -45,7 +72,6 @@ build operator:
   variables:
     AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
     PROJECT_PATH: operator
-    CNB_TAGS: "0.0.4"
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
