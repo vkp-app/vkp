@@ -62,10 +62,19 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+
+	// custom flags
 	fDexCA := flag.String("dex-ca-file", "", "File that contains the Certificate Authority for Dex. Will fallback to the Kubernetes API CA if not set.")
-	opts := zap.Options{
-		Development: true,
-	}
+
+	// cluster controller configuration
+	clusterOpts := controllers.ClusterOptions{}
+	flag.StringVar(&clusterOpts.DexGrpcAddr, "cluster-dex-grpc-addr", "", "grpc address of the Dex instance.")
+
+	// tenant controller configuration
+	tenantOpts := controllers.TenantOptions{}
+	flag.BoolVar(&tenantOpts.SkipDefaultAddons, "tenant-skip-default-addons", false, "if enabled, will skip installation of cluster-wide addons.")
+
+	opts := zap.Options{Development: true}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
@@ -111,16 +120,18 @@ func main() {
 	}
 
 	if err = (&controllers.ClusterReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-		DexCA:  dexCA,
+		Client:  mgr.GetClient(),
+		Scheme:  mgr.GetScheme(),
+		DexCA:   dexCA,
+		Options: clusterOpts,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Cluster")
 		os.Exit(1)
 	}
 	if err = (&controllers.TenantReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:  mgr.GetClient(),
+		Scheme:  mgr.GetScheme(),
+		Options: tenantOpts,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Tenant")
 		os.Exit(1)

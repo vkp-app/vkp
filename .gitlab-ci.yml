@@ -45,6 +45,7 @@ build operator:
   variables:
     AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
     PROJECT_PATH: operator
+    CNB_TAGS: "0.0.4"
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -70,7 +71,9 @@ prepare index:
   stage: pre-deploy
   dependencies: []
   needs:
-    - build bundle
+    - job: build bundle
+    - job: build operator
+      optional: true
   image:
     name: quay.io/operator-framework/upstream-registry-builder
     entrypoint: [""]

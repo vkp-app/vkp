@@ -5,4 +5,10 @@ const (
 	finalizer   = "paas.dcas.dev/finalizer"
 )
 
-const EnvIDPURL = "PAAS_IDP_GRPC_URL"
+type TenantOptions struct {
+	SkipDefaultAddons bool
+}
+
+type ClusterOptions struct {
+	DexGrpcAddr string
+}

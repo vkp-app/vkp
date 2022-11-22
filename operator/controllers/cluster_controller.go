@@ -44,8 +44,9 @@ import (
 // ClusterReconciler reconciles a Cluster object
 type ClusterReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
-	DexCA  string
+	Scheme  *runtime.Scheme
+	DexCA   string
+	Options ClusterOptions
 }
 
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters,verbs=get;list;watch;create;update;patch;delete
@@ -347,7 +348,7 @@ func (r *ClusterReconciler) updateSecretData(ctx context.Context, key string, fo
 
 func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
-	log.Info("reconciling dex client")
+	log.Info("reconciling dex client", "addr", r.Options.DexGrpcAddr)
 
 	// fetch the secret
 	sc := &corev1.Secret{}
@@ -357,7 +358,7 @@ func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1al
 	}
 
 	// establish a connection to the Dex API
-	conn, err := grpc.DialContext(ctx, os.Getenv(EnvIDPURL), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.DialContext(ctx, r.Options.DexGrpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error(err, "failed to establish gRPC connection to Dex")
 		return err
@@ -404,9 +405,9 @@ func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1al
 
 func (r *ClusterReconciler) finalizeDexClient(ctx context.Context, cr *paasv1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
-	log.Info("finalizing dex client")
+	log.Info("finalizing dex client", "addr", r.Options.DexGrpcAddr)
 	// establish a connection to the Dex API
-	conn, err := grpc.DialContext(ctx, os.Getenv(EnvIDPURL), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.DialContext(ctx, r.Options.DexGrpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error(err, "failed to establish gRPC connection to Dex")
 		return err

@@ -34,7 +34,8 @@ import (
 // TenantReconciler reconciles a Tenant object
 type TenantReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme  *runtime.Scheme
+	Options TenantOptions
 }
 
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=tenants,verbs=get;list;watch;create;update;patch;delete
@@ -107,6 +108,11 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 func (r *TenantReconciler) reconcileAddons(ctx context.Context, tr *paasv1alpha1.Tenant) error {
 	log := logging.FromContext(ctx).WithValues("tenant", tr.GetName())
 	log.Info("reconciling addons")
+
+	if r.Options.SkipDefaultAddons {
+		log.V(2).Info("skipping default addons as requested")
+		return nil
+	}
 
 	found := cluster.Addons(tr)
 	for _, addon := range found {

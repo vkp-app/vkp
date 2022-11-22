@@ -273,7 +273,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.25.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: operator.v0.0.3
+  name: operator.v0.0.4
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -654,11 +654,11 @@ spec:
           - subjectaccessreviews
           verbs:
           - create
-        serviceAccountName: operator-controller-manager
+        serviceAccountName: vkp-controller-manager
       deployments:
       - label:
           control-plane: controller-manager
-        name: operator-controller-manager
+        name: vkp-controller-manager
         spec:
           replicas: 1
           selector:
@@ -674,35 +674,12 @@ spec:
             spec:
               containers:
               - args:
-                - --secure-listen-address=0.0.0.0:8443
-                - --upstream=http://127.0.0.1:8080/
-                - --logtostderr=true
-                - --v=0
-                image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
-                name: kube-rbac-proxy
-                ports:
-                - containerPort: 8443
-                  name: https
-                  protocol: TCP
-                resources:
-                  limits:
-                    cpu: 500m
-                    memory: 128Mi
-                  requests:
-                    cpu: 5m
-                    memory: 64Mi
-                securityContext:
-                  allowPrivilegeEscalation: false
-                  capabilities:
-                    drop:
-                    - ALL
-              - args:
                 - --health-probe-bind-address=:8081
                 - --metrics-bind-address=127.0.0.1:8080
                 - --leader-elect
                 command:
                 - /cnb/process/operator
-                image: ghcr.io/vkp-app/vkp/operator:latest
+                image: ghcr.io/vkp-app/vkp/operator:0.0.4
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -728,9 +705,32 @@ spec:
                   capabilities:
                     drop:
                     - ALL
+              - args:
+                - --secure-listen-address=0.0.0.0:8443
+                - --upstream=http://127.0.0.1:8080/
+                - --logtostderr=true
+                - --v=0
+                image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
+                name: kube-rbac-proxy
+                ports:
+                - containerPort: 8443
+                  name: https
+                  protocol: TCP
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 128Mi
+                  requests:
+                    cpu: 5m
+                    memory: 64Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
               securityContext:
                 runAsNonRoot: true
-              serviceAccountName: operator-controller-manager
+              serviceAccountName: vkp-controller-manager
               terminationGracePeriodSeconds: 10
       permissions:
       - rules:
@@ -765,7 +765,7 @@ spec:
           verbs:
           - create
           - patch
-        serviceAccountName: operator-controller-manager
+        serviceAccountName: vkp-controller-manager
     strategy: deployment
   installModes:
   - supported: false
@@ -790,4 +790,4 @@ spec:
   provider:
     name: VKP
     url: https://github.com/vkp-app
-  version: 0.0.3
+  version: 0.0.4

@@ -2,3 +2,15 @@ resources:
   - ../default
 patchesStrategicMerge:
   - manager_minikube_patch.yaml
+patches:
+  - target:
+      kind: Deployment
+      name: controller-manager
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --cluster-dex-grpc-addr=dex.vkp-system.svc:5557
+images:
+  - name: ghcr.io/vkp-app/vkp/operator
+    newName: controller
+    newTag: latest
