@@ -45,6 +45,7 @@ idp:
 api:
   image: ghcr.io/vkp-app/vkp/apiserver:main
   imagePullPolicy: IfNotPresent
+#  extraEnv: []
 #  extraArgs: []
 #  resources: {}
 #  podSecurityContext: {}
@@ -52,12 +53,14 @@ api:
 web:
   image: ghcr.io/vkp-app/vkp/web:main
   imagePullPolicy: IfNotPresent
+#  extraEnv: []
 #  resources: {}
 #  podSecurityContext: {}
 #  containerSecurityContext: {}
 oauthProxy:
   image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0-amd64
   imagePullPolicy: IfNotPresent
+#  extraEnv: []
 #  extraArgs: []
 #  resources: {}
 #  containerSecurityContext: {}
@@ -67,6 +70,7 @@ dex:
   imagePullPolicy: IfNotPresent
   ingress:
     tlsSecret: tls-dex
+#  extraEnv: []
 #  extraArgs: []
 #  resources: {}
 #  podSecurityContext: {}

@@ -15,8 +15,8 @@ spec:
       annotations:
         kubectl.kubernetes.io/default-container: web
     spec:
-      {{- if .Values.dex.podSecurityContext }}
-      securityContext: {{ toYaml .Values.dex.podSecurityContext | nindent 8 }}
+      {{- if .Values.web.podSecurityContext }}
+      securityContext: {{ toYaml .Values.web.podSecurityContext | nindent 8 }}
       {{- end }}
       automountServiceAccountToken: false
       volumes:
@@ -32,6 +32,9 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.namespace
+            {{- if .Values.web.extraEnv }}
+            {{- toYaml .Values.web.extraEnv | nindent 12 }}
+            {{- end }}
           volumeMounts:
             - mountPath: /var/run/secrets/paas.dcas.dev/tls
               name: tls
@@ -94,6 +97,9 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.idp.existingSecret | default (include "dex.secret" .) }}
                   key: OAUTH2_PROXY_COOKIE_SECRET
+            {{- if .Values.oauthProxy.extraEnv }}
+            {{- toYaml .Values.oauthProxy.extraEnv | nindent 12 }}
+            {{- end }}
           ports:
             - containerPort: 8079
               name: web

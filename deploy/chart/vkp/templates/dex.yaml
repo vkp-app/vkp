@@ -68,6 +68,14 @@ spec:
           env:
             - name: SSL_CERT_DIR
               value: {{ include "pki.caPath" . | quote }}
+            - name: CLIENT_SECRET_VKP
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.idp.existingSecret | default (include "dex.secret" .) }}
+                  key: DEX_CLIENT_SECRET
+            {{- if .Values.dex.extraEnv }}
+            {{- toYaml .Values.dex.extraEnv | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 5556

@@ -1,0 +1,8 @@
+# this file should only be used for CI purposes
+dex:
+  extraEnv:
+    - name: FOO
+      value: BAR
+api:
+  extraArgs:
+    - --foo=bar
