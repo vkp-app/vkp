@@ -39,7 +39,7 @@ build plugin-sync:
   extends: .auto-build
   stage: build
   variables:
-    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
+    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/registry.gitlab.com/av1o/helm-install-image:v3-1.25
     PROJECT_PATH: vcluster-plugin-sync
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"

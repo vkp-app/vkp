@@ -1,4 +1,4 @@
-apiVersion: skaffold/v2beta29
+apiVersion: skaffold/v3
 kind: Config
 metadata:
   name: operator
@@ -44,8 +44,16 @@ build:
           - go.sum
   local:
     push: false
-deploy:
-  kubeContext: minikube
+manifests:
   kustomize:
     paths:
-    - config/minikube
+      - config/minikube
+deploy:
+  kubectl: {}
+  kubeContext: minikube
+profiles:
+  - name: staged
+    manifests:
+      kustomize:
+        paths:
+          - config/minikube-staged

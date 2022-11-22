@@ -1,0 +1,33 @@
+resources:
+  - ../minikube
+patches:
+  - target:
+      kind: Deployment
+      name: controller-manager
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/command
+        value:
+          - /cnb/process/operator
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Always
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: PASS_PLUGIN_PULL_POLICY
+          value: Always
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: PAAS_PLUGIN_SYNC_IMAGE
+          value: harbor.dcas.dev/ghcr.io/vkp-app/vkp/vcluster-plugin-sync:main
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: PAAS_PLUGIN_HOOK_IMAGE
+          value: harbor.dcas.dev/ghcr.io/vkp-app/vkp/vcluster-plugin-hooks:main
+images:
+  - name: controller
+    newName: harbor.dcas.dev/ghcr.io/vkp-app/vkp/operator
+    newTag: main
