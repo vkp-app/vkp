@@ -20,6 +20,7 @@ build apiserver:
       when: never
     - changes:
       - apiserver/**/*
+      - .gitlab-ci.yml
 
 build plugin-hooks:
   extends: .auto-build
@@ -32,6 +33,7 @@ build plugin-hooks:
       when: never
     - changes:
         - vcluster-plugin-hooks/**/*
+        - .gitlab-ci.yml
 
 build plugin-sync:
   extends: .auto-build
@@ -44,6 +46,7 @@ build plugin-sync:
       when: never
     - changes:
         - vcluster-plugin-sync/**/*
+        - .gitlab-ci.yml
 
 build web:
   stage: build
@@ -65,6 +68,7 @@ build web:
       when: never
     - changes:
         - web/**/*
+        - .gitlab-ci.yml
 
 build operator:
   extends: .auto-build
@@ -77,6 +81,7 @@ build operator:
       when: never
     - changes:
         - operator/**/*
+        - .gitlab-ci.yml
 
 build bundle:
   stage: build
