@@ -18,7 +18,7 @@ spec:
       {{- if .Values.dex.podSecurityContext }}
       securityContext: {{ toYaml .Values.dex.podSecurityContext | nindent 8 }}
       {{- end }}
-      serviceAccountName: web
+      automountServiceAccountToken: false
       volumes:
         - name: tls
           secret:
@@ -59,8 +59,10 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 3
+{{- if .Values.web.resources }}
           resources:
-{{ toYaml .Values.dex.resources | indent 12 }}
+{{ toYaml .Values.web.resources | indent 12 }}
+{{- end }}
         - name: oauth-proxy
           image: {{ .Values.oauthProxy.image }}
           args:
@@ -76,6 +78,9 @@ spec:
             - --code-challenge-method=S256
             - --upstream=http://localhost:8080
             - --scope=openid profile email groups
+            {{- if .Values.oauthProxy.extraArgs }}
+            {{- toYaml .Values.oauthProxy.extraArgs | nindent 12 }}
+            {{- end }}
           env:
             - name: SSL_CERT_FILE
               value: /var/run/secrets/paas.dcas.dev/tls/ca.crt
@@ -100,36 +105,10 @@ spec:
 {{- if .Values.oauthProxy.containerSecurityContext }}
           securityContext: {{ toYaml .Values.oauthProxy.containerSecurityContext | nindent 10 }}
 {{- end }}
+{{- if .Values.oauthProxy.resources }}
           resources:
 {{ toYaml .Values.oauthProxy.resources | indent 12 }}
----
-kind: Ingress
-apiVersion: networking.k8s.io/v1
-metadata:
-  name: web
-  annotations:
-{{- with .Values.global.ingress.annotations }}
-{{- toYaml . | nindent 4 }}
 {{- end }}
-  labels:
-    {{- include "web.labels" . | nindent 4 }}
-spec:
-  ingressClassName: {{ .Values.global.ingress.ingressClassName }}
-  tls:
-    - hosts:
-        - vkp.{{ .Values.global.ingress.domain }}
-      secretName: {{ .Values.global.ingress.tlsSecret }}
-  rules:
-    - host: vkp.{{ .Values.global.ingress.domain }}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: web
-                port:
-                  name: web
 ---
 kind: Service
 apiVersion: v1
@@ -146,8 +125,3 @@ spec:
       targetPort: web
   selector:
     {{- include "web.labels" . | nindent 4 }}
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: web

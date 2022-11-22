@@ -4,9 +4,12 @@ global:
     annotations: {}
     domain: example.org
     ingressClassName: ""
-    tlsSecret: ""
+    tlsSecret: tls-vkp
 
 prometheus:
+  # url to the prometheus instance.
+  # embedded environment variables will be expanded
+  # e.g. http://$PROMETHEUS_USERNAME:$PROMETHEUS_PASSWORD@promtheus:9090
   url: ""
 
 idp:
@@ -19,9 +22,9 @@ idp:
       type: mockCallback
 
 api:
-  logLevel: 0
   image: ghcr.io/vkp-app/vkp/apiserver:main
   imagePullPolicy: IfNotPresent
+#  extraArgs: []
 #  resources: {}
 #  podSecurityContext: {}
 #  containerSecurityContext: {}
@@ -34,12 +37,14 @@ web:
 oauthProxy:
   image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0-amd64
   imagePullPolicy: IfNotPresent
+#  extraArgs: []
 #  resources: {}
 #  containerSecurityContext: {}
 
 dex:
   image: ghcr.io/dexidp/dex:v2.35.3
   imagePullPolicy: IfNotPresent
+#  extraArgs: []
 #  resources: {}
 #  podSecurityContext: {}
 #  containerSecurityContext: {}

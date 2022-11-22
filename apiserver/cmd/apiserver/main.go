@@ -81,7 +81,7 @@ func main() {
 		return
 	}
 
-	promClient, err := api.NewClient(api.Config{Address: *fPrometheusURL})
+	promClient, err := api.NewClient(api.Config{Address: os.ExpandEnv(*fPrometheusURL)})
 	if err != nil {
 		log.Error(err, "failed to create Prometheus client")
 		os.Exit(1)

@@ -32,10 +32,12 @@ spec:
         - name: apiserver
           image: {{ .Values.api.image }}
           args:
-            - --v={{ .Values.api.logLevel }}
             - --prometheus-url={{ .Values.prometheus.url }}
             - --prometheus-config-file=/etc/vkp/config/prometheus.yaml
             - --dex-url=https://dex.{{ .Values.global.ingress.domain }}
+            {{- if .Values.api.extraArgs }}
+            {{- toYaml .Values.api.extraArgs | nindent 12 }}
+            {{- end }}
           env:
             - name: KUBERNETES_NAMESPACE
               valueFrom:
@@ -72,8 +74,10 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 3
+{{- if .Values.api.resources }}
           resources:
 {{ toYaml .Values.api.resources | indent 12 }}
+{{- end }}
         - name: oauth-proxy
           image: {{ .Values.oauthProxy.image }}
           args:
@@ -89,6 +93,9 @@ spec:
             - --code-challenge-method=S256
             - --upstream=http://localhost:8080
             - --scope=openid profile email groups
+            {{- if .Values.oauthProxy.extraArgs }}
+            {{- toYaml .Values.oauthProxy.extraArgs | nindent 12 }}
+            {{- end }}
           env:
             - name: SSL_CERT_FILE
               value: /var/run/secrets/paas.dcas.dev/tls/ca.crt
@@ -113,36 +120,10 @@ spec:
 {{- if .Values.oauthProxy.containerSecurityContext }}
           securityContext: {{ toYaml .Values.oauthProxy.containerSecurityContext | nindent 10 }}
 {{- end }}
+{{- if .Values.oauthProxy.resources }}
           resources:
 {{ toYaml .Values.oauthProxy.resources | indent 12 }}
----
-kind: Ingress
-apiVersion: networking.k8s.io/v1
-metadata:
-  name: apiserver
-  annotations:
-{{- with .Values.global.ingress.annotations }}
-{{- toYaml . | nindent 4 }}
 {{- end }}
-  labels:
-    {{- include "api.labels" . | nindent 4 }}
-spec:
-  ingressClassName: {{ .Values.global.ingress.ingressClassName }}
-  tls:
-    - hosts:
-        - vkp.{{ .Values.global.ingress.domain }}
-      secretName: {{ .Values.global.ingress.tlsSecret }}
-  rules:
-    - host: vkp.{{ .Values.global.ingress.domain }}
-      http:
-        paths:
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: apiserver
-                port:
-                  name: web
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

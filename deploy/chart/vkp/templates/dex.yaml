@@ -26,8 +26,8 @@ spec:
                 port:
                   number: 5556
 ---
-kind: Deployment
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: dex
   labels:
@@ -62,6 +62,9 @@ spec:
             - '--telemetry-addr'
             - '0.0.0.0:5558'
             - /etc/dex/config.yaml
+            {{- if .Values.dex.extraArgs }}
+            {{- toYaml .Values.dex.extraArgs | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 5556
@@ -93,8 +96,10 @@ spec:
 {{- if .Values.dex.containerSecurityContext }}
           securityContext: {{ toYaml .Values.dex.containerSecurityContext | nindent 10 }}
 {{- end }}
+{{- if .Values.dex.resources }}
           resources:
 {{ toYaml .Values.dex.resources | indent 12 }}
+{{- end }}
           volumeMounts:
             - name: config
               readOnly: true
@@ -104,8 +109,8 @@ spec:
           secret:
             secretName: dex
 ---
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
   name: dex
   labels:
@@ -129,4 +134,70 @@ spec:
       port: 5558
       targetPort: telemetry
   selector:
+    {{- include "dex.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dex
+  labels:
+    {{- include "dex.labels" . | nindent 4 }}
+rules:
+  - verbs:
+      - list
+      - create
+    apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dex-cluster
+  labels:
+    {{- include "dex.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: dex
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: dex
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dex
+  labels:
+    {{- include "dex.labels" . | nindent 4 }}
+rules:
+  - verbs:
+      - '*'
+    apiGroups:
+      - dex.coreos.com
+    resources:
+      - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dex
+  labels:
+    {{- include "dex.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: dex
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: dex
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dex
+  labels:
     {{- include "dex.labels" . | nindent 4 }}

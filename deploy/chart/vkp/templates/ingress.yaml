@@ -1,0 +1,34 @@
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: vkp
+  annotations:
+{{- with .Values.global.ingress.annotations }}
+{{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    {{- include "vkp.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.global.ingress.ingressClassName }}
+  tls:
+    - hosts:
+        - vkp.{{ .Values.global.ingress.domain }}
+      secretName: {{ .Values.global.ingress.tlsSecret }}
+  rules:
+    - host: vkp.{{ .Values.global.ingress.domain }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: apiserver
+                port:
+                  name: web
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  name: web
