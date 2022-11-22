@@ -41,9 +41,10 @@ func main() {
 	fLogLevel := flag.Int("v", 0, "level of logging information (higher is more).")
 	fPort := flag.Int("port", 8080, "http port to listen on.")
 
-	fOtelEnabled := flag.Bool("otel-enabled", false, "enable exporting of OpenTelemetry traces.")
-	fOtelServiceName := flag.String("otel-service-name", "glass-apiserver", "name to distinguish which service traces originate from.")
-	fOtelSampleRate := flag.Float64("otel-sample-rate", 0, "percentage (0.0 - 1.0) of traces that should be exported.")
+	otelOpts := otel.Options{}
+	flag.BoolVar(&otelOpts.Enabled, "otel-enabled", false, "enable exporting of OpenTelemetry traces.")
+	flag.StringVar(&otelOpts.ServiceName, "otel-service-name", "glass-apiserver", "name to distinguish which service traces originate from.")
+	flag.Float64Var(&otelOpts.SampleRate, "otel-sample-rate", 0.05, "percentage (0.0 - 1.0) of traces that should be exported.")
 
 	fPrometheusURL := flag.String("prometheus-url", "", "URL of the management cluster's Prometheus server.")
 	fPrometheusConfig := flag.String("prometheus-config-file", "", "File that contains the Prometheus configuration file.")
@@ -70,11 +71,7 @@ func main() {
 
 	// configure metrics and tracing
 	prom := metrics.MustNewDefault(ctx)
-	err = otel.Build(ctx, otel.Options{
-		Enabled:     *fOtelEnabled,
-		ServiceName: *fOtelServiceName,
-		SampleRate:  *fOtelSampleRate,
-	})
+	err = otel.Build(ctx, otelOpts)
 	if err != nil {
 		log.Error(err, "failed to configure OpenTelemetry")
 		os.Exit(1)

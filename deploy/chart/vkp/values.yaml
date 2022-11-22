@@ -1,9 +1,23 @@
 global:
+  # custom Certificate Authority to use
+  # for all components. Generally this should contain
+  # a single CA, but it can support many.
   caSecret: ""
   ingress:
+    # annotations to add to all ingress resources
+    # (e.g. cert-manager issuers)
     annotations: {}
+    # base domain for components to be hosted on.
+    # actual endpoints will be:
+    # - vkp.<domain>
+    # - dex.<domain>
     domain: example.org
+    # specify which ingress controller to use
     ingressClassName: ""
+    # specify the name of a Kubernetes TLS secret
+    # to use for ingress. Doesn't need to exist
+    # if cert-manager is creating it (assuming
+    # you have set your annotations correctly).
     tlsSecret: tls-vkp
 
 prometheus:
@@ -13,9 +27,16 @@ prometheus:
   url: ""
 
 idp:
+  # use an existing/external secret rather than creating one.
+  # must contain DEX_CLIENT_SECRET and OAUTH2_PROXY_COOKIE_SECRET keys
   existingSecret: ""
+  # client secret to use for Dex
   clientSecret: ""
+  # secret to use for the Oauth proxy cookies
   cookieSecret: ""
+  # Dex connectors that vkp will delegate authentication
+  # to.
+  # https://dexidp.io/docs/connectors/
   connectors:
     - id: mock
       name: Mock
@@ -44,6 +65,8 @@ oauthProxy:
 dex:
   image: ghcr.io/dexidp/dex:v2.35.3
   imagePullPolicy: IfNotPresent
+  ingress:
+    tlsSecret: tls-dex
 #  extraArgs: []
 #  resources: {}
 #  podSecurityContext: {}

@@ -82,17 +82,17 @@ spec:
             {{- toYaml .Values.oauthProxy.extraArgs | nindent 12 }}
             {{- end }}
           env:
-            - name: SSL_CERT_FILE
-              value: /var/run/secrets/paas.dcas.dev/tls/ca.crt
+            - name: SSL_CERT_DIR
+              value: {{ include "pki.caPath" . | quote }}
             - name: OAUTH2_PROXY_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.idp.existingSecret | default "vkp-common" }}
+                  name: {{ .Values.idp.existingSecret | default (include "dex.secret" .) }}
                   key: DEX_CLIENT_SECRET
             - name: OAUTH2_PROXY_COOKIE_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.idp.existingSecret | default "vkp-common" }}
+                  name: {{ .Values.idp.existingSecret | default (include "dex.secret" .) }}
                   key: OAUTH2_PROXY_COOKIE_SECRET
           ports:
             - containerPort: 8079

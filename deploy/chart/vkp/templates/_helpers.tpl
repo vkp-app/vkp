@@ -17,3 +17,11 @@ app.kubernetes.io/component: apiserver
 app.kubernetes.io/component: web
 {{ include "vkp.labels" . }}
 {{- end }}
+
+{{- define "pki.caPath" -}}
+/var/run/secrets/paas.dcas.dev/tls:/etc/ssl/certs:/etc/pki/tls/certs:/etc/pki/tls:/etc/pki/ca-trust/extracted:/etc/ssl
+{{- end }}
+
+{{- define "dex.secret" }}
+{{- printf "%s-idp" .Release.Name }}
+{{- end }}
