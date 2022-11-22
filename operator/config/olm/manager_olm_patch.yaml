@@ -12,3 +12,10 @@ spec:
         - name: manager
           command:
             - /cnb/process/operator
+          env:
+            - name: PAAS_PLUGIN_SYNC_IMAGE
+              value: ghcr.io/vkp-app/vkp/vcluster-plugin-sync:main
+            - name: PAAS_PLUGIN_HOOK_IMAGE
+              value: ghcr.io/vkp-app/vkp/vcluster-plugin-hooks:main
+            - name: PASS_PLUGIN_PULL_POLICY
+              value: Always
