@@ -17,7 +17,11 @@ limitations under the License.
 package main
 
 import (
-	"flag"
+	"context"
+	"github.com/djcass44/go-utils/logging"
+	"github.com/jnovack/flag"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"os"
 
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
@@ -32,7 +36,6 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers"
@@ -64,7 +67,9 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 
 	// custom flags
-	fDexCA := flag.String("dex-ca-file", "", "File that contains the Certificate Authority for Dex. Will fallback to the Kubernetes API CA if not set.")
+	fDexCA := flag.String("dex-ca-file", "", "file that contains the Certificate Authority for Dex. Will fallback to the Kubernetes API CA if not set.")
+	fLogLevel := flag.Int("v", 0, "log verbosity (higher is more).")
+	fLogDebug := flag.Bool("log-debug", false, "puts logging in development mode.")
 
 	// cluster controller configuration
 	clusterOpts := controllers.ClusterOptions{}
@@ -74,11 +79,18 @@ func main() {
 	tenantOpts := controllers.TenantOptions{}
 	flag.BoolVar(&tenantOpts.SkipDefaultAddons, "tenant-skip-default-addons", false, "if enabled, will skip installation of cluster-wide addons.")
 
-	opts := zap.Options{Development: true}
-	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	log := zap.New(zap.UseFlagOptions(&opts))
+	// configure logging
+	var zc zap.Config
+	if *fLogDebug {
+		zc = zap.NewDevelopmentConfig()
+	} else {
+		zc = zap.NewProductionConfig()
+	}
+	zc.Level = zap.NewAtomicLevelAt(zapcore.Level(*fLogLevel * -1))
+
+	log, _ := logging.NewZap(context.Background(), zc)
 
 	// read the Dex CA
 	var dexCA string

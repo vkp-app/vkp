@@ -45,6 +45,7 @@ build:
   local:
     push: false
 deploy:
+  kubeContext: minikube
   kustomize:
     paths:
     - config/minikube

@@ -9,6 +9,12 @@ patches:
     patch: |
       - op: add
         path: /spec/template/spec/containers/0/args/-
+        value: --log-debug=true
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --v=10
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
         value: --cluster-dex-grpc-addr=dex.vkp-system.svc:5557
 images:
   - name: ghcr.io/vkp-app/vkp/operator
