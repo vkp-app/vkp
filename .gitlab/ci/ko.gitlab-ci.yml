@@ -33,11 +33,12 @@
     - KO_TAGS="${KO_TAGS},${CI_COMMIT_SHA},${CI_COMMIT_SHORT_SHA},latest"
     - |
       if [ -n "${CI_COMMIT_BRANCH:-}" ]; then
-          KO_TAGS="${TAGS},${CI_COMMIT_BRANCH/\//-}"
+          KO_TAGS="${KO_TAGS},${CI_COMMIT_BRANCH/\//-}"
       fi
       if [ -n "${CI_COMMIT_TAG:-}" ]; then
-          KO_TAGS="${TAGS},$CI_COMMIT_TAG"
+          KO_TAGS="${KO_TAGS},$CI_COMMIT_TAG"
       fi
     - |
       echo "Building image: $KO_DOCKER_REPO [$KO_TAGS]"
-    - ./ko build --bare -t "$KO_TAGS" "./cmd/..."
+    - if [ -d "./cmd" ]; then BUILD_DIR="./cmd/..."; else BUILD_DIR="."; fi
+    - ./ko build --bare -t "$KO_TAGS" "$BUILD_DIR"
