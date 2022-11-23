@@ -5,3 +5,4 @@
 charts/
 main
 .kpt-pipeline
+deploy/chart/vkp/bin/

@@ -1,42 +1,41 @@
 global:
-  # custom Certificate Authority to use
+  # -- Custom Certificate Authority to use
   # for all components. Generally this should contain
   # a single CA, but it can support many.
   caSecret: ""
   ingress:
-    # annotations to add to all ingress resources
+    # -- Annotations to add to all ingress resources
     # (e.g. cert-manager issuers)
     annotations: {}
-    # base domain for components to be hosted on.
-    # actual endpoints will be:
-    # - vkp.<domain>
-    # - dex.<domain>
+    # -- Base domain for components to be hosted on.
     domain: example.org
-    # specify which ingress controller to use
+    # -- IngressClass that will be used to implement the Ingress.
     ingressClassName: ""
-    # specify the name of a Kubernetes TLS secret
-    # to use for ingress. Doesn't need to exist
+    # -- TLS certificate to use for ingress. Doesn't need to exist
     # if cert-manager is creating it (assuming
     # you have set your annotations correctly).
     tlsSecret: tls-vkp
 
 prometheus:
-  # url to the prometheus instance.
-  # embedded environment variables will be expanded
-  # e.g. http://$PROMETHEUS_USERNAME:$PROMETHEUS_PASSWORD@promtheus:9090
+  # -- Url to the prometheus instance.
+  # Embedded environment variables will be expanded
+  # e.g. `http://$PROMETHEUS_USERNAME:$PROMETHEUS_PASSWORD@promtheus:9090`
   url: ""
+  # -- If set, overrides the default metrics.
 #  metrics: []
+  # -- Additional metrics to show on the cluster overview
+  # page.
   extraMetrics: []
 
 idp:
-  # use an existing/external secret rather than creating one.
-  # must contain DEX_CLIENT_SECRET and OAUTH2_PROXY_COOKIE_SECRET keys
+  # -- Existing secret to load credentials from.
+  # Must contain DEX_CLIENT_SECRET and OAUTH2_PROXY_COOKIE_SECRET keys
   existingSecret: ""
-  # client secret to use for Dex
+  # -- OIDC client secret that VKP components will use to authenticate to Dex
   clientSecret: ""
-  # secret to use for the Oauth proxy cookies
+  # -- Secret to use for the Oauth proxy cookies
   cookieSecret: ""
-  # Dex connectors that vkp will delegate authentication
+  # -- Dex connectors that VKP will delegate authentication
   # to.
   # https://dexidp.io/docs/connectors/
   connectors:
@@ -45,7 +44,9 @@ idp:
       type: mockCallback
 
 api:
+  # -- APIServer image
   image: ghcr.io/vkp-app/vkp/apiserver:main
+  # -- APIServer image pull policy
   imagePullPolicy: IfNotPresent
 #  extraEnv: []
 #  extraArgs: []
@@ -53,14 +54,18 @@ api:
 #  podSecurityContext: {}
 #  containerSecurityContext: {}
 web:
+  # -- Web image
   image: ghcr.io/vkp-app/vkp/web:main
+  # -- Web image pull policy
   imagePullPolicy: IfNotPresent
 #  extraEnv: []
 #  resources: {}
 #  podSecurityContext: {}
 #  containerSecurityContext: {}
 oauthProxy:
+  # -- Oauth proxy image
   image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0-amd64
+  # -- Oauth proxy image pull policy
   imagePullPolicy: IfNotPresent
 #  extraEnv: []
 #  extraArgs: []
@@ -68,9 +73,12 @@ oauthProxy:
 #  containerSecurityContext: {}
 
 dex:
+  # -- Dex image
   image: ghcr.io/dexidp/dex:v2.35.3
+  # -- Dex image pull policy
   imagePullPolicy: IfNotPresent
   ingress:
+    # -- Dex TLS certificate
     tlsSecret: tls-dex
 #  extraEnv: []
 #  extraArgs: []
