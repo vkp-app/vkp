@@ -8,10 +8,14 @@ const (
 	EnvChartRepo    = "PAAS_CHART_REPO"
 	EnvChartVersion = "PAAS_CHART_VERSION"
 
+	EnvVclusterImage = "PAAS_VCLUSTER_IMAGE"
+
 	EnvKubeVersion = "PAAS_KUBE_VERSION"
 
 	EnvIngressClass  = "PAAS_INGRESS_CLASS"
 	EnvIngressIssuer = "PAAS_INGRESS_ISSUER"
+
+	EnvStorageClass = "PAAS_STORAGE_CLASS"
 
 	EnvSyncImage    = "PAAS_PLUGIN_SYNC_IMAGE"
 	EnvHookImage    = "PAAS_PLUGIN_HOOK_IMAGE"
@@ -23,14 +27,16 @@ const (
 )
 
 type ValuesTemplate struct {
-	Name      string
-	Ingress   ValuesIngress
-	IDP       ValuesIDP
-	Storage   paasv1alpha1.Storage
-	HA        bool
-	OpenShift bool
-	Image     string
-	Plugins   ValuesPlugins
+	Name          string
+	Ingress       ValuesIngress
+	IDP           ValuesIDP
+	Storage       paasv1alpha1.Storage
+	HA            bool
+	OpenShift     bool
+	Image         string
+	VclusterImage string
+	Plugins       ValuesPlugins
+	CustomCA      string
 }
 
 type ValuesPlugins struct {

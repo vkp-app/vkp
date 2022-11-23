@@ -78,6 +78,7 @@ func main() {
 	// tenant controller configuration
 	tenantOpts := controllers.TenantOptions{}
 	flag.BoolVar(&tenantOpts.SkipDefaultAddons, "tenant-skip-default-addons", false, "if enabled, will skip installation of cluster-wide addons.")
+	fRootCA := flag.String("tenant-custom-ca-file", "", "file that contains one or more Certificate Authorities to be injected to all clusters.")
 
 	flag.Parse()
 
@@ -98,11 +99,19 @@ func main() {
 		log.Info("reading dex CA", "path", *fDexCA)
 		data, err := os.ReadFile(*fDexCA)
 		if err != nil {
-			log.Error(err, "failed to read dex CA file", *fDexCA)
+			log.Error(err, "failed to read dex CA file", "path", *fDexCA)
 			os.Exit(1)
 			return
 		}
 		dexCA = string(data)
+	}
+	if *fRootCA != "" {
+		log.Info("reading root CA", "path", *fRootCA)
+		data, err := os.ReadFile(*fRootCA)
+		if err != nil {
+			log.Error(err, "failed to read root CA file", "path", *fRootCA)
+		}
+		tenantOpts.CustomCAFile = string(data)
 	}
 
 	ctrl.SetLogger(log)

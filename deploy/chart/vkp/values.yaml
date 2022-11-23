@@ -29,7 +29,7 @@ prometheus:
 
 idp:
   # -- Existing secret to load credentials from.
-  # Must contain DEX_CLIENT_SECRET and OAUTH2_PROXY_COOKIE_SECRET keys
+  # Must contain `DEX_CLIENT_SECRET` and `OAUTH2_PROXY_COOKIE_SECRET` keys
   existingSecret: ""
   # -- OIDC client secret that VKP components will use to authenticate to Dex
   clientSecret: ""

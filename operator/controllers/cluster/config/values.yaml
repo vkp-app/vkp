@@ -17,6 +17,10 @@ podAnnotations:
   paas.dcas.dev/metric-target: "{{ .Name }}"
 podLabels:
   paas.dcas.dev/metric-target: "{{ .Name }}"
+syncer:
+  {{- if .VclusterImage }}
+  image: {{ .VclusterImage }}
+  {{- end }}
 sync:
   ingresses:
     enabled: true
@@ -42,12 +46,21 @@ vcluster:
     - name: dex
       mountPath: /var/run/secrets/paas.dcas.dev/dex
       readOnly: true
+    {{- if .CustomCA }}
+    - name: custom-ca
+      mountPath: /var/run/secrets/paas.dcas.dev/pki
+      readOnly: true
+    {{- end }}
   env:
     - name: DEX_CLIENT_ID
       valueFrom:
         secretKeyRef:
           name: "{{ .IDP.SecretName }}"
           key: client_id
+    {{- if .CustomCA }}
+    - name: SSL_CERT_DIR
+      value: "/var/run/secrets/paas.dcas.dev/pki:/etc/ssl/certs:/etc/pki/tls/certs:/etc/pki/tls:/etc/pki/ca-trust/extracted:/etc/ssl"
+    {{- end }}
 volumes:
   - name: dex
     secret:
@@ -55,8 +68,13 @@ volumes:
   - name: tls
     secret:
       secretName: {{ .Ingress.TLSSecretName }}
-  - name: tmp
+  - name: plugin-tmp
     emptyDir: {}
+  {{- if .CustomCA }}
+  - name: custom-ca
+    secret:
+      secretName: {{ .CustomCA }}
+  {{- end }}
 storage:
   persistence: true
   {{- if .Storage.Size }}
@@ -80,13 +98,26 @@ plugin:
         value: "{{ .Ingress.Host }}"
       - name: VCLUSTER_CLUSTER_NAME
         value: "{{ .Name }}"
+      {{- if .CustomCA }}
+      - name: SSL_CERT_DIR
+        value: "/var/run/secrets/paas.dcas.dev/pki:/etc/ssl/certs:/etc/pki/tls/certs:/etc/pki/tls:/etc/pki/ca-trust/extracted:/etc/ssl"
+      {{- end }}
     volumeMounts:
-      - name: tmp
+      - name: plugin-tmp
         mountPath: /tmp
+      {{- if .CustomCA }}
+      - name: custom-ca
+        mountPath: /var/run/secrets/paas.dcas.dev/pki
+        readOnly: true
+      {{- end }}
   vkp-sync:
     image: {{ .Plugins.SyncImage }}
     imagePullPolicy: {{ .Plugins.PullPolicy }}
     env:
+      {{- if .CustomCA }}
+      - name: SSL_CERT_DIR
+        value: "/var/run/secrets/paas.dcas.dev/pki:/etc/ssl/certs:/etc/pki/tls/certs:/etc/pki/tls:/etc/pki/ca-trust/extracted:/etc/ssl"
+      {{- end }}
       - name: VCLUSTER_CLUSTER_NAME
         value: "{{ .Name }}"
       - name: __GLASS_CLUSTER_URL__
@@ -106,8 +137,13 @@ plugin:
             name: "{{ .Name }}-dex"
             key: client_secret
     volumeMounts:
-      - name: tmp
+      - name: plugin-tmp
         mountPath: /tmp
+      {{- if .CustomCA }}
+      - name: custom-ca
+        mountPath: /var/run/secrets/paas.dcas.dev/pki
+        readOnly: true
+      {{- end }}
     rbac:
       clusterRole:
         extraRules:

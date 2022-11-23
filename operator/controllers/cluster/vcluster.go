@@ -20,10 +20,15 @@ var valuesTemplate string
 
 var valuesTpl = template.Must(template.New("values.yaml").Parse(valuesTemplate))
 
-func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv1alpha1.ClusterVersion, dexCustomCA bool) (*vclusterv1alpha1.VCluster, error) {
+func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv1alpha1.ClusterVersion, dexCustomCA bool, customCA string) (*vclusterv1alpha1.VCluster, error) {
 	log := logging.FromContext(ctx)
 	hostname := getHostname(cluster)
 	values := new(bytes.Buffer)
+	// allow the platform to specify a storage class
+	// if the user doesn't
+	if cluster.Spec.Storage.StorageClassName == "" {
+		cluster.Spec.Storage.StorageClassName = os.Getenv(EnvStorageClass)
+	}
 	valuesConfig := ValuesTemplate{
 		Name: cluster.GetName(),
 		Ingress: ValuesIngress{
@@ -36,10 +41,12 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv
 			SecretName: DexSecretName(cluster.GetName()),
 			CustomCA:   dexCustomCA,
 		},
-		Storage:   cluster.Spec.Storage,
-		HA:        cluster.Spec.HA.Enabled,
-		OpenShift: getEnv(EnvIsOpenShift, "false") == "true",
-		Image:     version.Spec.Image.String(),
+		Storage:       cluster.Spec.Storage,
+		HA:            cluster.Spec.HA.Enabled,
+		OpenShift:     getEnv(EnvIsOpenShift, "false") == "true",
+		Image:         version.Spec.Image.String(),
+		VclusterImage: os.Getenv(EnvVclusterImage),
+		CustomCA:      customCA,
 		Plugins: ValuesPlugins{
 			SyncImage:  getEnv(EnvSyncImage, "dev.local/vkp/vcluster-plugin-sync:latest"),
 			HookImage:  getEnv(EnvHookImage, "dev.local/vkp/vcluster-plugin-hooks:latest"),

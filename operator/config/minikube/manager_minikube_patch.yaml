@@ -20,6 +20,8 @@ spec:
             value: https://dex.192-168-49-2.nip.io
           - name: PAAS_IDP_CLIENT_ID
             value: glass
+          - name: PAAS_VCLUSTER_IMAGE
+            value: harbor.dcas.dev/docker.io/loftsh/vcluster:0.13.0
           - name: KUBERNETES_NAMESPACE
             valueFrom:
               fieldRef:

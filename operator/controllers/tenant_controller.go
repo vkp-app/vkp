@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/tenant"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -43,6 +44,7 @@ type TenantReconciler struct {
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=tenants/finalizers,verbs=update
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters,verbs=get;list;watch
 //+kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch
+//+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -50,23 +52,26 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	log := logging.FromContext(ctx).WithValues("tenant", req.Name, "namespace", req.Namespace)
 	log.Info("reconciling Tenant")
 
-	cr := &paasv1alpha1.Tenant{}
-	if err := r.Get(ctx, req.NamespacedName, cr); err != nil {
+	tr := &paasv1alpha1.Tenant{}
+	if err := r.Get(ctx, req.NamespacedName, tr); err != nil {
 		if errors.IsNotFound(err); err != nil {
 			return ctrl.Result{}, nil
 		}
 		log.Error(err, "failed to retrieve tenant resource")
 		return ctrl.Result{}, err
 	}
-	if cr.DeletionTimestamp != nil {
+	if tr.DeletionTimestamp != nil {
 		log.Info("skipping tenant that has been marked for deletion")
 		return ctrl.Result{}, nil
 	}
 	// basic reconciliation
-	if res, err := r.reconcileNamespaces(ctx, cr); err != nil || res.Requeue {
+	if err := r.reconcileCustomCA(ctx, tr); err != nil {
+		return ctrl.Result{}, err
+	}
+	if res, err := r.reconcileNamespaces(ctx, tr); err != nil || res.Requeue {
 		return res, err
 	}
-	if err := r.reconcileAddons(ctx, cr); err != nil {
+	if err := r.reconcileAddons(ctx, tr); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -75,13 +80,13 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	var ns string
 	// if the tenant uses a single namespace, we can limit
 	// our search to just that namespace
-	if cr.Spec.NamespaceStrategy == paasv1alpha1.StrategySingle {
-		ns = cr.GetNamespace()
+	if tr.Spec.NamespaceStrategy == paasv1alpha1.StrategySingle {
+		ns = tr.GetNamespace()
 	}
-	if cr.Status.Phase == "" {
-		cr.Status.Phase = paasv1alpha1.PhasePendingApproval
+	if tr.Status.Phase == "" {
+		tr.Status.Phase = paasv1alpha1.PhasePendingApproval
 	}
-	if err := r.List(ctx, clusters, client.MatchingLabels{labelTenant: cr.GetName()}, client.InNamespace(ns)); err != nil {
+	if err := r.List(ctx, clusters, client.MatchingLabels{labelTenant: tr.GetName()}, client.InNamespace(ns)); err != nil {
 		if errors.IsNotFound(err); err != nil {
 			return ctrl.Result{}, nil
 		}
@@ -96,13 +101,45 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			Name:      clusters.Items[i].GetName(),
 		}
 	}
-	cr.Status.ObservedClusters = observedClusters
+	tr.Status.ObservedClusters = observedClusters
 	// apply the update
-	if err := r.Status().Update(ctx, cr); err != nil {
+	if err := r.Status().Update(ctx, tr); err != nil {
 		log.Error(err, "failed to update tenant status")
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
+}
+
+func (r *TenantReconciler) reconcileCustomCA(ctx context.Context, tr *paasv1alpha1.Tenant) error {
+	log := logging.FromContext(ctx).WithValues("tenant", tr.GetName())
+	log.Info("reconciling CA")
+
+	sec := tenant.CASecret(tr, r.Options.CustomCAFile)
+
+	found := &corev1.Secret{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tr.GetName(), Name: sec.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			_ = ctrl.SetControllerReference(tr, sec, r.Scheme)
+			if err := r.Create(ctx, sec); err != nil {
+				log.Error(err, "failed to create CA secret")
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	if found.Data == nil {
+		found.Data = sec.Data
+		return r.Update(ctx, found)
+	}
+	if _, ok := found.Data[tenant.SecretKeyCA]; !ok {
+		found.Data[tenant.SecretKeyCA] = sec.Data[tenant.SecretKeyCA]
+		if err := r.Update(ctx, found); err != nil {
+			log.Error(err, "failed to update CA secret")
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *TenantReconciler) reconcileAddons(ctx context.Context, tr *paasv1alpha1.Tenant) error {
@@ -188,6 +225,7 @@ func (r *TenantReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&paasv1alpha1.Tenant{}).
 		Owns(&corev1.Namespace{}).
+		Owns(&corev1.Secret{}).
 		Complete(r)
 }
 

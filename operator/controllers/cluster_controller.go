@@ -22,6 +22,7 @@ import (
 	"github.com/dexidp/dex/api/v2"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/tenant"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/release"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -190,7 +191,7 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 		return err
 	}
 
-	vcluster, err := cluster.VCluster(ctx, cr, latestVersion, r.DexCA != "")
+	vcluster, err := cluster.VCluster(ctx, cr, latestVersion, r.DexCA != "", tenant.CASecretName(cr.GetNamespace()))
 	if err != nil {
 		return err
 	}
@@ -316,7 +317,7 @@ func (r *ClusterReconciler) reconcileDexSecret(ctx context.Context, cr *paasv1al
 	if found.Data == nil {
 		log.Info("skipping dex secret as .data is nil")
 		found.Data = sec.Data
-		return nil
+		return r.Update(ctx, found)
 	}
 	// validate that the client id exists
 	if err := r.updateSecretData(ctx, cluster.DexKeyID, found, sec); err != nil {
