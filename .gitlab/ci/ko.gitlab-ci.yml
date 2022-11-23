@@ -4,9 +4,10 @@
   variables:
     GITHUB_MIRROR: github.com
     KO_CONFIG_PATH: $CI_PROJECT_DIR/.ko.yaml
+    KO_DOCKER_REPO: $CI_REGISTRY_IMAGE
     GOFLAGS: -buildvcs=false
   script:
-    - cd "$PROJECT_PATH"
+    - echo "$PROJECT_PATH" && cd "$PROJECT_PATH"
     - |
       if [[ -n "${HARBOR_HOST:-}" ]]; then
         echo "Detected Harbor integration - images will be pushed to Harbor instead of GitLab..."
@@ -16,8 +17,7 @@
         KO_DOCKER_REPO="$CI_REGISTRY_IMAGE/$PROJECT_PATH"
       fi
     - |
-      wget -O ko.tar.gz "https://github.com/ko-build/ko/releases/download/v0.12.0/ko_0.12.0_Linux_x86_64.tar.gz"
-      tar -xvf ko.tar.gz
+      wget -qO- "https://github.com/ko-build/ko/releases/download/v0.12.0/ko_0.12.0_Linux_x86_64.tar.gz" tar -xvz ko
       chmod +x ./ko
     - |
       if [ -n "${HARBOR_HOST:-}" ]; then
@@ -38,4 +38,6 @@
       if [ -n "${CI_COMMIT_TAG:-}" ]; then
           KO_TAGS="${TAGS},$CI_COMMIT_TAG"
       fi
+    - |
+      echo "Building image: $KO_DOCKER_REPO [$KO_TAGS]"
     - ./ko build --bare -t "$KO_TAGS" "./cmd/..."
