@@ -1,0 +1,41 @@
+.build-ko:
+  stage: build
+  image: harbor.dcas.dev/registry.gitlab.com/av1o/base-images/go-git:1.19
+  variables:
+    GITHUB_MIRROR: github.com
+    KO_CONFIG_PATH: $CI_PROJECT_DIR/.ko.yaml
+    GOFLAGS: -buildvcs=false
+  script:
+    - cd "$PROJECT_PATH"
+    - |
+      if [[ -n "${HARBOR_HOST:-}" ]]; then
+        echo "Detected Harbor integration - images will be pushed to Harbor instead of GitLab..."
+        KO_DOCKER_REPO="$HARBOR_HOST/$HARBOR_PROJECT/$CI_PROJECT_NAME"
+      fi
+      if [[ -n "${PROJECT_PATH// }" ]]; then
+        KO_DOCKER_REPO="$CI_REGISTRY_IMAGE/$PROJECT_PATH"
+      fi
+    - |
+      wget -O ko.tar.gz "https://$GITHUB_MIRROR/ko-build/ko/releases/download/v0.12.0/ko_0.12.0_Linux_x86_64.tar.gz"
+      tar -xvf ko.tar.gz
+      chmod +x ./ko
+    - |
+      if [ -n "${HARBOR_HOST:-}" ]; then
+          echo "Injecting registry creds for Harbor (${HARBOR_HOST})"
+          echo "$HARBOR_PASSWORD" | ./ko login --username="$HARBOR_USERNAME" --password-stdin "$HARBOR_HOST"
+      fi
+      if [ -n "${KANIKO_REGISTRY:-}" ]; then
+          echo "Injecting registry creds for ${KANIKO_REGISTRY} and the GitLab Container Registry"
+          echo "$KANIKO_REGISTRY_PASSWORD" | ./ko login --username="$KANIKO_REGISTRY_USER" --password-stdin "$KANIKO_REGISTRY"
+      fi
+      echo "Injecting registry creds for the GitLab Container Registry"
+      echo "$CI_REGISTRY_PASSWORD" | ./ko login --username="$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - KO_TAGS="${KO_TAGS},${CI_COMMIT_SHA},${CI_COMMIT_SHORT_SHA},latest"
+    - |
+      if [ -n "${CI_COMMIT_BRANCH:-}" ]; then
+          KO_TAGS="${TAGS},${CI_COMMIT_BRANCH/\//-}"
+      fi
+      if [ -n "${CI_COMMIT_TAG:-}" ]; then
+          KO_TAGS="${TAGS},$CI_COMMIT_TAG"
+      fi
+    - ./ko build --bare -t "$KO_TAGS" "./cmd/..."

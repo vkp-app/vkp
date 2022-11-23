@@ -1,0 +1,3 @@
+defaultBaseImage: harbor.dcas.dev/gcr.io/distroless/static:nonroot
+baseImageOverrides:
+  gitlab.dcas.dev/k8s/kube-glass/vcluster-plugin-sync/cmd/sync: harbor.dcas.dev/registry.gitlab.com/av1o/helm-install-image:v3-1.25

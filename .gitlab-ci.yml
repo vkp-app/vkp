@@ -10,10 +10,8 @@ stages:
   - deploy
 
 build apiserver:
-  extends: .auto-build
-  stage: build
+  extends: .build-ko
   variables:
-    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
     PROJECT_PATH: apiserver
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
@@ -23,10 +21,8 @@ build apiserver:
       - .gitlab-ci.yml
 
 build plugin-hooks:
-  extends: .auto-build
-  stage: build
+  extends: .build-ko
   variables:
-    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
     PROJECT_PATH: vcluster-plugin-hooks
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
@@ -36,19 +32,9 @@ build plugin-hooks:
         - .gitlab-ci.yml
 
 build plugin-sync:
-  stage: build
-  image: harbor.dcas.dev/registry.gitlab.com/av1o/base-images/go-git:1.19
+  extends: .build-ko
   variables:
     PROJECT_PATH: vcluster-plugin-sync
-    KO_DOCKER_REPO: "$CI_REGISTRY_IMAGE/vcluster-plugin-sync"
-  script:
-    - cd "$PROJECT_PATH"
-    - |
-      wget -O ko.tar.gz https://github.com/ko-build/ko/releases/download/v0.12.0/ko_0.12.0_Linux_x86_64.tar.gz
-      tar -xvf ko.tar.gz
-      chmod +x ./ko
-    - echo "$CI_REGISTRY_PASSWORD" | ./ko login --username="$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
-    - ./ko build --bare -t "$CNB_TAGS" "./cmd/sync"
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -79,10 +65,8 @@ build web:
         - .gitlab-ci.yml
 
 build operator:
-  extends: .auto-build
-  stage: build
+  extends: .build-ko
   variables:
-    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
     PROJECT_PATH: operator
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
@@ -104,7 +88,7 @@ build bundle:
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
-    - when: on_success
+    - when: manual
 
 prepare index:
   stage: pre-deploy
@@ -123,9 +107,9 @@ prepare index:
     - cd operator/
     - |
       if [ -z ${FIRST_RUN+x} ]; then
-        opm index add --bundles "$CI_REGISTRY_IMAGE/bundle:$CI_COMMIT_SHORT_SHA" --from-index "$CI_REGISTRY_IMAGE/index:main" --mode semver-skippatch --generate
+        opm index add --bundles "$CI_REGISTRY_IMAGE/bundle:$CNB_TAGS" --from-index "$CI_REGISTRY_IMAGE/index:main" --mode semver-skippatch --generate
       else
-        opm index add --bundles "$CI_REGISTRY_IMAGE/bundle:$CI_COMMIT_SHORT_SHA" --mode semver-skippatch --generate
+        opm index add --bundles "$CI_REGISTRY_IMAGE/bundle:$CNB_TAGS" --mode semver-skippatch --generate
       fi
   artifacts:
     paths:
@@ -152,3 +136,4 @@ build index:
 include:
   - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/CNB.gitlab-ci.yml'
   - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/Kaniko.gitlab-ci.yml'
+  - local: .gitlab/ci/ko.gitlab-ci.yml
