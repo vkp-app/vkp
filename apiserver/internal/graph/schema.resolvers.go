@@ -353,7 +353,7 @@ func (r *queryResolver) Tenants(ctx context.Context) ([]paasv1alpha1.Tenant, err
 		if err != nil {
 			return nil, err
 		}
-		if ok {
+		if !ok {
 			continue
 		}
 		items = append(items, tr)
