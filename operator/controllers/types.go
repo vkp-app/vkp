@@ -6,8 +6,9 @@ const (
 )
 
 type TenantOptions struct {
-	SkipDefaultAddons bool
-	CustomCAFile      string
+	SkipDefaultAddons  bool
+	CustomCAFile       string
+	NamespaceOwnership bool
 }
 
 type ClusterOptions struct {

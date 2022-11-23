@@ -73,16 +73,6 @@ func (r *mutationResolver) CreateTenant(ctx context.Context, tenant string) (*pa
 	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant)
 	log.Info("creating tenant")
 	user, _ := userctx.CtxUser(ctx)
-	// create the containing namespace
-	ns := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: tenant,
-		},
-	}
-	if err := r.Create(ctx, ns); err != nil {
-		log.Error(err, "failed to create tenant namespace")
-		return nil, err
-	}
 	// create the tenant
 	tr := &paasv1alpha1.Tenant{
 		ObjectMeta: metav1.ObjectMeta{

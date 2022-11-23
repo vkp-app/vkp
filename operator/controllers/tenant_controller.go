@@ -65,6 +65,9 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, nil
 	}
 	// basic reconciliation
+	if err := r.reconcileNamespace(ctx, tr); err != nil {
+		return ctrl.Result{}, err
+	}
 	if err := r.reconcileCustomCA(ctx, tr); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -108,6 +111,30 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
+}
+
+func (r *TenantReconciler) reconcileNamespace(ctx context.Context, tr *paasv1alpha1.Tenant) error {
+	log := logging.FromContext(ctx).WithValues("tenant", tr.GetName())
+	log.Info("reconciling namespace")
+
+	ns := tenant.Namespace(tr)
+
+	found := &corev1.Namespace{}
+	if err := r.Get(ctx, types.NamespacedName{Name: ns.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			if r.Options.NamespaceOwnership {
+				_ = ctrl.SetControllerReference(tr, ns, r.Scheme)
+			}
+			if err := r.Create(ctx, ns); err != nil {
+				log.Error(err, "failed to create namespace")
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	// nothing to reconcile on a namespace!
+	return nil
 }
 
 func (r *TenantReconciler) reconcileCustomCA(ctx context.Context, tr *paasv1alpha1.Tenant) error {
