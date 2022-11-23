@@ -19,7 +19,7 @@ global:
 prometheus:
   # -- Url to the prometheus instance.
   # Embedded environment variables will be expanded
-  # e.g. `http://$PROMETHEUS_USERNAME:$PROMETHEUS_PASSWORD@promtheus:9090`
+  # e.g. `http://$PROMETHEUS_USERNAME:$PROMETHEUS_PASSWORD@prometheus:9090`
   url: ""
   # -- If set, overrides the default metrics.
 #  metrics: []

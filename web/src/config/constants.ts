@@ -16,6 +16,6 @@ declare global {
 }
 
 export const FF_BANNER_ENABLED = window._env_?.FF_BANNER_ENABLED === "true";
-export const FF_BANNER_TEXT = window._env_?.FF_BANNER_TEXT || "";
-export const FF_BANNER_COLOUR = window._env_?.FF_BANNER_COLOUR || "";
-export const FF_BANNER_HEIGHT = Number(window._env_?.FF_BANNER_HEIGHT || "0");
+export const FF_BANNER_TEXT = window._env_?.FF_BANNER_TEXT || "FF_BANNER_TEXT IS NOT SET!";
+export const FF_BANNER_COLOUR = window._env_?.FF_BANNER_COLOUR || "#4CAF50";
+export const FF_BANNER_HEIGHT = Number(window._env_?.FF_BANNER_HEIGHT || "32") || 32;
