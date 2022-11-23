@@ -48,7 +48,7 @@ build plugin-sync:
       tar -xvf ko.tar.gz
       chmod +x ./ko
     - echo "$CI_REGISTRY_USER" | ./ko login --username="$CI_REGISTRY_PASSWORD" --password-stdin "$CI_REGISTRY"
-    - ./ko build --bare -t "$CNB_TAGS" "./$PROJECT_PATH/cmd/sync"
+    - ./ko build --bare -t "$CNB_TAGS" "./cmd/sync"
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
