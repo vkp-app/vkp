@@ -36,11 +36,19 @@ build plugin-hooks:
         - .gitlab-ci.yml
 
 build plugin-sync:
-  extends: .auto-build
   stage: build
+  image: harbor.dcas.dev/registry.gitlab.com/av1o/base-images/go-git:1.19
   variables:
-    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/registry.gitlab.com/av1o/helm-install-image:v3-1.25
     PROJECT_PATH: vcluster-plugin-sync
+    KO_DOCKER_REPO: "$CI_REGISTRY_IMAGE/vcluster-plugin-sync"
+  script:
+    - cd "$PROJECT_PATH"
+    - |
+      wget -O ko.tar.gz https://github.com/ko-build/ko/releases/download/v0.12.0/ko_0.12.0_Linux_x86_64.tar.gz
+      tar -xvf ko.tar.gz
+      chmod +x ./ko
+    - echo "$CI_REGISTRY_USER" | ./ko login --username="$CI_REGISTRY_PASSWORD" --password-stdin "$CI_REGISTRY"
+    - ./ko build --bare -t "$CNB_TAGS" "./$PROJECT_PATH/cmd/sync"
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never

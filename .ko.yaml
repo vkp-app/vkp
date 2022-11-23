@@ -1,0 +1,1 @@
+defaultBaseImage: harbor.dcas.dev/registry.gitlab.com/av1o/helm-install-image:v3-1.25
