@@ -17,8 +17,9 @@ build apiserver:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
     - changes:
-      - apiserver/**/*
-      - .gitlab-ci.yml
+        - apiserver/**/*
+        - .gitlab-ci.yml
+        - .gitlab/ci/ko.gitlab-ci.yml
 
 build plugin-hooks:
   extends: .build-ko
@@ -30,6 +31,7 @@ build plugin-hooks:
     - changes:
         - vcluster-plugin-hooks/**/*
         - .gitlab-ci.yml
+        - .gitlab/ci/ko.gitlab-ci.yml
 
 build plugin-sync:
   extends: .build-ko
@@ -41,6 +43,7 @@ build plugin-sync:
     - changes:
         - vcluster-plugin-sync/**/*
         - .gitlab-ci.yml
+        - .gitlab/ci/ko.gitlab-ci.yml
 
 build web:
   stage: build
@@ -74,6 +77,7 @@ build operator:
     - changes:
         - operator/**/*
         - .gitlab-ci.yml
+        - .gitlab/ci/ko.gitlab-ci.yml
 
 build bundle:
   stage: build
