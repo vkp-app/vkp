@@ -55,6 +55,8 @@ volumes:
   - name: tls
     secret:
       secretName: {{ .Ingress.TLSSecretName }}
+  - name: tmp
+    emptyDir: {}
 storage:
   persistence: true
   {{- if .Storage.Size }}
@@ -69,10 +71,6 @@ coredns:
 {{- else }}
   replicas: 1
 {{- end }}
-{{- if .OpenShift }}
-openshift:
-  enabled: true
-{{- end }}
 plugin:
   vkp-hook:
     image: {{ .Plugins.HookImage }}
@@ -82,6 +80,9 @@ plugin:
         value: "{{ .Ingress.Host }}"
       - name: VCLUSTER_CLUSTER_NAME
         value: "{{ .Name }}"
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
   vkp-sync:
     image: {{ .Plugins.SyncImage }}
     imagePullPolicy: {{ .Plugins.PullPolicy }}
@@ -104,6 +105,9 @@ plugin:
           secretKeyRef:
             name: "{{ .Name }}-dex"
             key: client_secret
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
     rbac:
       clusterRole:
         extraRules:
