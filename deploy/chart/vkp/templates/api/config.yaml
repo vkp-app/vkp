@@ -5,5 +5,27 @@ metadata:
   name: apiserver-config
 data:
   prometheus.yaml: |
-    # nothing to see here
-    metrics: []
+    metrics:
+      {{- if .Values.prometheus.metrics }}
+      {{- toYaml .Values.prometheus.metrics | nindent 6 }}
+      {{- else }}
+      - name: Memory usage
+        metric: |
+          sum by (namespace) (topk(1, container_memory_usage_bytes{namespace="{namespace}"}) * on (pod,namespace) group_right kube_pod_labels{label_paas_dcas_dev_metric_target="{cluster}"})
+        format: Bytes
+      - name: CPU usage
+        metric: |
+          sum(rate(container_cpu_usage_seconds_total{namespace="{namespace}", pod=~".*-{cluster}|{cluster}-.+"}[1m])) by (namespace)
+        format: CPU
+      - name: Pod count
+        metric: |
+          sum by (namespace) (kube_pod_status_ready{namespace="{namespace}", condition="true"} * on (pod,namespace) group_right kube_pod_labels{label_paas_dcas_dev_metric_target="{cluster}"})
+        format: Plain
+      - name: Request volume
+        metric: |
+          sum by (exported_namespace) (irate(nginx_ingress_controller_requests{exported_namespace="{namespace}", exported_service=~".*-{cluster}|{cluster}-.+"}[2m]))
+        format: RPS
+      {{- end }}
+      {{- if .Values.prometheus.extraMetrics }}
+      {{- toYaml .Values.prometheus.extraMetrics | nindent 6 }}
+      {{- end }}

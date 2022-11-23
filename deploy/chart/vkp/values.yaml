@@ -25,6 +25,8 @@ prometheus:
   # embedded environment variables will be expanded
   # e.g. http://$PROMETHEUS_USERNAME:$PROMETHEUS_PASSWORD@promtheus:9090
   url: ""
+#  metrics: []
+  extraMetrics: []
 
 idp:
   # use an existing/external secret rather than creating one.

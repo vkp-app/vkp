@@ -1,0 +1,11 @@
+prometheus:
+  metrics:
+    - name: Foobar usage
+      metric: |
+        job{foo="bar"}
+      format: Plain
+  extraMetrics:
+    - name: Foobar usage
+      metric: |
+        job{foo="bar"}
+      format: Plain
