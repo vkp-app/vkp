@@ -1,4 +1,4 @@
-generate bundle:
+prepare bundle:
   stage: build
   image: harbor.dcas.dev/registry.gitlab.com/av1o/base-images/go-ubuntu:1.19-rolling
   script:
