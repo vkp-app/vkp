@@ -1,0 +1,19 @@
+generate bundle:
+  image: harbor.dcas.dev/registry.gitlab.com/av1o/base-images/go-ubuntu:1.19-rolling
+  script:
+    - |
+      mkdir -p bin/
+      wget -O bin/operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v1.25.2/operator-sdk_linux_amd64
+      chmod +x bin/operator-sdk
+      export PATH="$PATH:$CI_PROJECT_DIR/bin"
+      operator-sdk version
+    - cd operator/
+    - make bundle
+  artifacts:
+    paths:
+      - operator/bundle.Dockerfile
+      - operator/config/bundle/
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - when: manual

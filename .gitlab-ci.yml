@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  CNB_TAGS: "0.0.11"
+  CNB_TAGS: "0.1.0"
   KO_TAGS: $CNB_TAGS
   KANIKO_TAGS: $CNB_TAGS
   IMG_TAGS: $CNB_TAGS
@@ -83,8 +83,10 @@ build operator:
 build bundle:
   stage: build
   extends: .kaniko
-  dependencies: []
-  needs: []
+  dependencies:
+    - generate bundle
+  needs:
+    - generate bundle
   variables:
     KANIKO_DOCKERFILE: bundle.Dockerfile
     KANIKO_CONTEXT: "$CI_PROJECT_DIR/operator"
@@ -142,3 +144,4 @@ include:
   - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/CNB.gitlab-ci.yml'
   - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/Kaniko.gitlab-ci.yml'
   - local: .gitlab/ci/ko.gitlab-ci.yml
+  - local: .gitlab/ci/bundle.gitlab-ci.yml
