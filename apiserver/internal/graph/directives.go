@@ -72,6 +72,13 @@ func (r *Resolver) canAccessTenantResource(ctx context.Context, tr *paasv1alpha1
 	log.Info("checking tenant access")
 	user, _ := userctx.CtxUser(ctx)
 
+	// if the user is an admin, they can access
+	// the tenant
+	if err := r.userHasAdmin(ctx, user); err == nil {
+		log.V(1).Info("user can access tenant as they are a platform admin")
+		return true, nil
+	}
+
 	// if the user owns the tenant, then
 	// that's it really.
 	if tr.Spec.Owner == user.Username {
@@ -101,6 +108,13 @@ func (r *Resolver) canAccessCluster(ctx context.Context, tenant, cluster string,
 	log.Info("checking cluster access")
 
 	user, _ := userctx.CtxUser(ctx)
+
+	// if the user is an admin, they can access
+	// the cluster
+	if err := r.userHasAdmin(ctx, user); err == nil {
+		log.V(1).Info("user can access cluster as they are a platform admin")
+		return true, nil
+	}
 
 	// fetch the tenant since we can
 	// short-circuit the request if the user
@@ -170,7 +184,7 @@ func (r *Resolver) userHasAdmin(ctx context.Context, user *model.User) error {
 	sar := &authv1.SubjectAccessReview{
 		Spec: authv1.SubjectAccessReviewSpec{
 			ResourceAttributes: &authv1.ResourceAttributes{
-				// if the user can get secrets in the glass namespace
+				// if the user can get secrets in the vkp namespace
 				// then they can be considered an administrator
 				// of the system
 				Namespace: os.Getenv("KUBERNETES_NAMESPACE"),
@@ -190,5 +204,6 @@ func (r *Resolver) userHasAdmin(ctx context.Context, user *model.User) error {
 		log.Info("rejecting admin request due to failing SAR checks")
 		return ErrForbidden
 	}
+	log.Info("successfully confirmed administrative privileges of requesting user")
 	return nil
 }
