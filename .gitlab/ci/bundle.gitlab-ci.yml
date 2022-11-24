@@ -13,7 +13,7 @@ generate bundle:
   artifacts:
     paths:
       - operator/bundle.Dockerfile
-      - operator/config/bundle/
+      - operator/bundle/
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
