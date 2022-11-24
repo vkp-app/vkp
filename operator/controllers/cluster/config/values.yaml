@@ -52,6 +52,10 @@ vcluster:
       readOnly: true
     {{- end }}
   env:
+    {{- if .HA.Enabled }}
+    - name: K3S_DATASTORE_ENDPOINT
+      value: {{ .HA.Connection }}
+    {{- end }}
     - name: DEX_CLIENT_ID
       valueFrom:
         secretKeyRef:
@@ -76,17 +80,21 @@ volumes:
       secretName: {{ .CustomCA }}
   {{- end }}
 storage:
-  persistence: true
+  persistence: {{ not .HA.Enabled }}
   {{- if .Storage.Size }}
   size: "{{ .Storage.Size }}Gi"
   {{- end }}
   {{- if .Storage.StorageClassName }}
   className: {{ .Storage.StorageClassName }}
   {{- end }}
+enableHA: {{ .HA.Enabled }}
+{{- if .HA.Enabled }}
+replicas: 2
 coredns:
-{{- if .HA }}
   replicas: 2
 {{- else }}
+replicas: 1
+coredns:
   replicas: 1
 {{- end }}
 plugin:

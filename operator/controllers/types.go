@@ -3,6 +3,8 @@ package controllers
 const (
 	labelTenant = "paas.dcas.dev/tenant"
 	finalizer   = "paas.dcas.dev/finalizer"
+
+	secretKeyDbConn = "pgbouncer-uri"
 )
 
 type TenantOptions struct {
@@ -12,5 +14,8 @@ type TenantOptions struct {
 }
 
 type ClusterOptions struct {
-	DexGrpcAddr string
+	DexGrpcAddr               string
+	AllowHA                   bool
+	PostgresResourceName      string
+	PostgresResourceNamespace string
 }

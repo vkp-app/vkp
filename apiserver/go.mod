@@ -35,7 +35,7 @@ require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
-	github.com/cenkalti/backoff/v4 v4.1.0 // indirect
+	github.com/cenkalti/backoff/v4 v4.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cilium/ebpf v0.9.3 // indirect
 	github.com/containerd/cgroups v1.0.4 // indirect
@@ -64,7 +64,7 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/uuid v1.2.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
@@ -98,7 +98,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/automaxprocs v1.5.2-0.20220426165107-d835ace014b3 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
+	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/exp v0.0.0-20220428152302-39d4317da171 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.1.0 // indirect

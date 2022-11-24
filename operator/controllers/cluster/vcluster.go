@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"errors"
+	"fmt"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,7 +22,7 @@ var valuesTemplate string
 
 var valuesTpl = template.Must(template.New("values.yaml").Parse(valuesTemplate))
 
-func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv1alpha1.ClusterVersion, dexCustomCA bool, customCA string) (*vclusterv1alpha1.VCluster, error) {
+func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv1alpha1.ClusterVersion, dexCustomCA bool, customCA, haConnectionString string) (*vclusterv1alpha1.VCluster, error) {
 	log := logging.FromContext(ctx)
 	hostname := getHostname(cluster)
 	values := new(bytes.Buffer)
@@ -28,6 +30,11 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv
 	// if the user doesn't
 	if cluster.Spec.Storage.StorageClassName == "" {
 		cluster.Spec.Storage.StorageClassName = os.Getenv(EnvStorageClass)
+	}
+	// ensure that we have all the information we need to set up
+	// an HA cluster
+	if cluster.Spec.HA.Enabled && haConnectionString == "" {
+		return nil, errors.New("HA is enabled but connection string is empty")
 	}
 	valuesConfig := ValuesTemplate{
 		Name: cluster.GetName(),
@@ -41,8 +48,11 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv
 			SecretName: DexSecretName(cluster.GetName()),
 			CustomCA:   dexCustomCA,
 		},
-		Storage:       cluster.Spec.Storage,
-		HA:            cluster.Spec.HA.Enabled,
+		Storage: cluster.Spec.Storage,
+		HA: ValuesHA{
+			Enabled:    cluster.Spec.HA.Enabled,
+			Connection: fmt.Sprintf("%s?sslmode=require", strings.ReplaceAll(haConnectionString, "postgresql://", "postgres://")),
+		},
 		OpenShift:     getEnv(EnvIsOpenShift, "false") == "true",
 		Image:         version.Spec.Image.String(),
 		VclusterImage: os.Getenv(EnvVclusterImage),

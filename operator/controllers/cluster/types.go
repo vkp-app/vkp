@@ -31,12 +31,17 @@ type ValuesTemplate struct {
 	Ingress       ValuesIngress
 	IDP           ValuesIDP
 	Storage       paasv1alpha1.Storage
-	HA            bool
+	HA            ValuesHA
 	OpenShift     bool
 	Image         string
 	VclusterImage string
 	Plugins       ValuesPlugins
 	CustomCA      string
+}
+
+type ValuesHA struct {
+	Enabled    bool
+	Connection string
 }
 
 type ValuesPlugins struct {

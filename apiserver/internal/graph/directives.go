@@ -84,7 +84,7 @@ func (r *Resolver) canAccessTenantResource(ctx context.Context, tr *paasv1alpha1
 			// if this request requires write access
 			// ignore all accessors that provide
 			// read-only access
-			if requiresWrite || ar.ReadOnly {
+			if requiresWrite && ar.ReadOnly {
 				continue
 			}
 			log.V(1).Info("user can access the tenant as they are referenced in an accessor")
@@ -129,7 +129,7 @@ func (r *Resolver) canAccessCluster(ctx context.Context, tenant, cluster string,
 			// if this request requires write access
 			// ignore all accessors that provide
 			// read-only access
-			if requiresWrite || ar.ReadOnly {
+			if requiresWrite && ar.ReadOnly {
 				continue
 			}
 			log.V(1).Info("user can access the cluster as they are referenced in an accessor")

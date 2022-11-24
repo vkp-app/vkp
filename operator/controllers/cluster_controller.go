@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	pgov1beta1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 	"github.com/dexidp/dex/api/v2"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
@@ -57,6 +58,7 @@ type ClusterReconciler struct {
 //+kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=vclusters,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=postgres-operator.crunchydata.com,resources=postgresclusters,verbs=get;list;watch;create;update;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -106,6 +108,10 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 	}
 
+	res, conn, err := r.reconcileDatabase(ctx, cr)
+	if err != nil || res.Requeue {
+		return res, err
+	}
 	if err := r.reconcileID(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -115,7 +121,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.reconcileDexSecret(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
-	if err := r.reconcileVCluster(ctx, cr); err != nil {
+	if err := r.reconcileVCluster(ctx, cr, conn); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileCluster(ctx, cr); err != nil {
@@ -182,7 +188,7 @@ func (r *ClusterReconciler) reconcileDomain(ctx context.Context, cr *paasv1alpha
 	return nil
 }
 
-func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alpha1.Cluster, haConnectionString string) error {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling vcluster")
 
@@ -191,7 +197,7 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 		return err
 	}
 
-	vcluster, err := cluster.VCluster(ctx, cr, latestVersion, r.DexCA != "", tenant.CASecretName(cr.GetNamespace()))
+	vcluster, err := cluster.VCluster(ctx, cr, latestVersion, r.DexCA != "", tenant.CASecretName(cr.GetNamespace()), haConnectionString)
 	if err != nil {
 		return err
 	}
@@ -345,6 +351,72 @@ func (r *ClusterReconciler) updateSecretData(ctx context.Context, key string, fo
 		}
 	}
 	return nil
+}
+
+func (r *ClusterReconciler) reconcileDatabase(ctx context.Context, cr *paasv1alpha1.Cluster) (ctrl.Result, string, error) {
+	log := logging.FromContext(ctx)
+	log.Info("reconciling database")
+
+	if !cr.Spec.HA.Enabled {
+		log.V(1).Info("skipping non-HA cluster")
+		return ctrl.Result{}, "", nil
+	}
+
+	db := &pgov1beta1.PostgresCluster{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: r.Options.PostgresResourceNamespace, Name: r.Options.PostgresResourceName}, db); err != nil {
+		log.Error(err, "failed to fetch HA database resource")
+		return ctrl.Result{}, "", err
+	}
+	// check if our user has been created
+	username := fmt.Sprintf("%s-%s", cr.GetNamespace(), cr.GetName())
+	for _, u := range db.Spec.Users {
+		// if our user has been added, we're
+		// done here
+		if string(u.Name) == username {
+			log.Info("successfully located our user within the database resource", "username", username)
+			return r.getConnectionString(ctx, username)
+		}
+	}
+	// otherwise, we need to add our user
+	log.Info("adding our user to the database resource", "username", username)
+	db.Spec.Users = append(db.Spec.Users, pgov1beta1.PostgresUserSpec{
+		Name:      pgov1beta1.PostgresIdentifier(username),
+		Databases: []pgov1beta1.PostgresIdentifier{pgov1beta1.PostgresIdentifier(username)},
+		Password: &pgov1beta1.PostgresPasswordSpec{
+			Type: pgov1beta1.PostgresPasswordTypeAlphaNumeric,
+		},
+	})
+	if err := r.Update(ctx, db); err != nil {
+		log.Error(err, "failed to update HA database resource")
+		return ctrl.Result{}, "", err
+	}
+
+	// fetch the connection string
+	return r.getConnectionString(ctx, username)
+}
+
+func (r *ClusterReconciler) getConnectionString(ctx context.Context, username string) (ctrl.Result, string, error) {
+	log := logging.FromContext(ctx)
+	log.Info("fetching connection string")
+	// fetch the connection string
+	sec := &corev1.Secret{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: r.Options.PostgresResourceNamespace, Name: fmt.Sprintf("%s-pguser-%s", r.Options.PostgresResourceName, username)}, sec); err != nil {
+		// if the secret doesn't exist yet,
+		// wait until it does
+		if errors.IsNotFound(err) {
+			log.Info("pguser secret does not exist yet")
+			return ctrl.Result{Requeue: true}, "", nil
+		}
+		log.Error(err, "failed to retrieve pguser secret")
+		return ctrl.Result{}, "", err
+	}
+
+	conn := string(sec.Data[secretKeyDbConn])
+	if conn == "" {
+		log.Info("pguser connection string is not ready yet")
+		return ctrl.Result{Requeue: true}, "", nil
+	}
+	return ctrl.Result{}, conn, nil
 }
 
 func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1alpha1.Cluster) error {
