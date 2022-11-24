@@ -16,6 +16,7 @@ const (
 	EnvStorageClass = "PAAS_STORAGE_CLASS"
 
 	EnvVclusterImage = "RELATED_IMAGE_VCLUSTER_SYNCER"
+	EnvCoreDNSImage  = "RELATED_IMAGE_COREDNS"
 	EnvSyncImage     = "RELATED_IMAGE_PLUGIN_SYNC"
 	EnvHookImage     = "RELATED_IMAGE_PLUGIN_HOOKS"
 
@@ -35,6 +36,7 @@ type ValuesTemplate struct {
 	OpenShift     bool
 	Image         string
 	VclusterImage string
+	CoreDNSImage  string
 	Plugins       ValuesPlugins
 	CustomCA      string
 }

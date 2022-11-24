@@ -90,13 +90,16 @@ storage:
 enableHA: {{ .HA.Enabled }}
 {{- if .HA.Enabled }}
 replicas: 2
-coredns:
-  replicas: 2
 {{- else }}
 replicas: 1
-coredns:
-  replicas: 1
 {{- end }}
+coredns:
+  image: {{ .CoreDNSImage }}
+  {{- if .HA.Enabled}}
+  replicas: 2
+  {{- else }}
+  replicas: 1
+  {{- end }}
 plugin:
   vkp-hook:
     image: {{ .Plugins.HookImage }}

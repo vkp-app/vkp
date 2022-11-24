@@ -22,6 +22,8 @@ spec:
             value: glass
           - name: RELATED_IMAGE_VCLUSTER_SYNCER
             value: harbor.dcas.dev/docker.io/loftsh/vcluster:0.13.0
+          - name: RELATED_IMAGE_COREDNS
+            value: harbor.dcas.dev/docker.io/coredns/coredns:1.8.7
           - name: CLUSTER_POSTGRES_RESOURCE_NAME
             value: vkp
           - name: KUBERNETES_NAMESPACE

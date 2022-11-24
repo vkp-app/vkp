@@ -53,6 +53,7 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv
 		OpenShift:     getEnv(EnvIsOpenShift, "false") == "true",
 		Image:         version.Spec.Image.String(),
 		VclusterImage: os.Getenv(EnvVclusterImage),
+		CoreDNSImage:  getEnv(EnvCoreDNSImage, "coredns/coredns:1.8.7"),
 		CustomCA:      customCA,
 		Plugins: ValuesPlugins{
 			SyncImage:  getEnv(EnvSyncImage, "dev.local/vkp/vcluster-plugin-sync:latest"),
