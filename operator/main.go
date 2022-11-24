@@ -24,6 +24,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"os"
 
+	pgov1beta1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
 
@@ -53,6 +54,7 @@ func init() {
 	utilruntime.Must(paasv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(vclusterv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(capiv1betav1.AddToScheme(scheme))
+	utilruntime.Must(pgov1beta1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

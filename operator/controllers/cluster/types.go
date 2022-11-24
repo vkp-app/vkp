@@ -8,8 +8,6 @@ const (
 	EnvChartRepo    = "PAAS_CHART_REPO"
 	EnvChartVersion = "PAAS_CHART_VERSION"
 
-	EnvVclusterImage = "PAAS_VCLUSTER_IMAGE"
-
 	EnvKubeVersion = "PAAS_KUBE_VERSION"
 
 	EnvIngressClass  = "PAAS_INGRESS_CLASS"
@@ -17,8 +15,10 @@ const (
 
 	EnvStorageClass = "PAAS_STORAGE_CLASS"
 
-	EnvSyncImage    = "PAAS_PLUGIN_SYNC_IMAGE"
-	EnvHookImage    = "PAAS_PLUGIN_HOOK_IMAGE"
+	EnvVclusterImage = "RELATED_IMAGE_VCLUSTER_SYNCER"
+	EnvSyncImage     = "RELATED_IMAGE_PLUGIN_SYNC"
+	EnvHookImage     = "RELATED_IMAGE_PLUGIN_HOOKS"
+
 	EnvPluginPolicy = "PASS_PLUGIN_PULL_POLICY"
 
 	EnvIDPURL = "PAAS_IDP_URL"

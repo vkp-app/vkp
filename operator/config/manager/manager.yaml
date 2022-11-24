@@ -41,6 +41,9 @@ spec:
         - --v=5
         image: controller:latest
         name: manager
+        env:
+          - name: RELATED_IMAGE_VCLUSTER_SYNCER
+            value: docker.io/loftsh/vcluster:0.13.0
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

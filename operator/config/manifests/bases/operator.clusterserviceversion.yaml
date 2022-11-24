@@ -4,6 +4,8 @@ metadata:
   annotations:
     alm-examples: '[]'
     capabilities: Basic Install
+    operatorframework.io/suggested-namespace: vkp-system
+    operators.openshift.io/infrastructure-features: '["disconnected"]'
   name: operator.v0.0.0
   namespace: placeholder
 spec:
@@ -189,7 +191,7 @@ spec:
   - kaas
   links:
   - name: Operator
-    url: https://operator.domain
+    url: https://github.com/vkp-app/vkp
   maintainers:
   - email: django@dcas.dev
     name: Django Cass

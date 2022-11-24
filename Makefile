@@ -1,3 +1,3 @@
 .PHONY: run
 run:
-	kubectl kustomize local/ --enable-helm | kubectl apply -f -
+	kubectl kustomize local/ --enable-helm | kubectl apply --server-side -f -

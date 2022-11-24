@@ -13,9 +13,9 @@ spec:
           command:
             - /cnb/process/operator
           env:
-            - name: PAAS_PLUGIN_SYNC_IMAGE
+            - name: RELATED_IMAGE_PLUGIN_SYNC
               value: ghcr.io/vkp-app/vkp/vcluster-plugin-sync:main
-            - name: PAAS_PLUGIN_HOOK_IMAGE
+            - name: RELATED_IMAGE_PLUGIN_HOOKS
               value: ghcr.io/vkp-app/vkp/vcluster-plugin-hooks:main
             - name: PASS_PLUGIN_PULL_POLICY
               value: Always

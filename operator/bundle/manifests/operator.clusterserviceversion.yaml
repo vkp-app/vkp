@@ -271,6 +271,8 @@ metadata:
         }
       ]
     capabilities: Basic Install
+    operatorframework.io/suggested-namespace: vkp-system
+    operators.openshift.io/infrastructure-features: '["disconnected"]'
     operators.operatorframework.io/builder: operator-sdk-v1.25.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
   name: operator.v0.0.10
@@ -279,522 +281,521 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: ClusterAddonBinding is the Schema for the clusteraddonbindings
-        API
-      displayName: Cluster Addon Binding
-      kind: ClusterAddonBinding
-      name: clusteraddonbindings.paas.dcas.dev
-      version: v1alpha1
-    - description: ClusterAddon is the Schema for the clusteraddons API
-      displayName: Cluster Addon
-      kind: ClusterAddon
-      name: clusteraddons.paas.dcas.dev
-      specDescriptors:
-      - description: Description is the human-readable description of the addon shown
-          in the addon marketplace.
-        displayName: Description
-        path: description
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      - description: DisplayName is the human-readable name of the addon shown in
-          the addon marketplace.
-        displayName: Display name
-        path: displayName
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      - description: Maintainer is the name/contact information of the addon.
-        displayName: Maintainer
-        path: maintainer
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      - displayName: Resources
-        path: resources
-      - description: ConfigMap is a v1.ConfigMap that contains a number of Kustomize
-          files. Mutually-exclusive with URL and Secret.
-        displayName: ConfigMap
-        path: resources[0].configMap
-        x-descriptors:
-        - urn:alm:descriptor:io.kubernetes:ConfigMap
-      - description: OCI is an OCI-compliant container image that contains a Kustomize
-          directory.
-        displayName: OCI
-        path: resources[0].oci
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      - displayName: Image Pull Secret
-        path: resources[0].oci.imagePullSecret
-        x-descriptors:
-        - urn:alm:descriptor:io.kubernetes:Secret
-      - displayName: Image name
-        path: resources[0].oci.name
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      - description: Secret is a v1.Secret that contains a number of Kustomize files.
-          Mutually-exclusive with URL and ConfigMap.
-        displayName: Secret
-        path: resources[0].secret
-        x-descriptors:
-        - urn:alm:descriptor:io.kubernetes:Secret
-      - description: URL is a Kustomize-compatible HTTPS URL to a Kustomize directory.
-          Mutually-exclusive with ConfigMap and Secret.
-        displayName: URL
-        path: resources[0].url
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      - description: Source indicates where the addon came from and how trustworthy
-          it should be considered.
-        displayName: Source
-        path: source
-      - description: SourceURL is an external HTTP address that can be used by users
-          to find more information about an addon.
-        displayName: Source URL
-        path: sourceURL
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      version: v1alpha1
-    - description: Cluster is the Schema for the clusters API
-      displayName: Cluster
-      kind: Cluster
-      name: clusters.paas.dcas.dev
-      specDescriptors:
-      - description: Accessors define who is authorised to interact with the cluster.
-        displayName: Accessors
-        path: accessors
-      - description: Group binds a group to the virtual cluster. Using groups should
-          be preferred as it allows you to manage membership outside of Kubernetes.
-          Mutually-exclusive with User.
-        displayName: Group
-        path: accessors[0].group
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      - description: ReadOnly indicates that the user/group should only have view
-          access to the virtual cluster.
-        displayName: Read Only
-        path: accessors[0].readOnly
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: User binds a user to the virtual cluster. Mutually-exclusive
-          with, and preferred over Group.
-        displayName: User
-        path: accessors[0].user
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      - displayName: Enabled
-        path: ha.enabled
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Size in Gi of the clusters backing disk.
-        displayName: Size (Gi)
-        path: storage.size
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:number
-      - displayName: Storage class
-        path: storage.storageClassName
-        x-descriptors:
-        - urn:alm:descriptor:io.kubernetes:StorageClass
-      version: v1alpha1
-    - description: ClusterVersion is the Schema for the clusterversions API
-      displayName: Cluster Version
-      kind: ClusterVersion
-      name: clusterversions.paas.dcas.dev
-      version: v1alpha1
-    - description: Tenant is the Schema for the tenants API
-      displayName: Tenant
-      kind: Tenant
-      name: tenants.paas.dcas.dev
-      specDescriptors:
-      - description: Accessors define who is authorised to interact with the tenant.
-        displayName: Accessors
-        path: accessors
-      - description: Group binds a group to the virtual cluster. Using groups should
-          be preferred as it allows you to manage membership outside of Kubernetes.
-          Mutually-exclusive with User.
-        displayName: Group
-        path: accessors[0].group
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      - description: ReadOnly indicates that the user/group should only have view
-          access to the virtual cluster.
-        displayName: Read Only
-        path: accessors[0].readOnly
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: User binds a user to the virtual cluster. Mutually-exclusive
-          with, and preferred over Group.
-        displayName: User
-        path: accessors[0].user
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      - description: Owner is the human user that owns the tenant. They will have
-          special privileges that will not be given to Accessors (e.g. ability to
-          delete the tenant).
-        displayName: Owner
-        path: owner
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-      version: v1alpha1
-  description: The Virtual Kubernetes Platform (VKP) is a project that provides Kubernetes-as-a-Service
-    by taking advantage of the ClusterAPI and VCluster.
+      - description: ClusterAddonBinding is the Schema for the clusteraddonbindings API
+        displayName: Cluster Addon Binding
+        kind: ClusterAddonBinding
+        name: clusteraddonbindings.paas.dcas.dev
+        version: v1alpha1
+      - description: ClusterAddon is the Schema for the clusteraddons API
+        displayName: Cluster Addon
+        kind: ClusterAddon
+        name: clusteraddons.paas.dcas.dev
+        specDescriptors:
+          - description: Description is the human-readable description of the addon shown in the addon marketplace.
+            displayName: Description
+            path: description
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: DisplayName is the human-readable name of the addon shown in the addon marketplace.
+            displayName: Display name
+            path: displayName
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Maintainer is the name/contact information of the addon.
+            displayName: Maintainer
+            path: maintainer
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - displayName: Resources
+            path: resources
+          - description: ConfigMap is a v1.ConfigMap that contains a number of Kustomize files. Mutually-exclusive with URL and Secret.
+            displayName: ConfigMap
+            path: resources[0].configMap
+            x-descriptors:
+              - urn:alm:descriptor:io.kubernetes:ConfigMap
+          - description: OCI is an OCI-compliant container image that contains a Kustomize directory.
+            displayName: OCI
+            path: resources[0].oci
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - displayName: Image Pull Secret
+            path: resources[0].oci.imagePullSecret
+            x-descriptors:
+              - urn:alm:descriptor:io.kubernetes:Secret
+          - displayName: Image name
+            path: resources[0].oci.name
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Secret is a v1.Secret that contains a number of Kustomize files. Mutually-exclusive with URL and ConfigMap.
+            displayName: Secret
+            path: resources[0].secret
+            x-descriptors:
+              - urn:alm:descriptor:io.kubernetes:Secret
+          - description: URL is a Kustomize-compatible HTTPS URL to a Kustomize directory. Mutually-exclusive with ConfigMap and Secret.
+            displayName: URL
+            path: resources[0].url
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Source indicates where the addon came from and how trustworthy it should be considered.
+            displayName: Source
+            path: source
+          - description: SourceURL is an external HTTP address that can be used by users to find more information about an addon.
+            displayName: Source URL
+            path: sourceURL
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+        version: v1alpha1
+      - description: Cluster is the Schema for the clusters API
+        displayName: Cluster
+        kind: Cluster
+        name: clusters.paas.dcas.dev
+        specDescriptors:
+          - description: Accessors define who is authorised to interact with the cluster.
+            displayName: Accessors
+            path: accessors
+          - description: Group binds a group to the virtual cluster. Using groups should be preferred as it allows you to manage membership outside of Kubernetes. Mutually-exclusive with User.
+            displayName: Group
+            path: accessors[0].group
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: ReadOnly indicates that the user/group should only have view access to the virtual cluster.
+            displayName: Read Only
+            path: accessors[0].readOnly
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+          - description: User binds a user to the virtual cluster. Mutually-exclusive with, and preferred over Group.
+            displayName: User
+            path: accessors[0].user
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - displayName: Enabled
+            path: ha.enabled
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+          - description: Size in Gi of the clusters backing disk.
+            displayName: Size (Gi)
+            path: storage.size
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:number
+          - displayName: Storage class
+            path: storage.storageClassName
+            x-descriptors:
+              - urn:alm:descriptor:io.kubernetes:StorageClass
+        version: v1alpha1
+      - description: ClusterVersion is the Schema for the clusterversions API
+        displayName: Cluster Version
+        kind: ClusterVersion
+        name: clusterversions.paas.dcas.dev
+        version: v1alpha1
+      - description: Tenant is the Schema for the tenants API
+        displayName: Tenant
+        kind: Tenant
+        name: tenants.paas.dcas.dev
+        specDescriptors:
+          - description: Accessors define who is authorised to interact with the tenant.
+            displayName: Accessors
+            path: accessors
+          - description: Group binds a group to the virtual cluster. Using groups should be preferred as it allows you to manage membership outside of Kubernetes. Mutually-exclusive with User.
+            displayName: Group
+            path: accessors[0].group
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: ReadOnly indicates that the user/group should only have view access to the virtual cluster.
+            displayName: Read Only
+            path: accessors[0].readOnly
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+          - description: User binds a user to the virtual cluster. Mutually-exclusive with, and preferred over Group.
+            displayName: User
+            path: accessors[0].user
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Owner is the human user that owns the tenant. They will have special privileges that will not be given to Accessors (e.g. ability to delete the tenant).
+            displayName: Owner
+            path: owner
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+        version: v1alpha1
+  description: The Virtual Kubernetes Platform (VKP) is a project that provides Kubernetes-as-a-Service by taking advantage of the ClusterAPI and VCluster.
   displayName: Virtual Kubernetes Platform
   icon:
-  - base64data: ""
-    mediatype: ""
+    - base64data: ""
+      mediatype: ""
   install:
     spec:
       clusterPermissions:
-      - rules:
-        - apiGroups:
-          - cluster.x-k8s.io
-          resources:
-          - clusters
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps
-          verbs:
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - namespaces
-          verbs:
-          - create
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - secrets
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - infrastructure.cluster.x-k8s.io
-          resources:
-          - vclusters
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - networking.k8s.io
-          resources:
-          - ingresses
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusteraddonbindings
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusteraddonbindings/finalizers
-          verbs:
-          - update
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusteraddonbindings/status
-          verbs:
-          - get
-          - patch
-          - update
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusteraddons
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusteraddons/finalizers
-          verbs:
-          - update
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusteraddons/status
-          verbs:
-          - get
-          - patch
-          - update
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusters
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusters/finalizers
-          verbs:
-          - update
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusters/status
-          verbs:
-          - get
-          - patch
-          - update
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusterversions
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusterversions/finalizers
-          verbs:
-          - update
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - clusterversions/status
-          verbs:
-          - get
-          - patch
-          - update
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - tenants
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - tenants/finalizers
-          verbs:
-          - update
-        - apiGroups:
-          - paas.dcas.dev
-          resources:
-          - tenants/status
-          verbs:
-          - get
-          - patch
-          - update
-        - apiGroups:
-          - authentication.k8s.io
-          resources:
-          - tokenreviews
-          verbs:
-          - create
-        - apiGroups:
-          - authorization.k8s.io
-          resources:
-          - subjectaccessreviews
-          verbs:
-          - create
-        serviceAccountName: vkp-controller-manager
+        - rules:
+            - apiGroups:
+                - cluster.x-k8s.io
+              resources:
+                - clusters
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - ""
+              resources:
+                - configmaps
+              verbs:
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - ""
+              resources:
+                - namespaces
+              verbs:
+                - create
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - ""
+              resources:
+                - secrets
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - infrastructure.cluster.x-k8s.io
+              resources:
+                - vclusters
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - networking.k8s.io
+              resources:
+                - ingresses
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusteraddonbindings
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusteraddonbindings/finalizers
+              verbs:
+                - update
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusteraddonbindings/status
+              verbs:
+                - get
+                - patch
+                - update
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusteraddons
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusteraddons/finalizers
+              verbs:
+                - update
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusteraddons/status
+              verbs:
+                - get
+                - patch
+                - update
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusters
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusters/finalizers
+              verbs:
+                - update
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusters/status
+              verbs:
+                - get
+                - patch
+                - update
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusterversions
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusterversions/finalizers
+              verbs:
+                - update
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - clusterversions/status
+              verbs:
+                - get
+                - patch
+                - update
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - tenants
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - tenants/finalizers
+              verbs:
+                - update
+            - apiGroups:
+                - paas.dcas.dev
+              resources:
+                - tenants/status
+              verbs:
+                - get
+                - patch
+                - update
+            - apiGroups:
+                - authentication.k8s.io
+              resources:
+                - tokenreviews
+              verbs:
+                - create
+            - apiGroups:
+                - authorization.k8s.io
+              resources:
+                - subjectaccessreviews
+              verbs:
+                - create
+          serviceAccountName: vkp-controller-manager
       deployments:
-      - label:
-          control-plane: controller-manager
-        name: vkp-controller-manager
-        spec:
-          replicas: 1
-          selector:
-            matchLabels:
-              control-plane: controller-manager
-          strategy: {}
-          template:
-            metadata:
-              annotations:
-                kubectl.kubernetes.io/default-container: manager
-              labels:
+        - label:
+            control-plane: controller-manager
+          name: vkp-controller-manager
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
                 control-plane: controller-manager
-            spec:
-              containers:
-              - args:
-                - --health-probe-bind-address=:8081
-                - --metrics-bind-address=127.0.0.1:8080
-                - --leader-elect
-                command:
-                - /cnb/process/operator
-                env:
-                - name: PAAS_PLUGIN_SYNC_IMAGE
-                  value: ghcr.io/vkp-app/vkp/vcluster-plugin-sync:main
-                - name: PAAS_PLUGIN_HOOK_IMAGE
-                  value: ghcr.io/vkp-app/vkp/vcluster-plugin-hooks:main
-                - name: PASS_PLUGIN_PULL_POLICY
-                  value: Always
-                image: ghcr.io/vkp-app/vkp/operator:0.0.10
-                livenessProbe:
-                  httpGet:
-                    path: /healthz
-                    port: 8081
-                  initialDelaySeconds: 15
-                  periodSeconds: 20
-                name: manager
-                readinessProbe:
-                  httpGet:
-                    path: /readyz
-                    port: 8081
-                  initialDelaySeconds: 5
-                  periodSeconds: 10
-                resources:
-                  limits:
-                    cpu: 500m
-                    memory: 128Mi
-                  requests:
-                    cpu: 10m
-                    memory: 64Mi
+            strategy: {}
+            template:
+              metadata:
+                annotations:
+                  kubectl.kubernetes.io/default-container: manager
+                labels:
+                  control-plane: controller-manager
+              spec:
+                containers:
+                  - args:
+                      - --health-probe-bind-address=:8081
+                      - --metrics-bind-address=127.0.0.1:8080
+                      - --leader-elect
+                    command:
+                      - /cnb/process/operator
+                    env:
+                      - name: RELATED_IMAGE_PLUGIN_SYNC
+                        value: ghcr.io/vkp-app/vkp/vcluster-plugin-sync@sha256:e115c6dadefc799c56315f451312e22cb104f67f994966dd42b6146ac753a4da
+                      - name: RELATED_IMAGE_PLUGIN_HOOKS
+                        value: ghcr.io/vkp-app/vkp/vcluster-plugin-hooks@sha256:72641ce95bd0b3e908c10b4238614b4d17aa7c420bc89583a4e9feb9a86ea9c6
+                      - name: PASS_PLUGIN_PULL_POLICY
+                        value: Always
+                      - name: RELATED_IMAGE_VCLUSTER_SYNCER
+                        value: docker.io/loftsh/vcluster@sha256:b1309ae46482bf2869c33e9ba21a9f3cd5793b87e4d5b658f09294a444c75fd8
+                    image: ghcr.io/vkp-app/vkp/operator@sha256:4ed758b9f49588e2431eaed50ff57b8793faa788d80761c81f98cd5f74bc9307
+                    livenessProbe:
+                      httpGet:
+                        path: /healthz
+                        port: 8081
+                      initialDelaySeconds: 15
+                      periodSeconds: 20
+                    name: manager
+                    readinessProbe:
+                      httpGet:
+                        path: /readyz
+                        port: 8081
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                    resources:
+                      limits:
+                        cpu: 500m
+                        memory: 128Mi
+                      requests:
+                        cpu: 10m
+                        memory: 64Mi
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
+                  - args:
+                      - --secure-listen-address=0.0.0.0:8443
+                      - --upstream=http://127.0.0.1:8080/
+                      - --logtostderr=true
+                      - --v=0
+                    image: gcr.io/kubebuilder/kube-rbac-proxy@sha256:d99a8d144816b951a67648c12c0b988936ccd25cf3754f3cd85ab8c01592248f
+                    name: kube-rbac-proxy
+                    ports:
+                      - containerPort: 8443
+                        name: https
+                        protocol: TCP
+                    resources:
+                      limits:
+                        cpu: 500m
+                        memory: 128Mi
+                      requests:
+                        cpu: 5m
+                        memory: 64Mi
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
                 securityContext:
-                  allowPrivilegeEscalation: false
-                  capabilities:
-                    drop:
-                    - ALL
-              - args:
-                - --secure-listen-address=0.0.0.0:8443
-                - --upstream=http://127.0.0.1:8080/
-                - --logtostderr=true
-                - --v=0
-                image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
-                name: kube-rbac-proxy
-                ports:
-                - containerPort: 8443
-                  name: https
-                  protocol: TCP
-                resources:
-                  limits:
-                    cpu: 500m
-                    memory: 128Mi
-                  requests:
-                    cpu: 5m
-                    memory: 64Mi
-                securityContext:
-                  allowPrivilegeEscalation: false
-                  capabilities:
-                    drop:
-                    - ALL
-              securityContext:
-                runAsNonRoot: true
-              serviceAccountName: vkp-controller-manager
-              terminationGracePeriodSeconds: 10
+                  runAsNonRoot: true
+                serviceAccountName: vkp-controller-manager
+                terminationGracePeriodSeconds: 10
       permissions:
-      - rules:
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps
-          verbs:
-          - get
-          - list
-          - watch
-          - create
-          - update
-          - patch
-          - delete
-        - apiGroups:
-          - coordination.k8s.io
-          resources:
-          - leases
-          verbs:
-          - get
-          - list
-          - watch
-          - create
-          - update
-          - patch
-          - delete
-        - apiGroups:
-          - ""
-          resources:
-          - events
-          verbs:
-          - create
-          - patch
-        serviceAccountName: vkp-controller-manager
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - configmaps
+              verbs:
+                - get
+                - list
+                - watch
+                - create
+                - update
+                - patch
+                - delete
+            - apiGroups:
+                - coordination.k8s.io
+              resources:
+                - leases
+              verbs:
+                - get
+                - list
+                - watch
+                - create
+                - update
+                - patch
+                - delete
+            - apiGroups:
+                - ""
+              resources:
+                - events
+              verbs:
+                - create
+                - patch
+          serviceAccountName: vkp-controller-manager
     strategy: deployment
   installModes:
-  - supported: false
-    type: OwnNamespace
-  - supported: false
-    type: SingleNamespace
-  - supported: false
-    type: MultiNamespace
-  - supported: true
-    type: AllNamespaces
+    - supported: false
+      type: OwnNamespace
+    - supported: false
+      type: SingleNamespace
+    - supported: false
+      type: MultiNamespace
+    - supported: true
+      type: AllNamespaces
   keywords:
-  - app
-  - operator
-  - kaas
+    - app
+    - operator
+    - kaas
   links:
-  - name: Operator
-    url: https://operator.domain
+    - name: Operator
+      url: https://github.com/vkp-app/vkp
   maintainers:
-  - email: django@dcas.dev
-    name: Django Cass
+    - email: django@dcas.dev
+      name: Django Cass
   maturity: alpha
   provider:
     name: VKP
     url: https://github.com/vkp-app
+  relatedImages:
+    - image: ghcr.io/vkp-app/vkp/vcluster-plugin-hooks@sha256:72641ce95bd0b3e908c10b4238614b4d17aa7c420bc89583a4e9feb9a86ea9c6
+      name: plugin-hooks
+    - image: docker.io/loftsh/vcluster@sha256:b1309ae46482bf2869c33e9ba21a9f3cd5793b87e4d5b658f09294a444c75fd8
+      name: vcluster-syncer
+    - image: ghcr.io/vkp-app/vkp/operator@sha256:4ed758b9f49588e2431eaed50ff57b8793faa788d80761c81f98cd5f74bc9307
+      name: manager
+    - image: gcr.io/kubebuilder/kube-rbac-proxy@sha256:d99a8d144816b951a67648c12c0b988936ccd25cf3754f3cd85ab8c01592248f
+      name: kube-rbac-proxy
+    - image: ghcr.io/vkp-app/vkp/vcluster-plugin-sync@sha256:e115c6dadefc799c56315f451312e22cb104f67f994966dd42b6146ac753a4da
+      name: plugin_sync
+    - image: ghcr.io/vkp-app/vkp/vcluster-plugin-hooks@sha256:72641ce95bd0b3e908c10b4238614b4d17aa7c420bc89583a4e9feb9a86ea9c6
+      name: plugin_hooks
+    - image: docker.io/loftsh/vcluster@sha256:b1309ae46482bf2869c33e9ba21a9f3cd5793b87e4d5b658f09294a444c75fd8
+      name: vcluster_syncer
+    - image: ghcr.io/vkp-app/vkp/vcluster-plugin-sync@sha256:e115c6dadefc799c56315f451312e22cb104f67f994966dd42b6146ac753a4da
+      name: plugin-sync
   version: 0.0.10

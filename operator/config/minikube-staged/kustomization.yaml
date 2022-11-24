@@ -20,12 +20,12 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: PAAS_PLUGIN_SYNC_IMAGE
+          name: RELATED_IMAGE_PLUGIN_SYNC
           value: harbor.dcas.dev/ghcr.io/vkp-app/vkp/vcluster-plugin-sync:main
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: PAAS_PLUGIN_HOOK_IMAGE
+          name: RELATED_IMAGE_PLUGIN_HOOKS
           value: harbor.dcas.dev/ghcr.io/vkp-app/vkp/vcluster-plugin-hooks:main
 images:
   - name: controller
