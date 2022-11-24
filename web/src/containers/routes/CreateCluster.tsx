@@ -32,6 +32,7 @@ import Icon from "@mdi/react";
 import StandardLayout from "../layout/StandardLayout";
 import {ReleaseTrack, useCreateClusterMutation} from "../../generated/graphql";
 import InlineError from "../alert/InlineError";
+import {FF_ALLOW_HA} from "../../config/constants";
 import AddonChip from "./addon/AddonChip";
 
 const useStyles = makeStyles()((theme: Theme) => ({
@@ -92,6 +93,7 @@ interface ClusterTemplate {
 	name: string;
 	description: string;
 	onClick: () => void;
+	enabled: boolean;
 }
 
 const TEMPLATE_STANDARD = "standard";
@@ -125,6 +127,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 			id: TEMPLATE_STANDARD,
 			name: "Standard",
 			description: "Best choice for general usage or if you are not sure what to choose.",
+			enabled: true,
 			onClick: () => {
 				setHA(() => false);
 				setTrack(() => ReleaseTrack.Regular);
@@ -135,6 +138,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 			id: "production",
 			name: "HA/Intensive",
 			description: "Operators, CRDs or anything else that requires significant and uninterrupted interaction with the Kubernetes API.",
+			enabled: FF_ALLOW_HA,
 			onClick: () => {
 				setHA(() => true);
 				setTrack(() => ReleaseTrack.Stable);
@@ -145,6 +149,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 			id: "pathfinder",
 			name: "Pathfinder",
 			description: "Our configuration for testing the latest and greatest.",
+			enabled: true,
 			onClick: () => {
 				setHA(() => false);
 				setTrack(() => ReleaseTrack.Beta);
@@ -196,6 +201,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 							disableGutters
 							disablePadding>
 							<ListItemButton
+								disabled={!t.enabled}
 								selected={t.id === selectedTemplate}
 								disableRipple
 								onClick={() => handleSelectTemplate(t)}>
@@ -204,6 +210,7 @@ const CreateCluster: React.FC = (): JSX.Element => {
 										value={t.id}
 										checked={selectedTemplate === t.id}
 										onClick={() => handleSelectTemplate(t)}
+										disabled={!t.enabled}
 									/>
 								</ListItemIcon>
 								<ListItemText
@@ -289,11 +296,12 @@ const CreateCluster: React.FC = (): JSX.Element => {
 										primary={<span>
 											High availability <AddonChip label="BETA" title="This option is available for use but may not be production-ready."/>
 										</span>}
-										secondary="Increases the number of replicas for Kubernetes components."
+										secondary={FF_ALLOW_HA ? "Increases the number of replicas for Kubernetes components." : "This setting has been disabled by your administrator."}
 									/>
 									<ListItemSecondaryAction>
 										<Checkbox
 											checked={ha}
+											disabled={!FF_ALLOW_HA}
 											onChange={(e, checked) => setHA(() => checked)}
 										/>
 									</ListItemSecondaryAction>
