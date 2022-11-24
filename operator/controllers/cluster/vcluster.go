@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
-	"errors"
 	"fmt"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
@@ -33,9 +32,7 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv
 	}
 	// ensure that we have all the information we need to set up
 	// an HA cluster
-	if cluster.Spec.HA.Enabled && haConnectionString == "" {
-		return nil, errors.New("HA is enabled but connection string is empty")
-	}
+	enableHA := cluster.Spec.HA.Enabled && haConnectionString != ""
 	valuesConfig := ValuesTemplate{
 		Name: cluster.GetName(),
 		Ingress: ValuesIngress{
@@ -50,7 +47,7 @@ func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv
 		},
 		Storage: cluster.Spec.Storage,
 		HA: ValuesHA{
-			Enabled:    cluster.Spec.HA.Enabled,
+			Enabled:    enableHA,
 			Connection: fmt.Sprintf("%s?sslmode=require", strings.ReplaceAll(haConnectionString, "postgresql://", "postgres://")),
 		},
 		OpenShift:     getEnv(EnvIsOpenShift, "false") == "true",

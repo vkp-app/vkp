@@ -362,6 +362,11 @@ func (r *ClusterReconciler) reconcileDatabase(ctx context.Context, cr *paasv1alp
 		return ctrl.Result{}, "", nil
 	}
 
+	if !r.Options.AllowHA {
+		log.V(1).Info("skipping HA cluster due to policy")
+		return ctrl.Result{}, "", nil
+	}
+
 	db := &pgov1beta1.PostgresCluster{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: r.Options.PostgresResourceNamespace, Name: r.Options.PostgresResourceName}, db); err != nil {
 		log.Error(err, "failed to fetch HA database resource")
