@@ -1,9 +1,10 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  CNB_TAGS: "0.1.0"
-  KO_TAGS: $CNB_TAGS
-  KANIKO_TAGS: $CNB_TAGS
-  IMG_TAGS: $CNB_TAGS
+  VERSION: "0.1.1"
+  CNB_TAGS: "$VERSION"
+  KO_TAGS: $VERSION
+  KANIKO_TAGS: $VERSION
+  IMG_TAGS: $VERSION
 
 stages:
   - build
@@ -96,7 +97,7 @@ build bundle:
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
-    - when: manual
+    - when: on_success
 
 prepare index:
   stage: pre-deploy

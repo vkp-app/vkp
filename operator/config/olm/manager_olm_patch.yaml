@@ -10,8 +10,6 @@ spec:
     spec:
       containers:
         - name: manager
-          command:
-            - /cnb/process/operator
           env:
             - name: RELATED_IMAGE_PLUGIN_SYNC
               value: ghcr.io/vkp-app/vkp/vcluster-plugin-sync:main
