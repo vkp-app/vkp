@@ -44,10 +44,13 @@ idp:
       type: mockCallback
 
 api:
-  # -- APIServer image
   image:
+    # -- APIServer image registry
     registry: ghcr.io
+    # -- API Server image repository
     repository: vkp-app/vkp/apiserver
+    # -- APIServer image tag (defaults to .Chart.AppVersion)
+    tag: ""
   # -- APIServer image pull policy
   imagePullPolicy: IfNotPresent
 #  extraEnv: []
@@ -56,10 +59,13 @@ api:
 #  podSecurityContext: {}
 #  containerSecurityContext: {}
 web:
-  # -- Web image
   image:
+    # -- Web image registry
     registry: ghcr.io
+    # -- Web image repository
     repository: vkp-app/vkp/web
+    # -- Web image tag (defaults to .Chart.AppVersion)
+    tag: ""
   # -- Web image pull policy
   imagePullPolicy: IfNotPresent
 #  extraEnv: []
@@ -67,10 +73,12 @@ web:
 #  podSecurityContext: {}
 #  containerSecurityContext: {}
 oauthProxy:
-  # -- Oauth proxy image
   image:
+    # -- Oauth proxy image registry
     registry: quay.io
+    # -- Oauth proxy image repository
     repository: oauth2-proxy/oauth2-proxy
+    # -- Oauth proxy image tag
     tag: v7.4.0-amd64
   # -- Oauth proxy image pull policy
   imagePullPolicy: IfNotPresent
@@ -80,10 +88,12 @@ oauthProxy:
 #  containerSecurityContext: {}
 
 dex:
-  # -- Dex image
   image:
+    # -- Dex image registry
     registry: ghcr.io
+    # -- Dex image repository
     repository: dexidp/dex
+    # -- Dex image tag
     tag: v2.35.3
   # -- Dex image pull policy
   imagePullPolicy: IfNotPresent

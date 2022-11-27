@@ -8,4 +8,7 @@ build chart:
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
-    - when: on_success
+    - changes:
+        - deploy/chart/vkp/**/*
+        - .gitlab-ci.yml
+        - .gitlab/ci/chart.gitlab-ci.yml

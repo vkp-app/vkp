@@ -1,14 +1,18 @@
 # vkp
 
-![Version: 0.2.3](https://img.shields.io/badge/Version-0.2.3-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| api.image | string | `"ghcr.io/vkp-app/vkp/apiserver:main"` | APIServer image |
+| api.image.registry | string | `"ghcr.io"` | APIServer image registry |
+| api.image.repository | string | `"vkp-app/vkp/apiserver"` | API Server image repository |
+| api.image.tag | string | `""` | APIServer image tag (defaults to .Chart.AppVersion) |
 | api.imagePullPolicy | string | `"IfNotPresent"` | APIServer image pull policy |
-| dex.image | string | `"ghcr.io/dexidp/dex:v2.35.3"` | Dex image |
+| dex.image.registry | string | `"ghcr.io"` | Dex image registry |
+| dex.image.repository | string | `"dexidp/dex"` | Dex image repository |
+| dex.image.tag | string | `"v2.35.3"` | Dex image tag |
 | dex.imagePullPolicy | string | `"IfNotPresent"` | Dex image pull policy |
 | dex.ingress.tlsSecret | string | `"tls-dex"` | Dex TLS certificate |
 | global.caSecret | string | `""` | Custom Certificate Authority to use for all components. Generally this should contain a single CA, but it can support many. |
@@ -20,11 +24,15 @@
 | idp.connectors | list | `[{"id":"mock","name":"Mock","type":"mockCallback"}]` | Dex connectors that VKP will delegate authentication to. https://dexidp.io/docs/connectors/ |
 | idp.cookieSecret | string | `""` | Secret to use for the Oauth proxy cookies |
 | idp.existingSecret | string | `""` | Existing secret to load credentials from. Must contain `DEX_CLIENT_SECRET` and `OAUTH2_PROXY_COOKIE_SECRET` keys |
-| oauthProxy.image | string | `"quay.io/oauth2-proxy/oauth2-proxy:v7.4.0-amd64"` | Oauth proxy image |
+| oauthProxy.image.registry | string | `"quay.io"` | Oauth proxy image registry |
+| oauthProxy.image.repository | string | `"oauth2-proxy/oauth2-proxy"` | Oauth proxy image repository |
+| oauthProxy.image.tag | string | `"v7.4.0-amd64"` | Oauth proxy image tag |
 | oauthProxy.imagePullPolicy | string | `"IfNotPresent"` | Oauth proxy image pull policy |
 | prometheus.extraMetrics | list | `[]` | Additional metrics to show on the cluster overview page. |
 | prometheus.url | string | `""` | Url to the prometheus instance. Embedded environment variables will be expanded e.g. `http://$PROMETHEUS_USERNAME:$PROMETHEUS_PASSWORD@prometheus:9090` |
-| web.image | string | `"ghcr.io/vkp-app/vkp/web:main"` | Web image |
+| web.image.registry | string | `"ghcr.io"` | Web image registry |
+| web.image.repository | string | `"vkp-app/vkp/web"` | Web image repository |
+| web.image.tag | string | `""` | Web image tag (defaults to .Chart.AppVersion) |
 | web.imagePullPolicy | string | `"IfNotPresent"` | Web image pull policy |
 
 ----------------------------------------------
