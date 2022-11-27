@@ -10,6 +10,7 @@ const (
 	MagicIngressClass    = "__GLASS_INGRESS_CLASS__"
 
 	EnvClusterName = "VCLUSTER_CLUSTER_NAME"
+	EnvNamespace   = "KUBERNETES_NAMESPACE"
 )
 
 const finalizer = "addon.paas.dcas.dev"

@@ -159,7 +159,11 @@ func (r *TenantReconciler) reconcileCustomCA(ctx context.Context, tr *paasv1alph
 		found.Data = sec.Data
 		return r.Update(ctx, found)
 	}
-	if _, ok := found.Data[tenant.SecretKeyCA]; !ok {
+	data := string(sec.Data[tenant.SecretKeyCA])
+	if data == "" {
+		return nil
+	}
+	if _, ok := found.Data[tenant.SecretKeyCA]; !ok || data != string(found.Data[tenant.SecretKeyCA]) {
 		found.Data[tenant.SecretKeyCA] = sec.Data[tenant.SecretKeyCA]
 		if err := r.Update(ctx, found); err != nil {
 			log.Error(err, "failed to update CA secret")
