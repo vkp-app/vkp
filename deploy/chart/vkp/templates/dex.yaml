@@ -50,7 +50,8 @@ spec:
       {{- end }}
       containers:
         - name: dex
-          image: ghcr.io/dexidp/dex:v2.35.3
+          {{- $data := dict "image" .Values.dex.image "chart" $.Chart }}
+          image: {{ include "image" $data }}
           imagePullPolicy: IfNotPresent
           args:
             - dex

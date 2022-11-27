@@ -25,3 +25,11 @@ app.kubernetes.io/component: web
 {{- define "dex.secret" }}
 {{- printf "%s-idp" .Release.Name }}
 {{- end }}
+
+{{- define "image" }}
+{{- if .image.registry }}
+{{- printf "%s/%s:%s" .image.registry .image.repository (.image.tag | default .chart.AppVersion) }}
+{{- else }}
+{{- printf "%s:%s" .image.repository (.image.tag | default .chart.AppVersion) }}
+{{- end }}
+{{- end }}

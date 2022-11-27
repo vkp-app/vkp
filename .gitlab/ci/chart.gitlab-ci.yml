@@ -1,0 +1,11 @@
+build chart:
+  stage: build
+  image: harbor.dcas.dev/registry.gitlab.com/av1o/helm-install-image:v3-1.25
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | helm registry login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+    - helm package deploy/chart/vkp --app-version "$VERSION"
+    - helm push vkp-*.tgz "oci://$CI_REGISTRY_IMAGE/helm-charts"
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - when: on_success

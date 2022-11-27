@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  VERSION: "0.1.2"
+  VERSION: "0.1.3"
   CNB_TAGS: "$VERSION"
   KO_TAGS: $VERSION
   KANIKO_TAGS: $VERSION
@@ -147,3 +147,4 @@ include:
   - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/Kaniko.gitlab-ci.yml'
   - local: .gitlab/ci/ko.gitlab-ci.yml
   - local: .gitlab/ci/bundle.gitlab-ci.yml
+  - local: .gitlab/ci/chart.gitlab-ci.yml

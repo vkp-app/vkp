@@ -45,7 +45,9 @@ idp:
 
 api:
   # -- APIServer image
-  image: ghcr.io/vkp-app/vkp/apiserver:main
+  image:
+    registry: ghcr.io
+    repository: vkp-app/vkp/apiserver
   # -- APIServer image pull policy
   imagePullPolicy: IfNotPresent
 #  extraEnv: []
@@ -55,7 +57,9 @@ api:
 #  containerSecurityContext: {}
 web:
   # -- Web image
-  image: ghcr.io/vkp-app/vkp/web:main
+  image:
+    registry: ghcr.io
+    repository: vkp-app/vkp/web
   # -- Web image pull policy
   imagePullPolicy: IfNotPresent
 #  extraEnv: []
@@ -64,7 +68,10 @@ web:
 #  containerSecurityContext: {}
 oauthProxy:
   # -- Oauth proxy image
-  image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0-amd64
+  image:
+    registry: quay.io
+    repository: oauth2-proxy/oauth2-proxy
+    tag: v7.4.0-amd64
   # -- Oauth proxy image pull policy
   imagePullPolicy: IfNotPresent
 #  extraEnv: []
@@ -74,7 +81,10 @@ oauthProxy:
 
 dex:
   # -- Dex image
-  image: ghcr.io/dexidp/dex:v2.35.3
+  image:
+    registry: ghcr.io
+    repository: dexidp/dex
+    tag: v2.35.3
   # -- Dex image pull policy
   imagePullPolicy: IfNotPresent
   ingress:

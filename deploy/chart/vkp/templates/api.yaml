@@ -30,7 +30,8 @@ spec:
             name: apiserver-config
       containers:
         - name: apiserver
-          image: {{ .Values.api.image }}
+          {{- $ai := dict "image" .Values.api.image "chart" $.Chart }}
+          image: {{ include "image" $ai }}
           args:
             - --prometheus-url={{ .Values.prometheus.url }}
             - --prometheus-config-file=/etc/vkp/config/prometheus.yaml
@@ -87,7 +88,8 @@ spec:
 {{ toYaml .Values.api.resources | indent 12 }}
 {{- end }}
         - name: oauth-proxy
-          image: {{ .Values.oauthProxy.image }}
+          {{- $opi := dict "image" .Values.oauthProxy.image "chart" $.Chart }}
+          image: {{ include "image" $opi }}
           args:
             - --http-address=:8079
             - --provider=oidc

@@ -25,7 +25,8 @@ spec:
             secretName: {{ .Values.global.caSecret | default .Values.global.ingress.tlsSecret }}
       containers:
         - name: web
-          image: {{ .Values.web.image }}
+          {{- $wi := dict "image" .Values.web.image "chart" $.Chart }}
+          image: {{ include "image" $wi }}
           env:
             - name: KUBERNETES_NAMESPACE
               valueFrom:
@@ -67,7 +68,8 @@ spec:
 {{ toYaml .Values.web.resources | indent 12 }}
 {{- end }}
         - name: oauth-proxy
-          image: {{ .Values.oauthProxy.image }}
+          {{- $opi := dict "image" .Values.oauthProxy.image "chart" $.Chart }}
+          image: {{ include "image" $opi }}
           args:
             - --http-address=:8079
             - --provider=oidc
