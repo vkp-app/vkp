@@ -28,6 +28,11 @@ spec:
         - name: config
           configMap:
             name: apiserver-config
+        {{- if .Values.oauthProxy.embedStaticResources }}
+        - name: templates
+          configMap:
+            name: oauth2-proxy-static
+        {{- end }}
       containers:
         - name: apiserver
           {{- $ai := dict "image" .Values.api.image "chart" $.Chart }}
@@ -103,6 +108,9 @@ spec:
             - --code-challenge-method=S256
             - --upstream=http://localhost:8080
             - --scope=openid profile email groups
+            {{- if .Values.oauthProxy.embedStaticResources }}
+            - --custom-templates-dir=/srv/templates
+            {{- end }}
             {{- if .Values.oauthProxy.extraArgs }}
             {{- toYaml .Values.oauthProxy.extraArgs | nindent 12 }}
             {{- end }}
@@ -130,6 +138,11 @@ spec:
             - mountPath: /var/run/secrets/paas.dcas.dev/tls
               name: tls
               readOnly: true
+            {{- if .Values.oauthProxy.embedStaticResources }}
+            - mountPath: /srv/templates
+              name: templates
+              readOnly: true
+            {{- end }}
 {{- if .Values.oauthProxy.containerSecurityContext }}
           securityContext: {{ toYaml .Values.oauthProxy.containerSecurityContext | nindent 10 }}
 {{- end }}

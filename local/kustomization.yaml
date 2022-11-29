@@ -4,3 +4,4 @@ resources:
   - idp
   - prometheus
   - ingress-nginx
+  - static

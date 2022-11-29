@@ -1,0 +1,9 @@
+namespace: vkp-system
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: oauth2-proxy-static
+    files:
+      - error.html
+      - sign_in.html
+      - robots.txt

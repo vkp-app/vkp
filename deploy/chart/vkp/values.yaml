@@ -73,6 +73,8 @@ web:
 #  podSecurityContext: {}
 #  containerSecurityContext: {}
 oauthProxy:
+  # -- Whether to use embedded static files (e.g. CSS). Required to work without an internet connection.
+  embedStaticResources: false
   image:
     # -- Oauth proxy image registry
     registry: quay.io

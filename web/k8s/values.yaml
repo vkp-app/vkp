@@ -43,6 +43,9 @@ sidecars:
       - name: tls
         mountPath: /var/run/secrets/dcas.dev/tls
         readOnly: true
+      - name: templates
+        mountPath: /srv/templates
+        readOnly: true
     args:
       - --http-address=:8079
       - --provider=oidc
@@ -58,6 +61,7 @@ sidecars:
       - --code-challenge-method=S256
       - --upstream=http://localhost:8080
       - --scope=openid profile email groups
+      - --custom-templates-dir=/srv/templates
     env:
       - name: SSL_CERT_FILE
         value: /var/run/secrets/dcas.dev/tls/ca.crt
@@ -65,6 +69,9 @@ extraVolumes:
   - name: tls
     secret:
       secretName: tls-vkp
+  - name: templates
+    configMap:
+      name: oauth2-proxy-static
 extraVolumeMounts:
   - name: tls
     mountPath: /var/run/secrets/dcas.dev/tls

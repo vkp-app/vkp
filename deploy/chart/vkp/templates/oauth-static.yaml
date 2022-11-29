@@ -1,0 +1,14 @@
+{{- if .Values.oauthProxy.embedStaticResources }}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: oauth2-proxy-static
+data:
+  error.html: |-
+{{ .Files.Get "static/error.html" | indent 4 }}
+  sign_in.html: |-
+{{ .Files.Get "static/sign_in.html" | indent 4 }}
+  robots.txt: |
+    User-agent: *
+    Disallow: /
+{{- end }}
