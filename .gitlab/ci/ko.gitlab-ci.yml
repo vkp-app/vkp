@@ -17,19 +17,25 @@
         KO_DOCKER_REPO="$CI_REGISTRY_IMAGE/$PROJECT_PATH"
       fi
     - |
+      mkdir -p "$CI_PROJECT_DIR/bin/"
+      export PATH="$PATH:$CI_PROJECT_DIR/bin"
+      
       wget -qO- "https://github.com/ko-build/ko/releases/download/v0.12.0/ko_0.12.0_Linux_x86_64.tar.gz" | tar -xvz ko
-      chmod +x ./ko
+      install ./ko "$CI_PROJECT_DIR/bin/ko"
+      
+      wget https://github.com/sigstore/cosign/releases/download/v1.13.1/cosign-linux-amd64
+      install ./cosign-linux-amd64 "$CI_PROJECT_DIR/bin/cosign"
     - |
       if [ -n "${HARBOR_HOST:-}" ]; then
           echo "Injecting registry creds for Harbor (${HARBOR_HOST})"
-          echo "$HARBOR_PASSWORD" | ./ko login --username="$HARBOR_USERNAME" --password-stdin "$HARBOR_HOST"
+          echo "$HARBOR_PASSWORD" | ko login --username="$HARBOR_USERNAME" --password-stdin "$HARBOR_HOST"
       fi
       if [ -n "${KANIKO_REGISTRY:-}" ]; then
           echo "Injecting registry creds for ${KANIKO_REGISTRY} and the GitLab Container Registry"
-          echo "$KANIKO_REGISTRY_PASSWORD" | ./ko login --username="$KANIKO_REGISTRY_USER" --password-stdin "$KANIKO_REGISTRY"
+          echo "$KANIKO_REGISTRY_PASSWORD" | ko login --username="$KANIKO_REGISTRY_USER" --password-stdin "$KANIKO_REGISTRY"
       fi
       echo "Injecting registry creds for the GitLab Container Registry"
-      echo "$CI_REGISTRY_PASSWORD" | ./ko login --username="$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+      echo "$CI_REGISTRY_PASSWORD" | ko login --username="$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
     - KO_TAGS="${KO_TAGS},${CI_COMMIT_SHA},${CI_COMMIT_SHORT_SHA},latest"
     - |
       if [ -n "${CI_COMMIT_BRANCH:-}" ]; then
@@ -41,4 +47,29 @@
     - |
       echo "Building image: $KO_DOCKER_REPO [$KO_TAGS]"
     - if [ -d "./cmd" ]; then BUILD_DIR="./cmd/..."; else BUILD_DIR="."; fi
-    - ./ko build --bare -t "$KO_TAGS" "$BUILD_DIR"
+    - ko build --bare -t "$KO_TAGS" "$BUILD_DIR"
+    - |
+      if ! command -v cosign &> /dev/null; then
+        echo "Skipping signing as cosign is not available"
+        exit 0
+      fi
+      if [[ -z "$CNB_SIGN_ENABLED" || -z "$COSIGN_PRIVATE_KEY" || -z "$COSIGN_PASSWORD" ]]; then
+        echo "Skipping signing (make sure CNB_SIGN_ENABLED, COSIGN_PRIVATE_KEY, COSIGN_PASSWORD are set)"
+        exit 0
+      fi
+      echo "Using cosign key: $COSIGN_PRIVATE_KEY"
+      for image in ${KO_TAGS//,/ }; do
+        echo "Signing image: '$image'"
+        cosign sign \
+          --key "$COSIGN_PRIVATE_KEY" \
+          -a "ci.commit.sha=$CI_COMMIT_SHA" \
+          -a "ci.commit.ref_slug=$CI_COMMIT_REF_SLUG" \
+          -a "ci.job.finished_at=$(date)" \
+          -a "ci.job.url=$CI_JOB_URL" \
+          -a "ci.job.image=$CI_JOB_IMAGE" \
+          -a "ci.project.url=$CI_PROJECT_URL" \
+          -a "ci.project.classification=${CI_PROJECT_CLASSIFICATION_LABEL:-"none"}" \
+          -a "ci.pipeline.url=$CI_PIPELINE_URL" \
+          -a "ci.runner.version=$CI_RUNNER_VERSION" \
+          "$image"
+      done
