@@ -59,7 +59,7 @@
       fi
       echo "Using cosign key: $COSIGN_PRIVATE_KEY"
       for image in ${KO_TAGS//,/ }; do
-        echo "Signing image: 'KO_DOCKER_REPO:$image'"
+        echo "Signing image: '$KO_DOCKER_REPO:$image'"
         cosign sign \
           --key "$COSIGN_PRIVATE_KEY" \
           -a "ci.commit.sha=$CI_COMMIT_SHA" \
@@ -71,5 +71,5 @@
           -a "ci.project.classification=${CI_PROJECT_CLASSIFICATION_LABEL:-"none"}" \
           -a "ci.pipeline.url=$CI_PIPELINE_URL" \
           -a "ci.runner.version=$CI_RUNNER_VERSION" \
-          "KO_DOCKER_REPO:$image"
+          "$KO_DOCKER_REPO:$image"
       done
