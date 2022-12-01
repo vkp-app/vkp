@@ -23,7 +23,7 @@
       wget -qO- "https://github.com/ko-build/ko/releases/download/v0.12.0/ko_0.12.0_Linux_x86_64.tar.gz" | tar -xvz ko
       install ./ko "$CI_PROJECT_DIR/bin/ko"
       
-      wget https://github.com/sigstore/cosign/releases/download/v1.13.1/cosign-linux-amd64
+      wget -q https://github.com/sigstore/cosign/releases/download/v1.13.1/cosign-linux-amd64
       install ./cosign-linux-amd64 "$CI_PROJECT_DIR/bin/cosign"
     - |
       if [ -n "${HARBOR_HOST:-}" ]; then
@@ -59,7 +59,7 @@
       fi
       echo "Using cosign key: $COSIGN_PRIVATE_KEY"
       for image in ${KO_TAGS//,/ }; do
-        echo "Signing image: '$image'"
+        echo "Signing image: 'KO_DOCKER_REPO:$image'"
         cosign sign \
           --key "$COSIGN_PRIVATE_KEY" \
           -a "ci.commit.sha=$CI_COMMIT_SHA" \
@@ -71,5 +71,5 @@
           -a "ci.project.classification=${CI_PROJECT_CLASSIFICATION_LABEL:-"none"}" \
           -a "ci.pipeline.url=$CI_PIPELINE_URL" \
           -a "ci.runner.version=$CI_RUNNER_VERSION" \
-          "$image"
+          "KO_DOCKER_REPO:$image"
       done
