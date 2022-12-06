@@ -133,7 +133,23 @@ func (r *TenantReconciler) reconcileNamespace(ctx context.Context, tr *paasv1alp
 		}
 		return err
 	}
-	// nothing to reconcile on a namespace!
+	// skip setting labels if the platform
+	// admin has requested it
+	if !r.Options.NamespaceLabels {
+		return nil
+	}
+
+	if found.Labels == nil {
+		found.Labels = map[string]string{}
+	}
+	// add labels
+	if val, ok := found.Labels[labelOwned]; !ok || val != "true" {
+		found.Labels[labelOwned] = "true"
+		if err := r.Update(ctx, found); err != nil {
+			log.Error(err, "failed to update namespace annotations")
+			return err
+		}
+	}
 	return nil
 }
 

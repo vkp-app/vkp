@@ -84,6 +84,7 @@ func main() {
 	tenantOpts := controllers.TenantOptions{}
 	flag.BoolVar(&tenantOpts.SkipDefaultAddons, "tenant-skip-default-addons", false, "if enabled, will skip installation of cluster-wide addons.")
 	flag.BoolVar(&tenantOpts.NamespaceOwnership, "tenant-namespace-ownership", true, "if enabled, Namespaces created will be owned by the Tenant resource.")
+	flag.BoolVar(&tenantOpts.NamespaceLabels, "tenant-namespace-labels", true, "if enabled, identifying labels will be added to owned Namespaces.")
 	fRootCA := flag.String("tenant-custom-ca-file", "", "file that contains one or more Certificate Authorities to be injected to all clusters.")
 
 	flag.Parse()
