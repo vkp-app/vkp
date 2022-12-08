@@ -372,8 +372,30 @@ func (r *ClusterReconciler) reconcileDatabase(ctx context.Context, cr *paasv1alp
 		log.Error(err, "failed to fetch HA database resource")
 		return ctrl.Result{}, "", err
 	}
-	// check if our user has been created
+
+	if r.Options.UseHANonce && cr.Status.ClusterID == "" {
+		log.V(1).Info("waiting before creating database since the cluster ID has not been assigned")
+		return ctrl.Result{Requeue: true}, "", nil
+	}
 	username := fmt.Sprintf("%s-%s", cr.GetNamespace(), cr.GetName())
+	database := cr.Status.ClusterDatabase
+	if database == "" {
+		// make sure to add a nonce so that recreating the cluster
+		// with the same name doesn't cause db/encryption issues
+		if r.Options.UseHANonce {
+			log.V(2).Info("attaching cluster ID to database")
+			database = fmt.Sprintf("%s-%s", username, cr.Status.ClusterID)
+		} else {
+			database = username
+		}
+		// update the status
+		cr.Status.ClusterDatabase = database
+		if err := r.Status().Update(ctx, cr); err != nil {
+			log.Error(err, "failed to update Cluster database status")
+			return ctrl.Result{}, "", err
+		}
+	}
+	// check if our user has been created.
 	for _, u := range db.Spec.Users {
 		// if our user has been added, we're
 		// done here
@@ -383,10 +405,10 @@ func (r *ClusterReconciler) reconcileDatabase(ctx context.Context, cr *paasv1alp
 		}
 	}
 	// otherwise, we need to add our user
-	log.Info("adding our user to the database resource", "username", username)
+	log.Info("adding our user to the database resource", "username", username, "database", database)
 	db.Spec.Users = append(db.Spec.Users, pgov1beta1.PostgresUserSpec{
 		Name:      pgov1beta1.PostgresIdentifier(username),
-		Databases: []pgov1beta1.PostgresIdentifier{pgov1beta1.PostgresIdentifier(username)},
+		Databases: []pgov1beta1.PostgresIdentifier{pgov1beta1.PostgresIdentifier(database)},
 		Password: &pgov1beta1.PostgresPasswordSpec{
 			Type: pgov1beta1.PostgresPasswordTypeAlphaNumeric,
 		},

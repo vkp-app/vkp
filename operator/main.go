@@ -77,6 +77,7 @@ func main() {
 	clusterOpts := controllers.ClusterOptions{}
 	flag.StringVar(&clusterOpts.DexGrpcAddr, "cluster-dex-grpc-addr", "", "grpc address of the Dex instance.")
 	flag.BoolVar(&clusterOpts.AllowHA, "cluster-allow-ha", false, "determines whether HA control-planes should be allowed given the dependency on the Postgres Operator.")
+	flag.BoolVar(&clusterOpts.UseHANonce, "cluster-use-ha-nonce", false, "determines whether HA database entries will include a nonce to avoid overlapping tables.")
 	flag.StringVar(&clusterOpts.PostgresResourceName, "cluster-postgres-resource-name", "vkp", "name of the Postgres Operator Cluster resource to use for HA clusters.")
 	flag.StringVar(&clusterOpts.PostgresResourceNamespace, "cluster-postgres-resource-namespace", os.Getenv("KUBERNETES_NAMESPACE"), "namespace of the Postgres Operator Cluster resource to use for HA clusters.")
 

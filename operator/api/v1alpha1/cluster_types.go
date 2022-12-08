@@ -88,8 +88,9 @@ type ClusterStatus struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Dashboard URL",xDescriptors="urn:alm:descriptor:org.w3:link"
 	WebURL string `json:"webURL,omitempty"`
 
-	ClusterID     string `json:"clusterID,omitempty"`
-	ClusterDomain string `json:"clusterDomain,omitempty"`
+	ClusterID       string `json:"clusterID,omitempty"`
+	ClusterDomain   string `json:"clusterDomain,omitempty"`
+	ClusterDatabase string `json:"clusterDatabase,omitempty"`
 
 	Inventory NestedInventory `json:"inventory,omitempty"`
 

@@ -85,6 +85,8 @@ spec:
           status:
             description: ClusterStatus defines the observed state of Cluster
             properties:
+              clusterDatabase:
+                type: string
               clusterDomain:
                 type: string
               clusterID:
