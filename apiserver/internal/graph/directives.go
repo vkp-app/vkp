@@ -181,6 +181,14 @@ func (r *Resolver) userHasAdmin(ctx context.Context, user *model.User) error {
 	}
 	// run a SAR to verify that the user can access management-cluster resources
 	log.Info("verifying administrative privileges of requesting user")
+	// convert the users groups into the format
+	// that is expected by the kubernetes API.
+	//
+	// often when using OIDC, groups will have a 'oidc:' prefix
+	kubeGroups := make([]string, len(user.Groups))
+	for i := range kubeGroups {
+		kubeGroups[i] = r.kubeOpts.GroupPrefix + user.Groups[i]
+	}
 	sar := &authv1.SubjectAccessReview{
 		Spec: authv1.SubjectAccessReviewSpec{
 			ResourceAttributes: &authv1.ResourceAttributes{
@@ -192,8 +200,8 @@ func (r *Resolver) userHasAdmin(ctx context.Context, user *model.User) error {
 				Version:   "v1",
 				Resource:  "secrets",
 			},
-			User:   user.Username,
-			Groups: user.Groups,
+			User:   r.kubeOpts.UsernamePrefix + user.Username,
+			Groups: kubeGroups,
 		},
 	}
 	if err := r.Create(ctx, sar); err != nil {

@@ -23,9 +23,10 @@ var (
 	ErrTenantNotReady = errors.New("tenant is not ready")
 )
 
-// This file will not be regenerated automatically.
-//
-// It serves as dependency injection for your app, add any dependencies you require here.
+type KubeOpts struct {
+	GroupPrefix    string
+	UsernamePrefix string
+}
 
 type Resolver struct {
 	client.Client
@@ -36,9 +37,11 @@ type Resolver struct {
 
 	dexURL string
 	dexCA  string
+
+	kubeOpts KubeOpts
 }
 
-func NewResolver(ctx context.Context, client client.Client, scheme *runtime.Scheme, prometheus promv1.API, prometheusConfig *v1.PrometheusConfig, dexURL string, dexCA string) (*Resolver, error) {
+func NewResolver(ctx context.Context, client client.Client, scheme *runtime.Scheme, prometheus promv1.API, prometheusConfig *v1.PrometheusConfig, kubeOpts KubeOpts, dexURL string, dexCA string) (*Resolver, error) {
 	log := logr.FromContextOrDiscard(ctx)
 	var caData string
 	if dexCA != "" {
@@ -58,6 +61,7 @@ func NewResolver(ctx context.Context, client client.Client, scheme *runtime.Sche
 		prometheusConfig: prometheusConfig,
 		dexURL:           dexURL,
 		dexCA:            caData,
+		kubeOpts:         kubeOpts,
 	}, nil
 }
 

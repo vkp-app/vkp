@@ -53,6 +53,10 @@ func main() {
 	fDexURL := flag.String("dex-url", "", "URL of the Dex instance.")
 	fDexCA := flag.String("dex-ca-file", "", "File that contains the Certificate Authority for Dex. Will fallback to the Kubernetes API CA if not set.")
 
+	kubeOpts := graph.KubeOpts{}
+	flag.StringVar(&kubeOpts.UsernamePrefix, "kube-username-prefix", "", "prefix to add to usernames when communicating with the Kubernetes API.")
+	flag.StringVar(&kubeOpts.GroupPrefix, "kube-group-prefix", "", "prefix to add to groups when communicating with the Kubernetes API.")
+
 	flag.Parse()
 
 	// logging configuration
@@ -94,7 +98,7 @@ func main() {
 	}
 
 	// configure graphql
-	resolver, err := graph.NewResolver(ctx, kubeClient, scheme, promv1.NewAPI(promClient), promConfig, *fDexURL, *fDexCA)
+	resolver, err := graph.NewResolver(ctx, kubeClient, scheme, promv1.NewAPI(promClient), promConfig, kubeOpts, *fDexURL, *fDexCA)
 	if err != nil {
 		log.Error(err, "failed to setup resolver")
 		os.Exit(1)
