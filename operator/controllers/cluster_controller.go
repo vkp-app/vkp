@@ -108,12 +108,14 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 	}
 
+	// cluster ID must be reconciled
+	// first
+	if err := r.reconcileID(ctx, cr); err != nil {
+		return ctrl.Result{}, err
+	}
 	res, conn, err := r.reconcileDatabase(ctx, cr)
 	if err != nil || res.Requeue {
 		return res, err
-	}
-	if err := r.reconcileID(ctx, cr); err != nil {
-		return ctrl.Result{}, err
 	}
 	if err := r.reconcileDomain(ctx, cr); err != nil {
 		return ctrl.Result{}, err
