@@ -78,9 +78,12 @@ func main() {
 	fLogLevel := flag.Int("v", 0, "log verbosity (higher is more).")
 	fLogDebug := flag.Bool("log-debug", false, "puts logging in development mode.")
 
+	// idp oauthclient controller configuration
+	idpOptions := idpcontrollers.OAuthClientOptions{}
+	flag.StringVar(&idpOptions.DexGrpcAddr, "cluster-dex-grpc-addr", "", "grpc address of the Dex instance.")
+
 	// cluster controller configuration
 	clusterOpts := controllers.ClusterOptions{}
-	flag.StringVar(&clusterOpts.DexGrpcAddr, "cluster-dex-grpc-addr", "", "grpc address of the Dex instance.")
 	flag.BoolVar(&clusterOpts.AllowHA, "cluster-allow-ha", false, "determines whether HA control-planes should be allowed given the dependency on the Postgres Operator.")
 	flag.BoolVar(&clusterOpts.UseHANonce, "cluster-use-ha-nonce", false, "determines whether HA database entries will include a nonce to avoid overlapping tables.")
 	flag.StringVar(&clusterOpts.PostgresResourceName, "cluster-postgres-resource-name", "vkp", "name of the Postgres Operator Cluster resource to use for HA clusters.")
@@ -192,8 +195,9 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&idpcontrollers.OAuthClientReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:  mgr.GetClient(),
+		Scheme:  mgr.GetScheme(),
+		Options: idpOptions,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OAuthClient")
 		os.Exit(1)

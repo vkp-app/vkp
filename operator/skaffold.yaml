@@ -37,7 +37,7 @@ build:
       fromImage: harbor.dcas.dev/gcr.io/distroless/static:nonroot
       dependencies:
         paths:
-          - api/
+          - apis/
           - controllers/
           - main.go
           - go.mod

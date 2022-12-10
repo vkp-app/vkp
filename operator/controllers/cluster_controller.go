@@ -20,14 +20,12 @@ import (
 	"context"
 	"fmt"
 	pgov1beta1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
-	"github.com/dexidp/dex/api/v2"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
+	idpv1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/tenant"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/release"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -79,9 +77,6 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if cr.DeletionTimestamp != nil {
 		log.Info("skipping cluster that has been marked for deletion")
 		if controllerutil.ContainsFinalizer(cr, finalizer) {
-			if err := r.finalizeDexClient(ctx, cr); err != nil {
-				return ctrl.Result{}, err
-			}
 			// remove the finalizer since we were
 			// able to successfully delete external
 			// resources
@@ -149,17 +144,6 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	return ctrl.Result{}, nil
-}
-
-// SetupWithManager sets up the controller with the Manager.
-func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.Cluster{}).
-		Owns(&vclusterv1alpha1.VCluster{}).
-		Owns(&capiv1betav1.Cluster{}).
-		Owns(&netv1.Ingress{}).
-		Owns(&corev1.Secret{}).
-		Complete(r)
 }
 
 func (r *ClusterReconciler) reconcileID(ctx context.Context, cr *v1alpha1.Cluster) error {
@@ -317,10 +301,7 @@ func (r *ClusterReconciler) reconcileDexSecret(ctx context.Context, cr *v1alpha1
 		}
 		return err
 	}
-	if err := ctrl.SetControllerReference(cr, sec, r.Scheme); err != nil {
-		log.Error(err, "failed to set controller reference")
-		return err
-	}
+	_ = ctrl.SetControllerReference(cr, sec, r.Scheme)
 	if found.Data == nil {
 		log.Info("skipping dex secret as .data is nil")
 		found.Data = sec.Data
@@ -449,7 +430,7 @@ func (r *ClusterReconciler) getConnectionString(ctx context.Context, username st
 
 func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *v1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
-	log.Info("reconciling dex client", "addr", r.Options.DexGrpcAddr)
+	log.Info("reconciling dex client")
 
 	// fetch the secret
 	sc := &corev1.Secret{}
@@ -458,69 +439,23 @@ func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *v1alpha1
 		return err
 	}
 
-	// establish a connection to the Dex API
-	conn, err := grpc.DialContext(ctx, r.Options.DexGrpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Error(err, "failed to establish gRPC connection to Dex")
-		return err
-	}
-	defer conn.Close()
-	dexClient := api.NewDexClient(conn)
-	oauthClient := &api.Client{
-		Id:     string(sc.Data[cluster.DexKeyID]),
-		Name:   fmt.Sprintf("%s/%s", cr.GetNamespace(), cr.GetName()),
-		Secret: string(sc.Data[cluster.DexKeySecret]),
-		RedirectUris: []string{
-			fmt.Sprintf("https://console.%s.%s/auth/callback", cr.Status.ClusterID, cr.Status.ClusterDomain),
-			fmt.Sprintf("https://console.%s.%s/oauth2/callback", cr.Status.ClusterID, cr.Status.ClusterDomain),
-			// needed for kubectl oidc-login plugin
-			"http://localhost:8000",
-		},
-	}
-	// create the client
-	resp, err := dexClient.CreateClient(ctx, &api.CreateClientReq{Client: oauthClient})
-	if err != nil {
-		log.Error(err, "failed to create Dex client")
-		return err
-	}
-	if !resp.AlreadyExists {
-		return nil
-	}
-	// reconcile the client.
-	// we can't do a diff here because we have no easy way
-	// of fetching the current client data from Dex
-	log.Info("patching Dex client")
-	_, err = dexClient.UpdateClient(ctx, &api.UpdateClientReq{
-		Id:           oauthClient.Id,
-		RedirectUris: oauthClient.RedirectUris,
-		TrustedPeers: oauthClient.TrustedPeers,
-		Name:         oauthClient.Name,
-		LogoUrl:      oauthClient.LogoUrl,
-	})
-	if err != nil {
-		log.Error(err, "failed to update Dex client")
-		return err
-	}
-	return nil
-}
+	dexClient := cluster.DexOAuthClient(cr, sc)
 
-func (r *ClusterReconciler) finalizeDexClient(ctx context.Context, cr *v1alpha1.Cluster) error {
-	log := logging.FromContext(ctx)
-	log.Info("finalizing dex client", "addr", r.Options.DexGrpcAddr)
-	// establish a connection to the Dex API
-	conn, err := grpc.DialContext(ctx, r.Options.DexGrpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Error(err, "failed to establish gRPC connection to Dex")
+	found := &idpv1.OAuthClient{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: dexClient.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			_ = ctrl.SetControllerReference(cr, dexClient, r.Scheme)
+			if err := r.Create(ctx, dexClient); err != nil {
+				log.Error(err, "failed to create dex client")
+				return err
+			}
+			return nil
+		}
 		return err
 	}
-	defer conn.Close()
-	dexClient := api.NewDexClient(conn)
-	_, err = dexClient.DeleteClient(ctx, &api.DeleteClientReq{
-		Id: string(cr.GetUID()),
-	})
-	if err != nil {
-		log.Error(err, "failed to delete Dex client")
-		return err
+	_ = ctrl.SetControllerReference(cr, dexClient, r.Scheme)
+	if !reflect.DeepEqual(dexClient.Spec, found.Spec) {
+		return r.SafeUpdate(ctx, found, dexClient)
 	}
 	return nil
 }
@@ -532,4 +467,16 @@ func (r *ClusterReconciler) finalizeDexClient(ctx context.Context, cr *v1alpha1.
 func (r *ClusterReconciler) SafeUpdate(ctx context.Context, old, new client.Object, option ...client.UpdateOption) error {
 	new.SetResourceVersion(old.GetResourceVersion())
 	return r.Update(ctx, new, option...)
+}
+
+// SetupWithManager sets up the controller with the Manager.
+func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&v1alpha1.Cluster{}).
+		Owns(&vclusterv1alpha1.VCluster{}).
+		Owns(&capiv1betav1.Cluster{}).
+		Owns(&netv1.Ingress{}).
+		Owns(&corev1.Secret{}).
+		Owns(&idpv1.OAuthClient{}).
+		Complete(r)
 }

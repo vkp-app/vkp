@@ -18,7 +18,6 @@ type TenantOptions struct {
 }
 
 type ClusterOptions struct {
-	DexGrpcAddr               string
 	AllowHA                   bool
 	UseHANonce                bool
 	PostgresResourceName      string

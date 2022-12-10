@@ -1,0 +1,12 @@
+apiVersion: idp.dcas.dev/v1
+kind: OAuthClient
+metadata:
+  labels:
+    app.kubernetes.io/name: oauthclient
+    app.kubernetes.io/instance: oauthclient-sample
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: oauthclient-sample
+spec:
+  # TODO(user): Add fields here

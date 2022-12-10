@@ -51,6 +51,32 @@ rules:
   - update
   - watch
 - apiGroups:
+  - idp.dcas.dev
+  resources:
+  - oauthclients
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - idp.dcas.dev
+  resources:
+  - oauthclients/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - idp.dcas.dev
+  resources:
+  - oauthclients/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - infrastructure.cluster.x-k8s.io
   resources:
   - vclusters

@@ -59,7 +59,7 @@ func TestVCluster_chartConfig(t *testing.T) {
 				Chart: v1alpha1.ClusterVersionChart{},
 				Track: v1alpha1.TrackRegular,
 			},
-		})
+		}, false, "", "")
 		assert.NoError(t, err)
 		assert.EqualValues(t, "vcluster", vc.Spec.HelmRelease.Chart.Name)
 	})
@@ -78,7 +78,7 @@ func TestVCluster_chartConfig(t *testing.T) {
 				},
 				Track: v1alpha1.TrackRegular,
 			},
-		})
+		}, false, "", "")
 		assert.NoError(t, err)
 		assert.EqualValues(t, "vcluster-eks", vc.Spec.HelmRelease.Chart.Name)
 	})
