@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  VERSION: "0.3.0"
+  VERSION: "0.3.1"
   CNB_TAGS: "$VERSION"
   KO_TAGS: $VERSION
   KANIKO_TAGS: $VERSION
@@ -149,8 +149,34 @@ build index:
 
 release:
   stage: release
+  image: harbor.dcas.dev/registry.gitlab.com/gitlab-org/release-cli:latest
+  # https://stackoverflow.com/a/74643054
   script:
     - echo "Create release $VERSION"
+    - set -e
+    - |
+      echo "#### Images" > release_notes.md
+      echo "" >> release_notes.md
+      echo "**Control plane**" >> release_notes.md
+      echo "" >> release_notes.md
+      echo "`ghcr.io/vkp-app/vkp/apiserver:$VERSION`" >> release_notes.md
+      echo "`ghcr.io/vkp-app/vkp/web:$VERSION`" >> release_notes.md
+      echo "" >> release_notes.md
+      echo "**Data plane**" >> release_notes.md
+      echo "" >> release_notes.md
+      echo "`ghcr.io/vkp-app/vkp/vcluster-plugin-hooks:$VERSION`" >> release_notes.md
+      echo "`ghcr.io/vkp-app/vkp/vcluster-plugin-sync:$VERSION`" >> release_notes.md
+      echo "" >> release_notes.md
+      echo "**Operator/OLM**" >> release_notes.md
+      echo "" >> release_notes.md
+      echo "`ghcr.io/vkp-app/vkp/operator:$VERSION`" >> release_notes.md
+      echo "`ghcr.io/vkp-app/vkp/bundle:$VERSION`" >> release_notes.md
+      echo "`ghcr.io/vkp-app/vkp/index:$VERSION`" >> release_notes.md
+      echo "" >> release_notes.md
+      echo "**Helm charts**" >> release_notes.md
+      echo "" >> release_notes.md
+      echo "`ghcr.io/vkp-app/vkp/helm-charts`" >> release_notes.md
+      echo "" >> release_notes.md
   dependencies: []
   needs:
     - build apiserver
@@ -165,28 +191,7 @@ release:
     name: "VKP $VERSION"
     ref: "$CI_COMMIT_SHA"
     tag_name: "v$VERSION"
-    description: |
-      #### Images
-      
-      **Control plane**
-      
-      `ghcr.io/vkp-app/vkp/apiserver:$VERSION`
-      `ghcr.io/vkp-app/vkp/web:$VERSION`
-      
-      **Data plane**
-      
-      `ghcr.io/vkp-app/vkp/vcluster-plugin-hooks:$VERSION`
-      `ghcr.io/vkp-app/vkp/vcluster-plugin-sync:$VERSION`
-      
-      **Operator/OLM**
-      
-      `ghcr.io/vkp-app/vkp/operator:$VERSION`
-      `ghcr.io/vkp-app/vkp/bundle:$VERSION`
-      `ghcr.io/vkp-app/vkp/index:$VERSION`
-      
-      **Helm charts**
-      
-      `ghcr.io/vkp-app/vkp/helm-charts`
+    description: release_notes.md
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
