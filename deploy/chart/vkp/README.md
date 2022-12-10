@@ -1,6 +1,6 @@
 # vkp
 
-![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
 
 ## Values
 
@@ -16,6 +16,8 @@
 | dex.imagePullPolicy | string | `"IfNotPresent"` | Dex image pull policy |
 | dex.ingress.tlsSecret | string | `"tls-dex"` | Dex TLS certificate |
 | global.caSecret | string | `""` | Custom Certificate Authority to use for all components. Generally this should contain a single CA, but it can support many. |
+| global.imagePullSecrets | list | `[]` | Global container registry secret names as an array. |
+| global.imageRegistry | string | `""` | Global container image registry. Takes priority of any `image.registry` definitions. |
 | global.ingress.annotations | object | `{}` | Annotations to add to all ingress resources (e.g. cert-manager issuers) |
 | global.ingress.domain | string | `"example.org"` | Base domain for components to be hosted on. |
 | global.ingress.ingressClassName | string | `""` | IngressClass that will be used to implement the Ingress. |
@@ -24,12 +26,16 @@
 | idp.connectors | list | `[{"id":"mock","name":"Mock","type":"mockCallback"}]` | Dex connectors that VKP will delegate authentication to. https://dexidp.io/docs/connectors/ |
 | idp.cookieSecret | string | `""` | Secret to use for the Oauth proxy cookies |
 | idp.existingSecret | string | `""` | Existing secret to load credentials from. Must contain `DEX_CLIENT_SECRET` and `OAUTH2_PROXY_COOKIE_SECRET` keys |
+| oauthProxy.embedStaticResources | bool | `false` | Whether to use embedded static files (e.g. CSS). Required to work without an internet connection. |
 | oauthProxy.image.registry | string | `"quay.io"` | Oauth proxy image registry |
 | oauthProxy.image.repository | string | `"oauth2-proxy/oauth2-proxy"` | Oauth proxy image repository |
 | oauthProxy.image.tag | string | `"v7.4.0-amd64"` | Oauth proxy image tag |
 | oauthProxy.imagePullPolicy | string | `"IfNotPresent"` | Oauth proxy image pull policy |
 | prometheus.extraMetrics | list | `[]` | Additional metrics to show on the cluster overview page. |
 | prometheus.url | string | `""` | Url to the prometheus instance. Embedded environment variables will be expanded e.g. `http://$PROMETHEUS_USERNAME:$PROMETHEUS_PASSWORD@prometheus:9090` |
+| vkp.clusterVersions.default.enabled | bool | `false` | Install default ClusterVersions. Disable to supply your own. |
+| vkp.clusterVersions.image.registry | string | `"docker.io"` | Container registry to pull images from. |
+| vkp.clusterVersions.image.repository | string | `"rancher/k3s"` | Repository containing cluster images. |
 | web.image.registry | string | `"ghcr.io"` | Web image registry |
 | web.image.repository | string | `"vkp-app/vkp/web"` | Web image repository |
 | web.image.tag | string | `""` | Web image tag (defaults to .Chart.AppVersion) |

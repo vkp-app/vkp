@@ -48,9 +48,13 @@ spec:
       {{- if .Values.dex.podSecurityContext }}
       securityContext: {{ toYaml .Values.dex.podSecurityContext | nindent 8 }}
       {{- end }}
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
       containers:
         - name: dex
-          {{- $data := dict "image" .Values.dex.image "chart" $.Chart }}
+          {{- $data := dict "image" .Values.dex.image "chart" $.Chart "global" $.Values.global }}
           image: {{ include "image" $data }}
           imagePullPolicy: IfNotPresent
           args:

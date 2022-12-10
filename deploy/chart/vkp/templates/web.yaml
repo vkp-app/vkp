@@ -19,6 +19,10 @@ spec:
       securityContext: {{ toYaml .Values.web.podSecurityContext | nindent 8 }}
       {{- end }}
       automountServiceAccountToken: false
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
       volumes:
         - name: tls
           secret:
@@ -30,7 +34,7 @@ spec:
         {{- end }}
       containers:
         - name: web
-          {{- $wi := dict "image" .Values.web.image "chart" $.Chart }}
+          {{- $wi := dict "image" .Values.web.image "chart" $.Chart "global" $.Values.global }}
           image: {{ include "image" $wi }}
           env:
             - name: KUBERNETES_NAMESPACE
@@ -73,7 +77,7 @@ spec:
 {{ toYaml .Values.web.resources | indent 12 }}
 {{- end }}
         - name: oauth-proxy
-          {{- $opi := dict "image" .Values.oauthProxy.image "chart" $.Chart }}
+          {{- $opi := dict "image" .Values.oauthProxy.image "chart" $.Chart "global" $.Values.global }}
           image: {{ include "image" $opi }}
           args:
             - --http-address=:8079

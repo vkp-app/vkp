@@ -27,8 +27,8 @@ app.kubernetes.io/component: web
 {{- end }}
 
 {{- define "image" }}
-{{- if .image.registry }}
-{{- printf "%s/%s:%s" .image.registry .image.repository (.image.tag | default .chart.AppVersion) }}
+{{- if (.global.imageRegistry | default .image.registry) }}
+{{- printf "%s/%s:%s" (.global.imageRegistry | default .image.registry) .image.repository (.image.tag | default .chart.AppVersion) }}
 {{- else }}
 {{- printf "%s:%s" .image.repository (.image.tag | default .chart.AppVersion) }}
 {{- end }}

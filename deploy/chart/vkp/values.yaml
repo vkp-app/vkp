@@ -1,4 +1,8 @@
 global:
+  # -- Global container image registry. Takes priority of any `image.registry` definitions.
+  imageRegistry: ""
+  # -- Global container registry secret names as an array.
+  imagePullSecrets: []
   # -- Custom Certificate Authority to use
   # for all components. Generally this should contain
   # a single CA, but it can support many.
@@ -107,3 +111,14 @@ dex:
 #  resources: {}
 #  podSecurityContext: {}
 #  containerSecurityContext: {}
+
+vkp:
+  clusterVersions:
+    default:
+      # -- Install default ClusterVersions. Disable to supply your own.
+      enabled: false
+    image:
+      # -- Container registry to pull images from.
+      registry: docker.io
+      # -- Repository containing cluster images.
+      repository: rancher/k3s

@@ -1,0 +1,11 @@
+# this file should only be used for CI purposes
+global:
+  imageRegistry: registry.local
+  imagePullSecrets:
+    - name: foobar
+vkp:
+  clusterVersions:
+    default:
+      enabled: true
+    image:
+      registry: harbor.dcas.dev

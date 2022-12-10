@@ -21,6 +21,10 @@ spec:
       securityContext: {{ toYaml .Values.dex.podSecurityContext | nindent 8 }}
       {{- end }}
       serviceAccountName: apiserver
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
       volumes:
         - name: tls
           secret:
@@ -35,7 +39,7 @@ spec:
         {{- end }}
       containers:
         - name: apiserver
-          {{- $ai := dict "image" .Values.api.image "chart" $.Chart }}
+          {{- $ai := dict "image" .Values.api.image "chart" $.Chart "global" $.Values.global }}
           image: {{ include "image" $ai }}
           args:
             - --prometheus-url={{ .Values.prometheus.url }}
@@ -93,7 +97,7 @@ spec:
 {{ toYaml .Values.api.resources | indent 12 }}
 {{- end }}
         - name: oauth-proxy
-          {{- $opi := dict "image" .Values.oauthProxy.image "chart" $.Chart }}
+          {{- $opi := dict "image" .Values.oauthProxy.image "chart" $.Chart "global" $.Values.global }}
           image: {{ include "image" $opi }}
           args:
             - --http-address=:8079
