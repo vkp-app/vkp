@@ -18,7 +18,7 @@ func Addons(tr *v1alpha1.Tenant) []v1alpha1.ClusterAddon {
 				Resources: []v1alpha1.RemoteRef{
 					{
 						OCI: v1alpha1.OCIRemoteRef{
-							Name: "ghcr.io/vkp-app/addons/dashboard-k8s:1.0.0",
+							Name: getEnv(EnvAddonDashboardKubeImage, "ghcr.io/vkp-app/addons/dashboard-k8s:1.1.0"),
 						},
 					},
 				},
@@ -40,7 +40,7 @@ func Addons(tr *v1alpha1.Tenant) []v1alpha1.ClusterAddon {
 				Resources: []v1alpha1.RemoteRef{
 					{
 						OCI: v1alpha1.OCIRemoteRef{
-							Name: "ghcr.io/vkp-app/addons/dashboard-okd:1.0.0",
+							Name: getEnv(EnvAddonDashboardOKDImage, "ghcr.io/vkp-app/addons/dashboard-okd:1.1.0"),
 						},
 					},
 				},
@@ -62,7 +62,7 @@ func Addons(tr *v1alpha1.Tenant) []v1alpha1.ClusterAddon {
 				Resources: []v1alpha1.RemoteRef{
 					{
 						OCI: v1alpha1.OCIRemoteRef{
-							Name: "ghcr.io/vkp-app/addons/podinfo:1.0.0",
+							Name: getEnv(EnvAddonPodInfoImage, "ghcr.io/vkp-app/addons/podinfo:1.0.0"),
 						},
 					},
 				},

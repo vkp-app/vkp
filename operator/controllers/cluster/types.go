@@ -22,6 +22,10 @@ const (
 	EnvSyncImage     = "RELATED_IMAGE_PLUGIN_SYNC"
 	EnvHookImage     = "RELATED_IMAGE_PLUGIN_HOOKS"
 
+	EnvAddonPodInfoImage       = "RELATED_IMAGE_ADDON_PODINFO"
+	EnvAddonDashboardKubeImage = "RELATED_IMAGE_ADDON_DASHBOARD_KUBE"
+	EnvAddonDashboardOKDImage  = "RELATED_IMAGE_ADDON_DASHBOARD_OKD"
+
 	EnvPluginPolicy = "PASS_PLUGIN_PULL_POLICY"
 
 	EnvIDPURL = "PAAS_IDP_URL"
