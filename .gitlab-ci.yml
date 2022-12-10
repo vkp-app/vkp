@@ -11,6 +11,7 @@ stages:
   - bundle
   - pre-deploy
   - deploy
+  - release
 
 build apiserver:
   extends: .build-ko
@@ -141,6 +142,55 @@ build index:
     KANIKO_CONTEXT: operator
   before_script:
     - export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE/index"
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - when: on_success
+
+release:
+  stage: release
+  script:
+    - echo "Create release $VERSION"
+  dependencies: []
+  needs:
+    - build apiserver
+    - build plugin-hooks
+    - build plugin-sync
+    - build web
+    - build operator
+    - build bundle
+    - build index
+    - build chart
+  release:
+    name: "VKP $VERSION"
+    ref: "$CI_COMMIT_SHA"
+    tag_name: "v$VERSION"
+    description: |
+      #### Images
+      
+      **Control plane**
+      
+      `ghcr.io/vkp-app/vkp/apiserver:$VERSION`
+      `ghcr.io/vkp-app/vkp/web:$VERSION`
+      
+      **Data plane**
+      
+      `ghcr.io/vkp-app/vkp/vcluster-plugin-hooks:$VERSION`
+      `ghcr.io/vkp-app/vkp/vcluster-plugin-sync:$VERSION`
+      
+      **Operator/OLM**
+      
+      `ghcr.io/vkp-app/vkp/operator:$VERSION`
+      `ghcr.io/vkp-app/vkp/bundle:$VERSION`
+      `ghcr.io/vkp-app/vkp/index:$VERSION`
+      
+      **Helm charts**
+      
+      `ghcr.io/vkp-app/vkp/helm-charts`
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - when: on_success
 
 include:
   - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/CNB.gitlab-ci.yml'
