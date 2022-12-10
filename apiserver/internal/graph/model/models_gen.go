@@ -7,7 +7,7 @@ import (
 	"io"
 	"strconv"
 
-	"gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 )
 
 type AccessRefInput struct {

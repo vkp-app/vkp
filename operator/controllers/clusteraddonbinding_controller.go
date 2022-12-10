@@ -18,10 +18,10 @@ package controllers
 
 import (
 	"context"
+	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
 
-	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

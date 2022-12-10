@@ -1,8 +1,10 @@
 package cluster
 
-import paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+import (
+	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
+)
 
-func Labels(cr *paasv1alpha1.Cluster) map[string]string {
+func Labels(cr *v1alpha1.Cluster) map[string]string {
 	return map[string]string{
 		"app.kubernetes.io/name":       cr.Name,
 		"app.kubernetes.io/instance":   cr.Name,
@@ -11,7 +13,7 @@ func Labels(cr *paasv1alpha1.Cluster) map[string]string {
 	}
 }
 
-func TenantLabels(tr *paasv1alpha1.Tenant) map[string]string {
+func TenantLabels(tr *v1alpha1.Tenant) map[string]string {
 	return map[string]string{
 		"app.kubernetes.io/name":       tr.Name,
 		"app.kubernetes.io/instance":   tr.Name,

@@ -2,7 +2,7 @@ package syncers
 
 import (
 	"github.com/loft-sh/vcluster-sdk/plugin"
-	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 )
 

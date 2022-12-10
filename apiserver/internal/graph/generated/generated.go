@@ -16,7 +16,7 @@ import (
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
-	"gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 )
 
 // region    ************************** generated!.gotpl **************************

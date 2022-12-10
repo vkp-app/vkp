@@ -22,6 +22,7 @@ import (
 	pgov1beta1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 	"github.com/dexidp/dex/api/v2"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/tenant"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/release"
@@ -39,8 +40,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
-
-	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 )
 
 // ClusterReconciler reconciles a Cluster object
@@ -69,7 +68,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	log := logging.FromContext(ctx).WithValues("cluster", req.NamespacedName)
 	log.Info("reconciling Cluster")
 
-	cr := &paasv1alpha1.Cluster{}
+	cr := &v1alpha1.Cluster{}
 	if err := r.Get(ctx, req.NamespacedName, cr); err != nil {
 		if errors.IsNotFound(err) {
 			return ctrl.Result{}, nil
@@ -97,11 +96,11 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// add the release track to the labels
 	// so that we can use a labelSelector
 	// to find it.
-	if val := cr.Labels[paasv1alpha1.LabelTrackRef]; val != string(cr.Spec.Track) {
+	if val := cr.Labels[v1alpha1.LabelTrackRef]; val != string(cr.Spec.Track) {
 		if cr.Labels == nil {
 			cr.Labels = map[string]string{}
 		}
-		cr.Labels[paasv1alpha1.LabelTrackRef] = string(cr.Spec.Track)
+		cr.Labels[v1alpha1.LabelTrackRef] = string(cr.Spec.Track)
 		if err := r.Update(ctx, cr); err != nil {
 			log.Error(err, "failed to update cluster resource")
 			return ctrl.Result{}, err
@@ -155,7 +154,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 // SetupWithManager sets up the controller with the Manager.
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&paasv1alpha1.Cluster{}).
+		For(&v1alpha1.Cluster{}).
 		Owns(&vclusterv1alpha1.VCluster{}).
 		Owns(&capiv1betav1.Cluster{}).
 		Owns(&netv1.Ingress{}).
@@ -163,7 +162,7 @@ func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *ClusterReconciler) reconcileID(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+func (r *ClusterReconciler) reconcileID(ctx context.Context, cr *v1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.V(1).Info("reconciling cluster ID")
 
@@ -176,7 +175,7 @@ func (r *ClusterReconciler) reconcileID(ctx context.Context, cr *paasv1alpha1.Cl
 	return nil
 }
 
-func (r *ClusterReconciler) reconcileDomain(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+func (r *ClusterReconciler) reconcileDomain(ctx context.Context, cr *v1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.V(1).Info("reconciling cluster domain")
 
@@ -190,7 +189,7 @@ func (r *ClusterReconciler) reconcileDomain(ctx context.Context, cr *paasv1alpha
 	return nil
 }
 
-func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alpha1.Cluster, haConnectionString string) error {
+func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *v1alpha1.Cluster, haConnectionString string) error {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling vcluster")
 
@@ -231,7 +230,7 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *paasv1alp
 	return nil
 }
 
-func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *v1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling cluster")
 
@@ -264,7 +263,7 @@ func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *paasv1alph
 	return nil
 }
 
-func (r *ClusterReconciler) reconcileIngress(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+func (r *ClusterReconciler) reconcileIngress(ctx context.Context, cr *v1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling ingress")
 
@@ -297,7 +296,7 @@ func (r *ClusterReconciler) reconcileIngress(ctx context.Context, cr *paasv1alph
 	return nil
 }
 
-func (r *ClusterReconciler) reconcileDexSecret(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+func (r *ClusterReconciler) reconcileDexSecret(ctx context.Context, cr *v1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling dex secret")
 
@@ -355,7 +354,7 @@ func (r *ClusterReconciler) updateSecretData(ctx context.Context, key string, fo
 	return nil
 }
 
-func (r *ClusterReconciler) reconcileDatabase(ctx context.Context, cr *paasv1alpha1.Cluster) (ctrl.Result, string, error) {
+func (r *ClusterReconciler) reconcileDatabase(ctx context.Context, cr *v1alpha1.Cluster) (ctrl.Result, string, error) {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling database")
 
@@ -448,7 +447,7 @@ func (r *ClusterReconciler) getConnectionString(ctx context.Context, username st
 	return ctrl.Result{}, conn, nil
 }
 
-func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *v1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling dex client", "addr", r.Options.DexGrpcAddr)
 
@@ -505,7 +504,7 @@ func (r *ClusterReconciler) reconcileDexClient(ctx context.Context, cr *paasv1al
 	return nil
 }
 
-func (r *ClusterReconciler) finalizeDexClient(ctx context.Context, cr *paasv1alpha1.Cluster) error {
+func (r *ClusterReconciler) finalizeDexClient(ctx context.Context, cr *v1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.Info("finalizing dex client", "addr", r.Options.DexGrpcAddr)
 	// establish a connection to the Dex API

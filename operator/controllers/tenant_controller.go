@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/tenant"
 	corev1 "k8s.io/api/core/v1"
@@ -28,8 +29,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
-
-	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
 )
 
 // TenantReconciler reconciles a Tenant object
@@ -52,7 +51,7 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	log := logging.FromContext(ctx).WithValues("tenant", req.Name, "namespace", req.Namespace)
 	log.Info("reconciling Tenant")
 
-	tr := &paasv1alpha1.Tenant{}
+	tr := &v1alpha1.Tenant{}
 	if err := r.Get(ctx, req.NamespacedName, tr); err != nil {
 		if errors.IsNotFound(err); err != nil {
 			return ctrl.Result{}, nil
@@ -79,15 +78,15 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	// collect a list of managed clusters
-	clusters := &paasv1alpha1.ClusterList{}
+	clusters := &v1alpha1.ClusterList{}
 	var ns string
 	// if the tenant uses a single namespace, we can limit
 	// our search to just that namespace
-	if tr.Spec.NamespaceStrategy == paasv1alpha1.StrategySingle {
+	if tr.Spec.NamespaceStrategy == v1alpha1.StrategySingle {
 		ns = tr.GetNamespace()
 	}
 	if tr.Status.Phase == "" {
-		tr.Status.Phase = paasv1alpha1.PhasePendingApproval
+		tr.Status.Phase = v1alpha1.PhasePendingApproval
 	}
 	if err := r.List(ctx, clusters, client.MatchingLabels{labelTenant: tr.GetName()}, client.InNamespace(ns)); err != nil {
 		if errors.IsNotFound(err); err != nil {
@@ -97,9 +96,9 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 	// generate the status object
-	observedClusters := make([]paasv1alpha1.NamespacedName, len(clusters.Items))
+	observedClusters := make([]v1alpha1.NamespacedName, len(clusters.Items))
 	for i := range clusters.Items {
-		observedClusters[i] = paasv1alpha1.NamespacedName{
+		observedClusters[i] = v1alpha1.NamespacedName{
 			Namespace: clusters.Items[i].GetNamespace(),
 			Name:      clusters.Items[i].GetName(),
 		}
@@ -113,7 +112,7 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	return ctrl.Result{}, nil
 }
 
-func (r *TenantReconciler) reconcileNamespace(ctx context.Context, tr *paasv1alpha1.Tenant) error {
+func (r *TenantReconciler) reconcileNamespace(ctx context.Context, tr *v1alpha1.Tenant) error {
 	log := logging.FromContext(ctx).WithValues("tenant", tr.GetName())
 	log.Info("reconciling namespace")
 
@@ -153,7 +152,7 @@ func (r *TenantReconciler) reconcileNamespace(ctx context.Context, tr *paasv1alp
 	return nil
 }
 
-func (r *TenantReconciler) reconcileCustomCA(ctx context.Context, tr *paasv1alpha1.Tenant) error {
+func (r *TenantReconciler) reconcileCustomCA(ctx context.Context, tr *v1alpha1.Tenant) error {
 	log := logging.FromContext(ctx).WithValues("tenant", tr.GetName())
 	log.Info("reconciling CA")
 
@@ -189,7 +188,7 @@ func (r *TenantReconciler) reconcileCustomCA(ctx context.Context, tr *paasv1alph
 	return nil
 }
 
-func (r *TenantReconciler) reconcileAddons(ctx context.Context, tr *paasv1alpha1.Tenant) error {
+func (r *TenantReconciler) reconcileAddons(ctx context.Context, tr *v1alpha1.Tenant) error {
 	log := logging.FromContext(ctx).WithValues("tenant", tr.GetName())
 	log.Info("reconciling addons")
 
@@ -207,11 +206,11 @@ func (r *TenantReconciler) reconcileAddons(ctx context.Context, tr *paasv1alpha1
 	return nil
 }
 
-func (r *TenantReconciler) reconcileAddon(ctx context.Context, car *paasv1alpha1.ClusterAddon, tr *paasv1alpha1.Tenant) error {
+func (r *TenantReconciler) reconcileAddon(ctx context.Context, car *v1alpha1.ClusterAddon, tr *v1alpha1.Tenant) error {
 	log := logging.FromContext(ctx).WithValues("addon", car.GetName(), "tenant", tr.GetName())
 	log.Info("reconciling addon")
 
-	found := &paasv1alpha1.ClusterAddon{}
+	found := &v1alpha1.ClusterAddon{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: tr.GetName(), Name: car.GetName()}, found); err != nil {
 		if errors.IsNotFound(err) {
 			if err := ctrl.SetControllerReference(tr, car, r.Scheme); err != nil {
@@ -238,12 +237,12 @@ func (r *TenantReconciler) reconcileAddon(ctx context.Context, car *paasv1alpha1
 	return nil
 }
 
-func (r *TenantReconciler) reconcileNamespaces(ctx context.Context, tr *paasv1alpha1.Tenant) (ctrl.Result, error) {
+func (r *TenantReconciler) reconcileNamespaces(ctx context.Context, tr *v1alpha1.Tenant) (ctrl.Result, error) {
 	log := logging.FromContext(ctx)
 	log.Info("reconciling namespaces")
 
 	if tr.Spec.NamespaceStrategy == "" {
-		tr.Spec.NamespaceStrategy = paasv1alpha1.StrategySingle
+		tr.Spec.NamespaceStrategy = v1alpha1.StrategySingle
 		if err := r.Update(ctx, tr); err != nil {
 			log.Error(err, "failed to set tenant default namespace strategy")
 			return ctrl.Result{}, err
@@ -253,7 +252,7 @@ func (r *TenantReconciler) reconcileNamespaces(ctx context.Context, tr *paasv1al
 
 	// single namespaces have been pre-prepared (since they contain the tenant)
 	// so we don't need to do anything
-	if tr.Spec.NamespaceStrategy == paasv1alpha1.StrategySingle {
+	if tr.Spec.NamespaceStrategy == v1alpha1.StrategySingle {
 		log.Info("skipping namespace reconciliation due to namespace strategy")
 		if len(tr.Status.ObservedNamespaces) == 0 || tr.Status.ObservedNamespaces[0] != tr.GetName() {
 			tr.Status.ObservedNamespaces = []string{tr.GetName()}
@@ -270,7 +269,7 @@ func (r *TenantReconciler) reconcileNamespaces(ctx context.Context, tr *paasv1al
 // SetupWithManager sets up the controller with the Manager.
 func (r *TenantReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&paasv1alpha1.Tenant{}).
+		For(&v1alpha1.Tenant{}).
 		Owns(&corev1.Namespace{}).
 		Owns(&corev1.Secret{}).
 		Complete(r)

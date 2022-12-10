@@ -3,17 +3,17 @@ package release
 import (
 	"context"
 	"fmt"
-	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-func GetLatest(ctx context.Context, c client.Client, track paasv1alpha1.ReleaseTrack) (*paasv1alpha1.ClusterVersion, error) {
+func GetLatest(ctx context.Context, c client.Client, track v1alpha1.ReleaseTrack) (*v1alpha1.ClusterVersion, error) {
 	log := logging.FromContext(ctx).WithValues("track", track)
 	log.Info("fetching latest cluster version")
 
-	versionList := &paasv1alpha1.ClusterVersionList{}
-	if err := c.List(ctx, versionList, client.MatchingLabels{paasv1alpha1.LabelTrackRef: string(track)}); err != nil {
+	versionList := &v1alpha1.ClusterVersionList{}
+	if err := c.List(ctx, versionList, client.MatchingLabels{v1alpha1.LabelTrackRef: string(track)}); err != nil {
 		log.Error(err, "failed to list cluster versions")
 		return nil, err
 	}

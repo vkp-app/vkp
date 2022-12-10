@@ -6,7 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
-	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"os"
@@ -21,7 +21,7 @@ var valuesTemplate string
 
 var valuesTpl = template.Must(template.New("values.yaml").Parse(valuesTemplate))
 
-func VCluster(ctx context.Context, cluster *paasv1alpha1.Cluster, version *paasv1alpha1.ClusterVersion, dexCustomCA bool, customCA, haConnectionString string) (*vclusterv1alpha1.VCluster, error) {
+func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.ClusterVersion, dexCustomCA bool, customCA, haConnectionString string) (*vclusterv1alpha1.VCluster, error) {
 	log := logging.FromContext(ctx)
 	hostname := getHostname(cluster)
 	values := new(bytes.Buffer)

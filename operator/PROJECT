@@ -1,6 +1,7 @@
 domain: dcas.dev
 layout:
 - go.kubebuilder.io/v3
+multigroup: true
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
@@ -50,4 +51,13 @@ resources:
   kind: ClusterVersion
   path: gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: dcas.dev
+  group: idp
+  kind: OAuthClient
+  path: gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1
+  version: v1
 version: "3"

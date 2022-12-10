@@ -7,7 +7,7 @@ import (
 	"github.com/go-logr/logr"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/userctx"
-	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	authv1 "k8s.io/api/authorization/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"os"

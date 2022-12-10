@@ -18,11 +18,14 @@ package main
 
 import (
 	"context"
+	"os"
+
 	"github.com/djcass44/go-utils/logging"
 	"github.com/jnovack/flag"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"os"
+
+	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 
 	pgov1beta1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
@@ -38,8 +41,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
-	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+	idpv1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers"
+	idpcontrollers "gitlab.dcas.dev/k8s/kube-glass/operator/controllers/idp"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -55,6 +59,7 @@ func init() {
 	utilruntime.Must(vclusterv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(capiv1betav1.AddToScheme(scheme))
 	utilruntime.Must(pgov1beta1.AddToScheme(scheme))
+	utilruntime.Must(idpv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -184,6 +189,13 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ClusterVersion")
+		os.Exit(1)
+	}
+	if err = (&idpcontrollers.OAuthClientReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "OAuthClient")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
