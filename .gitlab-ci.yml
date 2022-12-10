@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  VERSION: "0.3.2"
+  VERSION: "0.3.3"
   CNB_TAGS: "$VERSION"
   KO_TAGS: $VERSION
   KANIKO_TAGS: $VERSION
@@ -149,6 +149,8 @@ build index:
 
 release:
   stage: release
+  image: harbor.dcas.dev/registry.gitlab.com/gitlab-org/release-cli:latest
+  allow_failure: true
   script:
     - echo "Create release $VERSION"
     - sed -i "s/VERSION/$VERSION/g" .gitlab/release_notes.md
