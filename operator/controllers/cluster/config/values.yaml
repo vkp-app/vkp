@@ -145,6 +145,10 @@ plugin:
         value: "{{ .Ingress.ClassName }}"
       - name: __GLASS_DEX_URL__
         value: "{{ .IDP.URL }}"
+      {{- if .Ingress.Issuer }}
+      - name: __VKP_CLUSTER_ISSUER__
+        value: "{{ .Ingress.Issuer }}"
+      {{- end }}
       - name: __GLASS_DEX_CLIENT_ID__
         valueFrom:
           secretKeyRef:

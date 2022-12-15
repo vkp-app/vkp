@@ -39,6 +39,7 @@ func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.
 			Host:          strings.TrimPrefix(hostname, "api."),
 			TLSSecretName: IngressSecretName(cluster.GetName()),
 			ClassName:     getEnv(EnvIngressClass, "nginx"),
+			Issuer:        getEnv(EnvIngressIssuer, ""),
 		},
 		IDP: ValuesIDP{
 			URL:        getEnv(EnvIDPURL, ""),

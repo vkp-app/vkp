@@ -62,6 +62,7 @@ type ValuesIngress struct {
 	Host          string
 	TLSSecretName string
 	ClassName     string
+	Issuer        string
 }
 
 type ValuesIDP struct {

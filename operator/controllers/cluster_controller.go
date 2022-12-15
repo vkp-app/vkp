@@ -376,6 +376,7 @@ func (r *ClusterReconciler) reconcileDatabase(ctx context.Context, cr *v1alpha1.
 			log.Error(err, "failed to update Cluster database status")
 			return ctrl.Result{}, "", err
 		}
+		return ctrl.Result{Requeue: true}, "", nil
 	}
 	// check if our user has been created.
 	for _, u := range db.Spec.Users {

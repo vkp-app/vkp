@@ -8,6 +8,7 @@ const (
 	MagicDexClientID     = "__GLASS_DEX_CLIENT_ID__"
 	MagicDexClientSecret = "__GLASS_DEX_CLIENT_SECRET__"
 	MagicIngressClass    = "__GLASS_INGRESS_CLASS__"
+	MagicClusterIssuer   = "__VKP_CLUSTER_ISSUER__"
 
 	EnvClusterName = "VCLUSTER_CLUSTER_NAME"
 	EnvNamespace   = "KUBERNETES_NAMESPACE"
