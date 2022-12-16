@@ -28,6 +28,21 @@ func TestIngressHook_MutateCreatePhysical(t *testing.T) {
 		assert.NoError(t, err)
 		assert.EqualValues(t, "foo-domain-io.example.org", ing.(*netv1.Ingress).Spec.Rules[0].Host)
 	})
+	t.Run("tls hostnames are rewritten", func(t *testing.T) {
+		ing, err := h.MutateCreatePhysical(context.TODO(), &netv1.Ingress{
+			Spec: netv1.IngressSpec{
+				TLS: []netv1.IngressTLS{
+					{
+						Hosts: []string{
+							"foo.domain.io",
+						},
+					},
+				},
+			},
+		})
+		assert.NoError(t, err)
+		assert.EqualValues(t, "foo-domain-io.example.org", ing.(*netv1.Ingress).Spec.TLS[0].Hosts[0])
+	})
 	t.Run("prepared hostnames are skipped", func(t *testing.T) {
 		ing, err := h.MutateCreatePhysical(context.TODO(), &netv1.Ingress{
 			Spec: netv1.IngressSpec{
@@ -40,5 +55,20 @@ func TestIngressHook_MutateCreatePhysical(t *testing.T) {
 		})
 		assert.NoError(t, err)
 		assert.EqualValues(t, "foo.example.org", ing.(*netv1.Ingress).Spec.Rules[0].Host)
+	})
+	t.Run("prepared tls hostnames are skipped", func(t *testing.T) {
+		ing, err := h.MutateCreatePhysical(context.TODO(), &netv1.Ingress{
+			Spec: netv1.IngressSpec{
+				TLS: []netv1.IngressTLS{
+					{
+						Hosts: []string{
+							"foo.example.org",
+						},
+					},
+				},
+			},
+		})
+		assert.NoError(t, err)
+		assert.EqualValues(t, "foo.example.org", ing.(*netv1.Ingress).Spec.TLS[0].Hosts[0])
 	})
 }

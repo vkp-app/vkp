@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  VERSION: "0.3.4"
+  VERSION: "0.3.5"
   CNB_TAGS: "$VERSION"
   KO_TAGS: $VERSION
   KANIKO_TAGS: $VERSION
@@ -156,14 +156,22 @@ release:
     - sed -i "s/VERSION/$VERSION/g" .gitlab/release_notes.md
   dependencies: []
   needs:
-    - build apiserver
-    - build plugin-hooks
-    - build plugin-sync
-    - build web
-    - build operator
-    - build bundle
-    - build index
-    - build chart
+    - job: build apiserver
+      optional: true
+    - job: build plugin-hooks
+      optional: true
+    - job: build plugin-sync
+      optional: true
+    - job: build web
+      optional: true
+    - job: build operator
+      optional: true
+    - job: build bundle
+      optional: true
+    - job: build index
+      optional: true
+    - job: build chart
+      optional: true
   release:
     name: "VKP $VERSION"
     ref: "$CI_COMMIT_SHA"

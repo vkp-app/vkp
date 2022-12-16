@@ -22,7 +22,7 @@ func (h *PodHook) Resource() client.Object {
 	return &corev1.Pod{}
 }
 
-func (h *PodHook) MutateCreatePhysical(ctx context.Context, obj client.Object) (client.Object, error) {
+func (h *PodHook) MutateCreatePhysical(_ context.Context, obj client.Object) (client.Object, error) {
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
 		return nil, fmt.Errorf("object %+v is not a Pod", obj)

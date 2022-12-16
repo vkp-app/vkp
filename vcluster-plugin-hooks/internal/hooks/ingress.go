@@ -37,6 +37,17 @@ func (h *IngressHook) MutateCreatePhysical(ctx context.Context, obj client.Objec
 		ing.Spec.Rules[i].Host = fmt.Sprintf("%s.%s", flat, h.ClusterDomain)
 		log.Info("rewriting networking.k8s.io/Ingress hostname", "old", r.Host, "new", ing.Spec.Rules[i].Host)
 	}
+	// collect all the TLS hosts
+	for i, t := range ing.Spec.TLS {
+		for j, tt := range t.Hosts {
+			if strings.HasSuffix(tt, "."+h.ClusterDomain) {
+				continue
+			}
+			flat := strings.ReplaceAll(tt, ".", "-")
+			ing.Spec.TLS[i].Hosts[j] = fmt.Sprintf("%s.%s", flat, h.ClusterDomain)
+			log.Info("rewriting networking.k8s.io/Ingress TLS hostname", "old", tt, "new", ing.Spec.TLS[i].Hosts[j])
+		}
+	}
 	return ing, nil
 }
 
