@@ -33,3 +33,12 @@ app.kubernetes.io/component: web
 {{- printf "%s:%s" .image.repository (.image.tag | default .chart.AppVersion) }}
 {{- end }}
 {{- end }}
+
+{{- define "console.host" }}
+{{- printf "%s.%s" .Values.vkp.consoleHost .Values.global.ingress.domain }}
+{{- end }}
+
+
+{{- define "dex.host" }}
+{{- printf "%s.%s" .Values.dex.ingress.host .Values.global.ingress.domain }}
+{{- end }}

@@ -13,14 +13,14 @@ stringData:
       reflection: true
       tlsCert: ""
       tlsKey: ""
-    issuer: https://dex.{{ .Values.global.ingress.domain }}
+    issuer: https://{{ include "dex.host" . }}
     oauth2:
       skipApprovalScreen: true
     staticClients:
     - id: vkp
       name: VKP
       redirectURIs:
-      - https://vkp.{{ .Values.global.ingress.domain }}/oauth2/callback
+      - https://{{ include "dex.host" . }}/oauth2/callback
       secretEnv: CLIENT_SECRET_VKP
     storage:
       config:

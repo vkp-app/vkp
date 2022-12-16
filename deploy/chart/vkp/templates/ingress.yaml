@@ -1,3 +1,4 @@
+---
 kind: Ingress
 apiVersion: networking.k8s.io/v1
 metadata:
@@ -12,10 +13,10 @@ spec:
   ingressClassName: {{ .Values.global.ingress.ingressClassName }}
   tls:
     - hosts:
-        - vkp.{{ .Values.global.ingress.domain }}
+        - {{ include "console.host" . }}
       secretName: {{ .Values.global.ingress.tlsSecret }}
   rules:
-    - host: vkp.{{ .Values.global.ingress.domain }}
+    - host: {{ include "console.host" . }}
       http:
         paths:
           - path: /api
@@ -32,3 +33,31 @@ spec:
                 name: web
                 port:
                   name: web
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+{{- with .Values.global.ingress.annotations }}
+  annotations:
+{{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    {{- include "dex.labels" . | nindent 4 }}
+  name: dex
+spec:
+  ingressClassName: {{ .Values.global.ingress.ingressClassName }}
+  tls:
+    - hosts:
+        - {{ include "dex.host" . }}
+      secretName: {{ .Values.dex.ingress.tlsSecret }}
+  rules:
+    - host: {{ include "dex.host" . }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: dex
+                port:
+                  number: 5556

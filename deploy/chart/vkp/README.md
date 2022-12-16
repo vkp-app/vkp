@@ -1,6 +1,6 @@
 # vkp
 
-![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
+![Version: 0.4.1](https://img.shields.io/badge/Version-0.4.1-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
 
 ## Values
 
@@ -14,6 +14,7 @@
 | dex.image.repository | string | `"dexidp/dex"` | Dex image repository |
 | dex.image.tag | string | `"v2.35.3"` | Dex image tag |
 | dex.imagePullPolicy | string | `"IfNotPresent"` | Dex image pull policy |
+| dex.ingress.host | string | `"dex"` | Dex host. Always includes the `global.ingress.domain` as a suffix (e.g. setting this to "foo" will result in "foo.example.org"). |
 | dex.ingress.tlsSecret | string | `"tls-dex"` | Dex TLS certificate |
 | global.caSecret | string | `""` | Custom Certificate Authority to use for all components. Generally this should contain a single CA, but it can support many. |
 | global.imagePullSecrets | list | `[]` | Global container registry secret names as an array. |
@@ -36,6 +37,7 @@
 | vkp.clusterVersions.default.enabled | bool | `false` | Install default ClusterVersions. Disable to supply your own. |
 | vkp.clusterVersions.image.registry | string | `"docker.io"` | Container registry to pull images from. |
 | vkp.clusterVersions.image.repository | string | `"rancher/k3s"` | Repository containing cluster images. |
+| vkp.consoleHost | string | `"vkp"` | Console host. Always includes the `global.ingress.domain` as a suffix (e.g. setting this to "foo" will result in "foo.example.org"). |
 | web.image.registry | string | `"ghcr.io"` | Web image registry |
 | web.image.repository | string | `"vkp-app/vkp/web"` | Web image repository |
 | web.image.tag | string | `""` | Web image tag (defaults to .Chart.AppVersion) |

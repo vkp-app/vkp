@@ -104,6 +104,8 @@ dex:
   # -- Dex image pull policy
   imagePullPolicy: IfNotPresent
   ingress:
+    # -- Dex host. Always includes the `global.ingress.domain` as a suffix (e.g. setting this to "foo" will result in "foo.example.org").
+    host: dex
     # -- Dex TLS certificate
     tlsSecret: tls-dex
 #  extraEnv: []
@@ -113,6 +115,8 @@ dex:
 #  containerSecurityContext: {}
 
 vkp:
+  # -- Console host. Always includes the `global.ingress.domain` as a suffix (e.g. setting this to "foo" will result in "foo.example.org").
+  consoleHost: vkp
   clusterVersions:
     default:
       # -- Install default ClusterVersions. Disable to supply your own.

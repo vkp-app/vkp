@@ -84,8 +84,8 @@ spec:
             - --provider=oidc
             - --client-id=vkp
             - --email-domain=*
-            - --oidc-issuer-url=https://dex.{{ .Values.global.ingress.domain }}
-            - --redirect-url=https://vkp.{{ .Values.global.ingress.domain }}/oauth2/callback
+            - --oidc-issuer-url=https://{{ include "dex.host" . }}
+            - --redirect-url=https://{{ include "console.host" . }}/oauth2/callback
             - --prefer-email-to-user=true
             - --cookie-secure=true
             - --cookie-refresh=2h
