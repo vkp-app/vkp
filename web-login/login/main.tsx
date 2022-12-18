@@ -1,11 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App";
-import "./index.css";
-import "typeface-roboto";
+import App from "../src/App";
+import Login from "./Login";
+import "../index.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 	<React.StrictMode>
-		<App/>
+		<App>
+			<Login/>
+		</App>
 	</React.StrictMode>,
 );
