@@ -30,6 +30,17 @@ func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.
 	if cluster.Spec.Storage.StorageClassName == "" {
 		cluster.Spec.Storage.StorageClassName = os.Getenv(EnvStorageClass)
 	}
+	envVars := map[string]string{}
+	for _, kv := range os.Environ() {
+		k, v, ok := strings.Cut(kv, "=")
+		if !ok {
+			continue
+		}
+		if strings.HasPrefix(k, "__VKP_") || strings.HasPrefix(kv, "__GLASS_") {
+			log.V(5).Info("found environment variable to pass down to clusters", "key", k)
+			envVars[k] = v
+		}
+	}
 	// ensure that we have all the information we need to set up
 	// an HA cluster
 	enableHA := cluster.Spec.HA.Enabled && haConnectionString != ""
@@ -48,8 +59,9 @@ func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.
 		},
 		Storage: cluster.Spec.Storage,
 		HA: ValuesHA{
-			Enabled:    enableHA,
-			Connection: fmt.Sprintf("%s?sslmode=require", strings.ReplaceAll(haConnectionString, "postgresql://", "postgres://")),
+			Enabled:      enableHA,
+			Connection:   fmt.Sprintf("%s?sslmode=require", strings.ReplaceAll(haConnectionString, "postgresql://", "postgres://")),
+			ReplicaCount: 2,
 		},
 		OpenShift:     getEnv(EnvIsOpenShift, "false") == "true",
 		Image:         version.Spec.Image.String(),
@@ -61,6 +73,7 @@ func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.
 			HookImage:  getEnv(EnvHookImage, "dev.local/vkp/vcluster-plugin-hooks:latest"),
 			PullPolicy: getEnv(EnvPluginPolicy, "Never"),
 		},
+		EnvVars: envVars,
 	}
 	log.V(3).Info("templating values.yaml file", "Template", valuesTemplate, "Overrides", valuesConfig)
 	if err := valuesTpl.Execute(values, valuesConfig); err != nil {

@@ -89,14 +89,14 @@ storage:
   {{- end }}
 enableHA: {{ .HA.Enabled }}
 {{- if .HA.Enabled }}
-replicas: 2
+replicas: {{ .HA.ReplicaCount }}
 {{- else }}
 replicas: 1
 {{- end }}
 coredns:
   image: {{ .CoreDNSImage }}
   {{- if .HA.Enabled}}
-  replicas: 2
+  replicas: {{ .HA.ReplicaCount }}
   {{- else }}
   replicas: 1
   {{- end }}
@@ -139,26 +139,30 @@ plugin:
             fieldPath: metadata.namespace
       - name: VCLUSTER_CLUSTER_NAME
         value: "{{ .Name }}"
-      - name: __GLASS_CLUSTER_URL__
+      - name: __VKP_CLUSTER_URL__
         value: "{{ .Ingress.Host }}"
-      - name: __GLASS_INGRESS_CLASS__
+      - name: __VKP_INGRESS_CLASS__
         value: "{{ .Ingress.ClassName }}"
-      - name: __GLASS_DEX_URL__
+      - name: __VKP_DEX_URL__
         value: "{{ .IDP.URL }}"
       {{- if .Ingress.Issuer }}
       - name: __VKP_CLUSTER_ISSUER__
         value: "{{ .Ingress.Issuer }}"
       {{- end }}
-      - name: __GLASS_DEX_CLIENT_ID__
+      - name: __VKP_DEX_CLIENT_ID__
         valueFrom:
           secretKeyRef:
             name: "{{ .Name }}-dex"
             key: client_id
-      - name: __GLASS_DEX_CLIENT_SECRET__
+      - name: __VKP_DEX_CLIENT_SECRET__
         valueFrom:
           secretKeyRef:
             name: "{{ .Name }}-dex"
             key: client_secret
+      {{- range $key, $value := .EnvVars }}
+      - name: {{ $key }}
+        value: {{ $value | quote }}
+      {{- end }}
     volumeMounts:
       - name: plugin-tmp
         mountPath: /tmp

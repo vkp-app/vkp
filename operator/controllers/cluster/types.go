@@ -45,11 +45,13 @@ type ValuesTemplate struct {
 	CoreDNSImage  string
 	Plugins       ValuesPlugins
 	CustomCA      string
+	EnvVars       map[string]string
 }
 
 type ValuesHA struct {
-	Enabled    bool
-	Connection string
+	Enabled      bool
+	Connection   string
+	ReplicaCount int
 }
 
 type ValuesPlugins struct {

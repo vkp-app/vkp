@@ -345,12 +345,15 @@ func (r *AddonSyncer) manifestsFromSecret(ctx context.Context, name string) (str
 // mangleYAML does a simple find-and-replace, so we can inject
 // per-cluster configuration values (e.g. URLs and OAuth information)
 func (*AddonSyncer) mangleYAML(s string) string {
-	s = strings.ReplaceAll(s, MagicDexURL, os.Getenv(MagicDexURL))
-	s = strings.ReplaceAll(s, MagicClusterURL, os.Getenv(MagicClusterURL))
-	s = strings.ReplaceAll(s, MagicDexClientID, os.Getenv(MagicDexClientID))
-	s = strings.ReplaceAll(s, MagicDexClientSecret, os.Getenv(MagicDexClientSecret))
-	s = strings.ReplaceAll(s, MagicIngressClass, os.Getenv(MagicIngressClass))
-	s = strings.ReplaceAll(s, MagicClusterIssuer, os.Getenv(MagicClusterIssuer))
+	for _, kv := range os.Environ() {
+		key, value, ok := strings.Cut(kv, "=")
+		if !ok {
+			continue
+		}
+		if strings.HasPrefix(key, "__VKP_") || strings.HasPrefix(key, "__GLASS_") {
+			s = strings.ReplaceAll(s, key, value)
+		}
+	}
 
 	return s
 }

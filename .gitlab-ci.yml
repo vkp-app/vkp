@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  VERSION: "0.3.7"
+  VERSION: "0.3.8"
   CNB_TAGS: "$VERSION"
   KO_TAGS: $VERSION
   KANIKO_TAGS: $VERSION
@@ -180,6 +180,8 @@ release:
     - job: build web
       optional: true
     - job: build operator
+      optional: true
+    - job: build web-login
       optional: true
     - job: build bundle
       optional: true

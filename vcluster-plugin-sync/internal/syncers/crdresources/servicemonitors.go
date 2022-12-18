@@ -29,10 +29,21 @@ func (s *ServiceMonitorSyncer) Init(ctx *synccontext.RegisterContext) error {
 }
 
 func (s *ServiceMonitorSyncer) SyncDown(ctx *synccontext.SyncContext, vo client.Object) (ctrl.Result, error) {
+	// skip resources that the user has specifically
+	// requested that we don't sync
+	if vo.GetAnnotations()[LabelDisableSync] != "" || vo.GetLabels()[LabelDisableSync] != "" {
+		return ctrl.Result{}, nil
+	}
 	return s.SyncDownCreate(ctx, vo, s.translate(vo.(*promv1.ServiceMonitor)))
 }
 
 func (s *ServiceMonitorSyncer) Sync(ctx *synccontext.SyncContext, po, vo client.Object) (ctrl.Result, error) {
+	// skip resources that the user has specifically
+	// requested that we don't sync
+	if vo.GetAnnotations()[LabelDisableSync] != "" || vo.GetLabels()[LabelDisableSync] != "" {
+		return ctrl.Result{}, nil
+	}
+
 	vsm := vo.(*promv1.ServiceMonitor)
 	psm := po.(*promv1.ServiceMonitor)
 
