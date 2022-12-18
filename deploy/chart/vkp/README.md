@@ -1,6 +1,6 @@
 # vkp
 
-![Version: 0.4.1](https://img.shields.io/badge/Version-0.4.1-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
+![Version: 0.4.2](https://img.shields.io/badge/Version-0.4.2-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
 
 ## Values
 
@@ -11,8 +11,8 @@
 | api.image.tag | string | `""` | APIServer image tag (defaults to .Chart.AppVersion) |
 | api.imagePullPolicy | string | `"IfNotPresent"` | APIServer image pull policy |
 | dex.image.registry | string | `"ghcr.io"` | Dex image registry |
-| dex.image.repository | string | `"dexidp/dex"` | Dex image repository |
-| dex.image.tag | string | `"v2.35.3"` | Dex image tag |
+| dex.image.repository | string | `"vkp-app/vkp/dex"` | Dex image repository |
+| dex.image.tag | string | `""` | Dex image tag |
 | dex.imagePullPolicy | string | `"IfNotPresent"` | Dex image pull policy |
 | dex.ingress.host | string | `"dex"` | Dex host. Always includes the `global.ingress.domain` as a suffix (e.g. setting this to "foo" will result in "foo.example.org"). |
 | dex.ingress.tlsSecret | string | `"tls-dex"` | Dex TLS certificate |

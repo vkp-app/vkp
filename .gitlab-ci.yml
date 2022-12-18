@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  VERSION: "0.3.6"
+  VERSION: "0.3.7"
   CNB_TAGS: "$VERSION"
   KO_TAGS: $VERSION
   KANIKO_TAGS: $VERSION
@@ -70,6 +70,21 @@ build web:
     - changes:
         - web/**/*
         - .gitlab-ci.yml
+
+
+build web-login:
+  stage: build
+  extends: .kaniko
+  dependencies: []
+  variables:
+    KANIKO_CONTEXT: "$CI_PROJECT_DIR/web-login"
+    KANIKO_ARG_DEX_VERSION: v2.35.3
+  before_script:
+    - export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE/dex"
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - when: on_success
 
 build operator:
   extends: .build-ko

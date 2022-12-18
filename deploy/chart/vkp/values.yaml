@@ -98,9 +98,9 @@ dex:
     # -- Dex image registry
     registry: ghcr.io
     # -- Dex image repository
-    repository: dexidp/dex
+    repository: vkp-app/vkp/dex
     # -- Dex image tag
-    tag: v2.35.3
+    tag: ""
   # -- Dex image pull policy
   imagePullPolicy: IfNotPresent
   ingress:
