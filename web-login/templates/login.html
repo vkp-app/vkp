@@ -1,0 +1,31 @@
+{{ template "header.html" . }}
+
+<div class="row">
+  <div class="col s6">
+    <div class="row">
+      <div class="col s6"></div>
+      <div class="col s6">
+        <div class="card">
+          <p class="card-title">
+            Login with...
+          </p>
+          {{ range $c := .Connectors }}
+          <a class="waves-effect btn btn-provider blue" href="{{ $c.URL }}">
+            {{ $c.Name }}
+          </a>
+          <br/>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col s6" style="display: flex">
+    <div class="avatar"></div>
+    <div>
+      <h5>VKP</h5>
+      <h6>Virtual Kubernetes Platform</h6>
+    </div>
+  </div>
+</div>
+
+{{ template "footer.html" . }}

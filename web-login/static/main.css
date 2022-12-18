@@ -1,0 +1,121 @@
+.dex-btn-icon {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 24px;
+  border-radius: 4px 0 0 4px;
+  float: left;
+  height: 36px;
+  margin-right: 5px;
+  width: 36px;
+}
+
+.dex-btn-icon--google {
+  background-color: #FFFFFF;
+  background-image: url(../static/img/google-icon.svg);;
+}
+
+.dex-btn-icon--local {
+  background-color: #84B6EF;
+  background-image: url(../static/img/email-icon.svg);
+}
+
+.dex-btn-icon--gitea {
+  background-color: #F5F5F5;
+  background-image: url(../static/img/gitea-icon.svg);
+}
+
+.dex-btn-icon--github {
+  background-color: #F5F5F5;
+  background-image: url(../static/img/github-icon.svg);
+}
+
+.dex-btn-icon--gitlab {
+  background-color: #F5F5F5;
+  background-image: url(../static/img/gitlab-icon.svg);
+  background-size: contain;
+}
+
+.dex-btn-icon--keystone {
+  background-color: #F5F5F5;
+  background-image: url(../static/img/keystone-icon.svg);
+  background-size: contain;
+}
+
+.dex-btn-icon--oidc {
+  background-color: #EBEBEE;
+  background-image: url(../static/img/oidc-icon.svg);
+  background-size: contain;
+}
+
+.dex-btn-icon--bitbucket-cloud {
+  background-color: #205081;
+  background-image: url(../static/img/bitbucket-icon.svg);
+}
+
+.dex-btn-icon--atlassian-crowd {
+  background-color: #CFDCEA;
+  background-image: url(../static/img/atlassian-crowd-icon.svg);
+}
+
+.dex-btn-icon--ldap {
+  background-color: #84B6EF;
+  background-image: url(../static/img/ldap-icon.svg);
+}
+
+.dex-btn-icon--saml {
+  background-color: #84B6EF;
+  background-image: url(../static/img/saml-icon.svg);
+}
+
+.dex-btn-icon--linkedin {
+  background-image: url(../static/img/linkedin-icon.svg);
+  background-size: contain;
+}
+
+.dex-btn-icon--microsoft {
+  background-image: url(../static/img/microsoft-icon.svg);
+}
+
+@font-face {
+  font-family: 'Figtree';
+  src: local("Figtree"), url(../static/fonts/figtree/Figtree-Medium.woff2) format('woff2');
+  font-style: normal;
+  font-weight: 500;
+}
+
+h5 {
+  font-family: "Figtree", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.86);
+}
+
+h6 {
+  font-family: "Figtree", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.64);
+}
+
+/* LOGIN STUFF */
+.avatar {
+  width: 64px;
+  height: 64px;
+  margin-top: 16px;
+  margin-right: 16px;
+  background-image: url(../static/img/kubernetes-icon-color.svg);
+}
+
+.card {
+  padding: 4px 24px 24px;
+}
+.row {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+.btn-provider {
+  width: 100%;
+  font-weight: 500;
+  text-transform: none;
+  text-align: center;
+  margin-bottom: 8px;
+}

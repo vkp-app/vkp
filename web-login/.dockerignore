@@ -1,0 +1,6 @@
+skaffold.yaml
+*.md
+Dockerfile
+k8s/
+.kpt-pipeline/
+.dockerignore

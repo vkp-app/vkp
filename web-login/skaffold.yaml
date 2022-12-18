@@ -1,0 +1,21 @@
+apiVersion: skaffold/v3
+kind: Config
+metadata:
+  name: dex
+build:
+  tagPolicy:
+    sha256: {}
+  artifacts:
+  - image: dev.local/vkp-app/dex
+    docker: {}
+  local:
+    push: false
+manifests:
+  kustomize:
+    buildArgs:
+      - --enable-helm
+    paths:
+      - k8s/
+deploy:
+  kubectl: {}
+  kubeContext: minikube
