@@ -6,6 +6,8 @@
 
 `ghcr.io/vkp-app/vkp/web:VERSION`
 
+`ghcr.io/vpk-app/vkp/dex:VERSION`
+
 **Data plane**
 
 `ghcr.io/vkp-app/vkp/vcluster-plugin-hooks:VERSION`

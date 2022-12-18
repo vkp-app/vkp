@@ -161,7 +161,7 @@ plugin:
             key: client_secret
       {{- range $key, $value := .EnvVars }}
       - name: {{ $key }}
-        value: {{ $value | quote }}
+        value: "{{ $value }}"
       {{- end }}
     volumeMounts:
       - name: plugin-tmp
