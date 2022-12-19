@@ -203,7 +203,8 @@ func (r *AddonSyncer) kustomizeResources(ctx context.Context, cr *paasv1alpha1.C
 			// update or create the resource
 			res := obj.(client.Object)
 			if err := onRendered(res); err != nil {
-				return err
+				log.Error(err, "received error attempting to apply resource")
+				continue
 			}
 		}
 	}
@@ -215,19 +216,30 @@ func (r *AddonSyncer) reconcileAddon(ctx context.Context, cr *paasv1alpha1.Clust
 	log.Info("reconciling nested addon")
 
 	return r.kustomizeResources(ctx, cr, func(v client.Object) error {
-		if err := r.vClient.Update(ctx, v); err != nil {
+		found := v.DeepCopyObject().(client.Object)
+		// fetch the resource
+		if err := r.vClient.Get(ctx, types.NamespacedName{Namespace: v.GetNamespace(), Name: v.GetName()}, found); err != nil {
+			// if the resource doesn't exist
+			// we create it
 			if errors.IsNotFound(err) {
 				log.V(1).Info("creating resource", "resourceName", v.GetName(), "resourceKind", v.GetObjectKind().GroupVersionKind().String())
 				if err := r.vClient.Create(ctx, v); err != nil {
 					log.Error(err, "failed to create resource")
 					return err
 				}
+				log.V(1).Info("successfully created resource")
 				return nil
 			}
+			log.Error(err, "failed to retrieve resource")
+			return err
+		}
+		// update the resource
+		log.V(1).Info("updating resource", "resourceName", v.GetName(), "resourceKind", v.GetObjectKind().GroupVersionKind().String())
+		if err := r.SafeUpdate(ctx, found, v); err != nil {
 			log.Error(err, "failed to update resource")
 			return err
 		}
-		log.V(1).Info("updating resource", "resourceName", v.GetName(), "resourceKind", v.GetObjectKind().GroupVersionKind().String())
+		log.V(1).Info("successfully updated resource")
 		return nil
 	})
 }
