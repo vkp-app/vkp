@@ -28,6 +28,7 @@ spec:
           image: {{ include "image" $data }}
           imagePullPolicy: IfNotPresent
           args:
+            - --port=8443
             - --prometheus-url={{ .Values.prometheus.url }}
             - --tls-cert-file=/etc/ssl/certs/tls.crt
             - --tls-key-file=/etc/ssl/certs/tls.key
@@ -80,10 +81,16 @@ spec:
             - name: pki
               mountPath: /etc/ssl/certs
               readOnly: true
+            - mountPath: /var/run/secrets/paas.dcas.dev/tls
+              name: tls
+              readOnly: true
       volumes:
         - name: pki
           secret:
             secretName: tls-metrics-proxy
+        - name: tls
+          secret:
+            secretName: {{ .Values.global.caSecret | default .Values.global.ingress.tlsSecret }}
 ---
 apiVersion: v1
 kind: Service
