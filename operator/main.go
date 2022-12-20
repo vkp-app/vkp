@@ -41,6 +41,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	idpv1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers"
 	idpcontrollers "gitlab.dcas.dev/k8s/kube-glass/operator/controllers/idp"
@@ -60,6 +61,8 @@ func init() {
 	utilruntime.Must(capiv1betav1.AddToScheme(scheme))
 	utilruntime.Must(pgov1beta1.AddToScheme(scheme))
 	utilruntime.Must(idpv1.AddToScheme(scheme))
+	utilruntime.Must(certv1.AddToScheme(scheme))
+
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -88,6 +91,8 @@ func main() {
 	flag.BoolVar(&clusterOpts.UseHANonce, "cluster-use-ha-nonce", false, "determines whether HA database entries will include a nonce to avoid overlapping tables.")
 	flag.StringVar(&clusterOpts.PostgresResourceName, "cluster-postgres-resource-name", "vkp", "name of the Postgres Operator Cluster resource to use for HA clusters.")
 	flag.StringVar(&clusterOpts.PostgresResourceNamespace, "cluster-postgres-resource-namespace", os.Getenv("KUBERNETES_NAMESPACE"), "namespace of the Postgres Operator Cluster resource to use for HA clusters.")
+	flag.StringVar(&clusterOpts.RootCAIssuerName, "cluster-root-ca-issuer-name", "", "name of the CertManager Issuer.")
+	flag.StringVar(&clusterOpts.RootCAIssuerKind, "cluster-root-ca-issuer-kind", "Issuer", "kind of the CertManager Issuer (Issuer or ClusterIssuer).")
 
 	// tenant controller configuration
 	tenantOpts := controllers.TenantOptions{}

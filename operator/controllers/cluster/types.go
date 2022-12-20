@@ -34,18 +34,19 @@ const (
 )
 
 type ValuesTemplate struct {
-	Name          string
-	Ingress       ValuesIngress
-	IDP           ValuesIDP
-	Storage       paasv1alpha1.Storage
-	HA            ValuesHA
-	OpenShift     bool
-	Image         string
-	VclusterImage string
-	CoreDNSImage  string
-	Plugins       ValuesPlugins
-	CustomCA      string
-	EnvVars       map[string]string
+	Name              string
+	Ingress           ValuesIngress
+	IDP               ValuesIDP
+	Storage           paasv1alpha1.Storage
+	HA                ValuesHA
+	OpenShift         bool
+	Image             string
+	VclusterImage     string
+	CoreDNSImage      string
+	Plugins           ValuesPlugins
+	CustomCA          string
+	EnvVars           map[string]string
+	PlatformNamespace string
 }
 
 type ValuesHA struct {

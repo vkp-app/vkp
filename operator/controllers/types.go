@@ -22,4 +22,6 @@ type ClusterOptions struct {
 	UseHANonce                bool
 	PostgresResourceName      string
 	PostgresResourceNamespace string
+	RootCAIssuerName          string
+	RootCAIssuerKind          string
 }

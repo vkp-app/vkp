@@ -5,3 +5,4 @@ resources:
   - prometheus
   - ingress-nginx
   - static
+  - pki

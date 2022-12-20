@@ -16,6 +16,7 @@ func main() {
 	plugin.MustRegister(syncers.NewRBACSyncer())
 	plugin.MustRegister(syncers.NewAddonSyncer(clusterName))
 	plugin.MustRegister(syncers.NewSecretSyncer(clusterName, namespace))
+	plugin.MustRegister(syncers.NewCertificateSyncer(clusterName))
 
 	// resource sync
 	plugin.MustRegister(crdresources.NewServiceMonitorSyncer(ctx))

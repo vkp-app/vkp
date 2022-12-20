@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
@@ -21,6 +22,20 @@ var valuesTemplate string
 
 var valuesTpl = template.Must(template.New("values.yaml").Parse(valuesTemplate))
 
+func DNSIP() (string, error) {
+	data, err := os.ReadFile("/etc/resolv.conf")
+	if err != nil {
+		return "", err
+	}
+	lines := strings.Split(string(data), "\n")
+	for _, l := range lines {
+		if strings.HasPrefix(l, "nameserver ") {
+			return strings.TrimPrefix(l, "nameserver "), nil
+		}
+	}
+	return "", errors.New("unable to locate nameserver in /etc/resolv.conf")
+}
+
 func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.ClusterVersion, dexCustomCA bool, customCA, haConnectionString string) (*vclusterv1alpha1.VCluster, error) {
 	log := logging.FromContext(ctx)
 	hostname := getHostname(cluster)
@@ -30,7 +45,14 @@ func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.
 	if cluster.Spec.Storage.StorageClassName == "" {
 		cluster.Spec.Storage.StorageClassName = os.Getenv(EnvStorageClass)
 	}
-	envVars := map[string]string{}
+	dnsIP, err := DNSIP()
+	if err != nil {
+		log.Error(err, "failed to locate nameserver IP")
+		return nil, err
+	}
+	envVars := map[string]string{
+		"__VKP_DNS_IP__": dnsIP,
+	}
 	for _, kv := range os.Environ() {
 		k, v, ok := strings.Cut(kv, "=")
 		if !ok {
@@ -73,7 +95,8 @@ func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.
 			HookImage:  getEnv(EnvHookImage, "dev.local/vkp/vcluster-plugin-hooks:latest"),
 			PullPolicy: getEnv(EnvPluginPolicy, "Never"),
 		},
-		EnvVars: envVars,
+		EnvVars:           envVars,
+		PlatformNamespace: os.Getenv("KUBERNETES_NAMESPACE"),
 	}
 	log.V(3).Info("templating values.yaml file", "Template", valuesTemplate, "Overrides", valuesConfig)
 	if err := valuesTpl.Execute(values, valuesConfig); err != nil {

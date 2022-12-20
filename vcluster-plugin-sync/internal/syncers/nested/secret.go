@@ -21,3 +21,19 @@ func RootCA(namespace, ca string) *corev1.ConfigMap {
 		},
 	}
 }
+
+const (
+	NamespaceKubeSystem = "kube-system"
+	NameTrustSecret     = "vkp-identity"
+)
+
+func TrustCertificate(data map[string][]byte) *corev1.Secret {
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      NameTrustSecret,
+			Namespace: NamespaceKubeSystem,
+		},
+		Data: data,
+		Type: "kubernetes.io/tls",
+	}
+}

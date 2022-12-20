@@ -1,0 +1,23 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vkp-root-ca
+spec:
+  isCA: true
+  commonName: VKP Root Certificate Authority
+  secretName: vkp-root-ca
+  duration: 8760h0m0s
+  renewBefore: 2190h0m0s
+  privateKey:
+    algorithm: ECDSA
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io

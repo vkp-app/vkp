@@ -26,6 +26,8 @@ spec:
             value: iss-kube
           - name: PAAS_IDP_URL
             value: https://dex.192-168-49-2.nip.io
+          - name: __VKP_PLATFORM_URL__
+            value: 192-168-49-2.nip.io
           - name: PAAS_IDP_CLIENT_ID
             value: glass
           - name: RELATED_IMAGE_VCLUSTER_SYNCER
@@ -34,6 +36,10 @@ spec:
             value: harbor.dcas.dev/docker.io/coredns/coredns:1.8.7
           - name: CLUSTER_POSTGRES_RESOURCE_NAME
             value: vkp
+          - name: CLUSTER_ROOT_CA_ISSUER_NAME
+            value: vkp-identity
+          - name: CLUSTER_ROOT_CA_ISSUER_KIND
+            value: ClusterIssuer
           - name: TENANT_CUSTOM_CA_FILE
             value: /var/run/secrets/paas.dcas.dev/pki/ca.crt
           - name: KUBERNETES_NAMESPACE

@@ -1,6 +1,7 @@
 package syncers
 
 import (
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/loft-sh/vcluster-sdk/plugin"
 	idpv1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
@@ -21,4 +22,7 @@ func init() {
 
 	_ = apiregv1.AddToScheme(clientgoscheme.Scheme)
 	_ = apiregv1.AddToScheme(plugin.Scheme)
+
+	_ = certv1.AddToScheme(clientgoscheme.Scheme)
+	_ = certv1.AddToScheme(plugin.Scheme)
 }

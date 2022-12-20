@@ -1,0 +1,27 @@
+apiVersion: skaffold/v3
+kind: Config
+metadata:
+  name: metrics-proxy
+build:
+  tagPolicy:
+    sha256: {}
+  artifacts:
+    - image: dev.local/vkp/metrics-proxy
+      ko:
+        fromImage: harbor.dcas.dev/gcr.io/distroless/static:nonroot
+        main: ./cmd/metrics/
+        dependencies:
+          paths:
+            - cmd/
+            - internal/
+            - go.mod
+            - go.sum
+  local:
+    push: false
+manifests:
+  kustomize:
+    paths:
+      - k8s/
+deploy:
+  kubectl: {}
+  kubeContext: minikube

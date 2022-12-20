@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  VERSION: "0.3.9"
+  VERSION: "0.4.0"
   CNB_TAGS: "$VERSION"
   KO_TAGS: $VERSION
   KANIKO_TAGS: $VERSION
@@ -22,6 +22,18 @@ build apiserver:
       when: never
     - changes:
         - apiserver/**/*
+        - .gitlab-ci.yml
+        - .gitlab/ci/ko.gitlab-ci.yml
+
+build metrics-proxy:
+  extends: .build-ko
+  variables:
+    PROJECT_PATH: metrics-proxy
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - changes:
+        - metrics-proxy/**/*
         - .gitlab-ci.yml
         - .gitlab/ci/ko.gitlab-ci.yml
 
@@ -172,6 +184,8 @@ release:
   dependencies: []
   needs:
     - job: build apiserver
+      optional: true
+    - job: build metrics-proxy
       optional: true
     - job: build plugin-hooks
       optional: true

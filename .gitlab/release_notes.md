@@ -4,6 +4,8 @@
 
 `ghcr.io/vkp-app/vkp/apiserver:VERSION`
 
+`ghcr.io/vkp-app/vkp/metrics-proxy:VERSION`
+
 `ghcr.io/vkp-app/vkp/web:VERSION`
 
 `ghcr.io/vpk-app/vkp/dex:VERSION`

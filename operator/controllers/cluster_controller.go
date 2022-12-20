@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	pgov1beta1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	idpv1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1"
@@ -56,6 +57,9 @@ type ClusterReconciler struct {
 //+kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=vclusters,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=postgres-operator.crunchydata.com,resources=postgresclusters,verbs=get;list;watch;create;update;patch
+//+kubebuilder:rbac:groups=cert-manager.io,resources=certificates,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=cert-manager.io,resources=issuers,verbs=get;list;watch
+//+kubebuilder:rbac:groups=cert-manager.io,resources=clusterissuers,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -118,6 +122,9 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileVCluster(ctx, cr, conn); err != nil {
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileCertificate(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileCluster(ctx, cr); err != nil {
@@ -243,6 +250,33 @@ func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *v1alpha1.C
 			return err
 		}
 		return r.SafeUpdate(ctx, found, capiCluster)
+	}
+	return nil
+}
+
+func (r *ClusterReconciler) reconcileCertificate(ctx context.Context, cr *v1alpha1.Cluster) error {
+	log := logging.FromContext(ctx)
+	log.Info("reconciling Certificate")
+
+	cert := cluster.Certificate(cr, r.Options.RootCAIssuerName, r.Options.RootCAIssuerKind)
+
+	found := &certv1.Certificate{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: cert.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			_ = ctrl.SetControllerReference(cr, cert, r.Scheme)
+			if err := r.Create(ctx, cert); err != nil {
+				log.Error(err, "failed to create Certificate")
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	// reconcile by forcibly overwriting
+	// any changes
+	if !reflect.DeepEqual(cert.Spec, found.Spec) {
+		_ = ctrl.SetControllerReference(cr, cert, r.Scheme)
+		return r.SafeUpdate(ctx, found, cert)
 	}
 	return nil
 }
@@ -479,5 +513,6 @@ func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&netv1.Ingress{}).
 		Owns(&corev1.Secret{}).
 		Owns(&idpv1.OAuthClient{}).
+		Owns(&certv1.Certificate{}).
 		Complete(r)
 }

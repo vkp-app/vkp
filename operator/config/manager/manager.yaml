@@ -44,6 +44,11 @@ spec:
         env:
           - name: RELATED_IMAGE_VCLUSTER_SYNCER
             value: docker.io/loftsh/vcluster:0.13.0
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

@@ -1,0 +1,8 @@
+namespace: vkp-system
+resources:
+  - certificate.yaml
+  - deployment.yaml
+  - service.yaml
+images:
+  - name: vkp/metrics-proxy
+    newName: dev.local/vkp/metrics-proxy

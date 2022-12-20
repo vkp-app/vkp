@@ -139,6 +139,14 @@ plugin:
             fieldPath: metadata.namespace
       - name: VCLUSTER_CLUSTER_NAME
         value: "{{ .Name }}"
+      - name: __VKP_CLUSTER_NAME__
+        value: "{{ .Name }}"
+      - name: __VKP_CLUSTER_TENANT__
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+      - name: __VKP_PLATFORM_NAMESPACE__
+        value: "{{ .PlatformNamespace }}"
       - name: __VKP_CLUSTER_URL__
         value: "{{ .Ingress.Host }}"
       - name: __VKP_INGRESS_CLASS__
@@ -194,3 +202,6 @@ plugin:
           - apiGroups: ["monitoring.coreos.com"]
             resources: ["servicemonitors"]
             verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+          - apiGroups: ["cert-manager.io"]
+            resources: ["certificates"]
+            verbs: ["get", "list", "watch"]
