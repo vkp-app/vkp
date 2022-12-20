@@ -93,6 +93,21 @@ oauthProxy:
 #  resources: {}
 #  containerSecurityContext: {}
 
+metrics_proxy:
+  image:
+    # -- Metrics Proxy image registry
+    registry: ghcr.io
+    # -- Metrics Proxy image repository
+    repository: vkp-app/vkp/metrics-proxy
+    # -- Metrics Proxy image tag
+    tag: ""
+  # -- Metrics Proxy image pull policy
+  imagePullPolicy: IfNotPresent
+#  extraEnv: []
+#  resources: {}
+#  podSecurityContext: {}
+#  containerSecurityContext: {}
+
 dex:
   image:
     # -- Dex image registry

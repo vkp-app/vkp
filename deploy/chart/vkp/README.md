@@ -1,6 +1,6 @@
 # vkp
 
-![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
+![Version: 0.5.1](https://img.shields.io/badge/Version-0.5.1-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
 
 ## Values
 
@@ -27,6 +27,10 @@
 | idp.connectors | list | `[{"id":"mock","name":"Mock","type":"mockCallback"}]` | Dex connectors that VKP will delegate authentication to. https://dexidp.io/docs/connectors/ |
 | idp.cookieSecret | string | `""` | Secret to use for the Oauth proxy cookies |
 | idp.existingSecret | string | `""` | Existing secret to load credentials from. Must contain `DEX_CLIENT_SECRET` and `OAUTH2_PROXY_COOKIE_SECRET` keys |
+| metrics_proxy.image.registry | string | `"ghcr.io"` | Metrics Proxy image registry |
+| metrics_proxy.image.repository | string | `"vkp-app/vkp/metrics-proxy"` | Metrics Proxy image repository |
+| metrics_proxy.image.tag | string | `""` | Metrics Proxy image tag |
+| metrics_proxy.imagePullPolicy | string | `"IfNotPresent"` | Metrics Proxy image pull policy |
 | oauthProxy.embedStaticResources | bool | `false` | Whether to use embedded static files (e.g. CSS). Required to work without an internet connection. |
 | oauthProxy.image.registry | string | `"quay.io"` | Oauth proxy image registry |
 | oauthProxy.image.repository | string | `"oauth2-proxy/oauth2-proxy"` | Oauth proxy image repository |

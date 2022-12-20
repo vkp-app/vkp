@@ -8,6 +8,11 @@ app.kubernetes.io/component: dex
 {{ include "vkp.labels" . }}
 {{- end }}
 
+{{- define "metrics-proxy.labels" }}
+app.kubernetes.io/component: metrics-proxy
+{{ include "vkp.labels" . }}
+{{- end }}
+
 {{- define "api.labels" }}
 app.kubernetes.io/component: apiserver
 {{ include "vkp.labels" . }}

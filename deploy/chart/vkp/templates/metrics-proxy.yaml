@@ -1,0 +1,126 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-proxy
+  labels:
+    {{- include "metrics-proxy.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "metrics-proxy.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "metrics-proxy.labels" . | nindent 8 }}
+    spec:
+      {{- if .Values.metrics_proxy.podSecurityContext }}
+      securityContext: {{ toYaml .Values.metrics_proxy.podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: metrics-proxy
+          {{- $data := dict "image" .Values.metrics_proxy.image "chart" $.Chart "global" $.Values.global }}
+          image: {{ include "image" $data }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - --prometheus-url={{ .Values.prometheus.url }}
+            - --tls-cert-file=/etc/ssl/certs/tls.crt
+            - --tls-key-file=/etc/ssl/certs/tls.key
+            {{- if .Values.metrics_proxy.extraArgs }}
+            {{- toYaml .Values.metrics_proxy.extraArgs | nindent 12 }}
+            {{- end }}
+          env:
+            - name: SSL_CERT_DIR
+              value: {{ include "pki.caPath" . | quote }}
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            {{- if .Values.metrics_proxy.extraEnv }}
+            {{- toYaml .Values.metrics_proxy.extraEnv | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: web
+              containerPort: 8443
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8444
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8444
+              scheme: HTTP
+            initialDelaySeconds: 15
+            timeoutSeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+{{- if .Values.metrics_proxy.containerSecurityContext }}
+          securityContext: {{ toYaml .Values.metrics_proxy.containerSecurityContext | nindent 10 }}
+{{- end }}
+{{- if .Values.metrics_proxy.resources }}
+          resources:
+{{ toYaml .Values.metrics_proxy.resources | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - name: pki
+              mountPath: /etc/ssl/certs
+              readOnly: true
+      volumes:
+        - name: pki
+          secret:
+            secretName: tls-metrics-proxy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-proxy
+  labels:
+    {{- include "metrics-proxy.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: web
+      protocol: TCP
+      port: 443
+      targetPort: web
+  selector:
+    {{- include "metrics-proxy.labels" . | nindent 4 }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tls-metrics-proxy
+spec:
+  dnsNames:
+    - metrics-proxy
+    - metrics-proxy.{{ .Release.Namespace }}
+    - metrics-proxy.{{ .Release.Namespace }}.svc.cluster.local
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: vkp-identity
+  secretName: tls-metrics-proxy
+  duration: 8760h0m0s
+  privateKey:
+    algorithm: ECDSA
+  renewBefore: 2190h0m0s
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+---
