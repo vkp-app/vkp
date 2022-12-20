@@ -1,0 +1,40 @@
+{{- if not .Values.vkp.certificates.customIssuer.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+  namespace: {{ .Values.vkp.certificates.certManagerNamespace }}
+spec:
+  selfSigned: {}
+{{- end }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vkp-root-ca
+  namespace: {{ .Values.vkp.certificates.certManagerNamespace }}
+spec:
+  isCA: true
+  commonName: VKP Root Certificate Authority
+  secretName: vkp-root-ca
+  duration: 87660h0m0s
+  renewBefore: 2190h0m0s
+  privateKey:
+    algorithm: ECDSA
+  issuerRef:
+    {{ if .Values.vkp.certificates.customIssuer.enabled }}
+    name: {{ .Values.vkp.certificates.customIssuer.name }}
+    kind: {{ .Values.vkp.certificates.customIssuer.kind | default "Issuer" }}
+    {{- else }}
+    name: selfsigned-issuer
+    kind: Issuer
+    {{- end }}
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: vkp-identity
+spec:
+  ca:
+    secretName: vkp-root-ca
