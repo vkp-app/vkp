@@ -20,7 +20,7 @@ stringData:
     - id: vkp
       name: VKP
       redirectURIs:
-      - https://{{ include "dex.host" . }}/oauth2/callback
+      - https://{{ include "console.host" . }}/oauth2/callback
       secretEnv: CLIENT_SECRET_VKP
     storage:
       config:
