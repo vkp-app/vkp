@@ -22,9 +22,10 @@ const (
 	EnvSyncImage     = "RELATED_IMAGE_PLUGIN_SYNC"
 	EnvHookImage     = "RELATED_IMAGE_PLUGIN_HOOKS"
 
-	EnvAddonPodInfoImage       = "RELATED_IMAGE_ADDON_PODINFO"
-	EnvAddonDashboardKubeImage = "RELATED_IMAGE_ADDON_DASHBOARD_KUBE"
-	EnvAddonDashboardOKDImage  = "RELATED_IMAGE_ADDON_DASHBOARD_OKD"
+	EnvAddonPodInfoImage        = "RELATED_IMAGE_ADDON_PODINFO"
+	EnvAddonDashboardKubeImage  = "RELATED_IMAGE_ADDON_DASHBOARD_KUBE"
+	EnvAddonDashboardOKDImage   = "RELATED_IMAGE_ADDON_DASHBOARD_OKD"
+	EnvAddonMetricsAdapterImage = "RELATED_IMAGE_ADDON_METRICS_ADAPTER"
 
 	EnvPluginPolicy = "PASS_PLUGIN_PULL_POLICY"
 

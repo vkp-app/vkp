@@ -84,7 +84,7 @@ func Addons(tr *v1alpha1.Tenant) []v1alpha1.ClusterAddon {
 				Resources: []v1alpha1.RemoteRef{
 					{
 						OCI: v1alpha1.OCIRemoteRef{
-							Name: getEnv(EnvAddonPodInfoImage, "ghcr.io/vkp-app/addons/prometheus-adapter:1.3.6"),
+							Name: getEnv(EnvAddonMetricsAdapterImage, "ghcr.io/vkp-app/addons/prometheus-adapter:1.3.6"),
 						},
 					},
 				},
