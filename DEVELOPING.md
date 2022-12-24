@@ -18,13 +18,6 @@ Install resources:
 make run
 ```
 
-Install the Operator:
-
-```shell
-cd operator/
-skaffold run
-```
-
 Install the APIServer:
 
 ```shell
@@ -33,9 +26,23 @@ kubectl apply -k k8s/
 skaffold run
 ```
 
+Install the Operator:
+
+```shell
+cd operator/
+skaffold run
+```
+
 Install the Web proxy:
 
 ```shell
 cd web/
+skaffold run
+```
+
+Install the Metrics proxy:
+
+```shell
+cd metrics-proxy/
 skaffold run
 ```
