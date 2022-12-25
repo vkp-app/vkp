@@ -126,6 +126,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 				<ListItem>
 					<ListItemText
 						primary="Dashboard"
+						secondaryTypographyProps={{sx: {mr: 8}}}
 						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : <span>
 							Manage and troubleshoot applications as well as manage the cluster itself through a web-based UI (requires installing a Dashboard addon).
 						</span>}
@@ -146,6 +147,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 				<ListItem>
 					<ListItemText
 						primary="Addons"
+						secondaryTypographyProps={{sx: {mr: 8}}}
 						secondary={loading ? <Skeleton variant="text" height={20} width="40%"/> : <span>
 							Pre-packaged applications, configuration and capability provided by us, your administrators and the community.
 						</span>}

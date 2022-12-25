@@ -47,7 +47,8 @@ const AddonItem: React.FC<Props> = ({item, phase, loading, readOnly, onInstall, 
 	}
 
 	return <Grid2
-		xs={6}>
+		lg={6}
+		md={12}>
 		<Card
 			sx={{maxHeight: 250, minHeight: 250, p: 1}}>
 			<CardHeader
@@ -104,6 +105,7 @@ const AddonItem: React.FC<Props> = ({item, phase, loading, readOnly, onInstall, 
 				/>}
 			</CardActions>}
 		</Card>
-	</Grid2>
+	</Grid2
+>
 }
 export default AddonItem;
