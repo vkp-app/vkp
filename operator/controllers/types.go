@@ -1,11 +1,7 @@
 package controllers
 
 const (
-	labelTenant = "paas.dcas.dev/tenant"
-	labelOwned  = "paas.dcas.dev/owned"
-
-	finalizer = "paas.dcas.dev/finalizer"
-
+	finalizer       = "paas.dcas.dev/finalizer"
 	secretKeyDbConn = "pgbouncer-uri"
 )
 

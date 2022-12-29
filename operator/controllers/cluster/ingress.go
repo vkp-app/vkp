@@ -25,14 +25,13 @@ func Ingress(cr *paasv1alpha1.Cluster) *netv1.Ingress {
 			Namespace: cr.GetNamespace(),
 			Labels:    Labels(cr),
 			Annotations: map[string]string{
-				"cert-manager.io/cluster-issuer":               getEnv(EnvIngressIssuer, ""),
+				"cert-manager.io/cluster-issuer":               GetEnv(EnvIngressIssuer, ""),
 				"nginx.ingress.kubernetes.io/backend-protocol": "HTTPS",
-				"nginx.ingress.kubernetes.io/ssl-passthrough":  "true",
 				"nginx.ingress.kubernetes.io/ssl-redirect":     "true",
 			},
 		},
 		Spec: netv1.IngressSpec{
-			IngressClassName: pointer.String(getEnv(EnvIngressClass, "nginx")),
+			IngressClassName: pointer.String(GetEnv(EnvIngressClass, "nginx")),
 			Rules: []netv1.IngressRule{
 				{
 					Host: hostname,

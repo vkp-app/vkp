@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
-	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/tenant"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -88,7 +87,7 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if tr.Status.Phase == "" {
 		tr.Status.Phase = v1alpha1.PhasePendingApproval
 	}
-	if err := r.List(ctx, clusters, client.MatchingLabels{labelTenant: tr.GetName()}, client.InNamespace(ns)); err != nil {
+	if err := r.List(ctx, clusters, client.MatchingLabels{tenant.LabelTenant: tr.GetName()}, client.InNamespace(ns)); err != nil {
 		if errors.IsNotFound(err); err != nil {
 			return ctrl.Result{}, nil
 		}
@@ -142,8 +141,8 @@ func (r *TenantReconciler) reconcileNamespace(ctx context.Context, tr *v1alpha1.
 		found.Labels = map[string]string{}
 	}
 	// add labels
-	if val, ok := found.Labels[labelOwned]; !ok || val != "true" {
-		found.Labels[labelOwned] = "true"
+	if val, ok := found.Labels[tenant.LabelOwned]; !ok || val != "true" {
+		found.Labels[tenant.LabelOwned] = "true"
 		if err := r.Update(ctx, found); err != nil {
 			log.Error(err, "failed to update namespace annotations")
 			return err
@@ -197,7 +196,7 @@ func (r *TenantReconciler) reconcileAddons(ctx context.Context, tr *v1alpha1.Ten
 		return nil
 	}
 
-	found := cluster.Addons(tr)
+	found := tenant.Addons(tr)
 	for _, addon := range found {
 		if err := r.reconcileAddon(ctx, &addon, tr); err != nil {
 			return err

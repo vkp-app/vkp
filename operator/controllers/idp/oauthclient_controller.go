@@ -46,6 +46,11 @@ type OAuthClientOptions struct {
 	DexGrpcAddr string
 }
 
+func DexClientId(or *idpv1.OAuthClient) string {
+	// todo verify if duplicate client_id's will cause a collision
+	return or.Spec.ClientID
+}
+
 //+kubebuilder:rbac:groups=idp.dcas.dev,resources=oauthclients,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=idp.dcas.dev,resources=oauthclients/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=idp.dcas.dev,resources=oauthclients/finalizers,verbs=update
@@ -119,8 +124,7 @@ func (r *OAuthClientReconciler) reconcileDexClient(ctx context.Context, or *idpv
 	defer conn.Close()
 	dexClient := api.NewDexClient(conn)
 	oauthClient := &api.Client{
-		// is this ID not unique enough?
-		Id:           or.Spec.ClientID,
+		Id:           DexClientId(or),
 		Name:         fmt.Sprintf("%s/%s", or.GetNamespace(), or.GetName()),
 		Secret:       string(sc.Data[or.Spec.ClientSecretRef.Key]),
 		RedirectUris: or.Spec.RedirectURIs,
@@ -167,7 +171,7 @@ func (r *OAuthClientReconciler) finalizeDexClient(ctx context.Context, or *idpv1
 	defer conn.Close()
 	dexClient := api.NewDexClient(conn)
 	_, err = dexClient.DeleteClient(ctx, &api.DeleteClientReq{
-		Id: or.Spec.ClientID,
+		Id: DexClientId(or),
 	})
 	if err != nil {
 		log.Error(err, "failed to delete Dex client")

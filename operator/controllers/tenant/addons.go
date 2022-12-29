@@ -1,12 +1,20 @@
-package cluster
+package tenant
 
 import (
 	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	imageDashboardKube = "ghcr.io/vkp-app/addons/dashboard-k8s:1.1.1"
+	imageDashboardOKD  = "ghcr.io/vkp-app/addons/dashboard-okd:1.1.1"
+	imagePodInfo       = "ghcr.io/vkp-app/addons/podinfo:1.0.1"
+	imagePromAdapter   = "ghcr.io/vkp-app/addons/prometheus-adapter:1.3.6"
+)
+
 func Addons(tr *v1alpha1.Tenant) []v1alpha1.ClusterAddon {
-	labels := TenantLabels(tr)
+	labels := Labels(tr)
 	return []v1alpha1.ClusterAddon{
 		{
 			ObjectMeta: metav1.ObjectMeta{
@@ -18,7 +26,7 @@ func Addons(tr *v1alpha1.Tenant) []v1alpha1.ClusterAddon {
 				Resources: []v1alpha1.RemoteRef{
 					{
 						OCI: v1alpha1.OCIRemoteRef{
-							Name: getEnv(EnvAddonDashboardKubeImage, "ghcr.io/vkp-app/addons/dashboard-k8s:1.1.1"),
+							Name: cluster.GetEnv(cluster.EnvAddonDashboardKubeImage, imageDashboardKube),
 						},
 					},
 				},
@@ -40,7 +48,7 @@ func Addons(tr *v1alpha1.Tenant) []v1alpha1.ClusterAddon {
 				Resources: []v1alpha1.RemoteRef{
 					{
 						OCI: v1alpha1.OCIRemoteRef{
-							Name: getEnv(EnvAddonDashboardOKDImage, "ghcr.io/vkp-app/addons/dashboard-okd:1.1.1"),
+							Name: cluster.GetEnv(cluster.EnvAddonDashboardOKDImage, imageDashboardOKD),
 						},
 					},
 				},
@@ -62,7 +70,7 @@ func Addons(tr *v1alpha1.Tenant) []v1alpha1.ClusterAddon {
 				Resources: []v1alpha1.RemoteRef{
 					{
 						OCI: v1alpha1.OCIRemoteRef{
-							Name: getEnv(EnvAddonPodInfoImage, "ghcr.io/vkp-app/addons/podinfo:1.0.1"),
+							Name: cluster.GetEnv(cluster.EnvAddonPodInfoImage, imagePodInfo),
 						},
 					},
 				},
@@ -84,7 +92,7 @@ func Addons(tr *v1alpha1.Tenant) []v1alpha1.ClusterAddon {
 				Resources: []v1alpha1.RemoteRef{
 					{
 						OCI: v1alpha1.OCIRemoteRef{
-							Name: getEnv(EnvAddonMetricsAdapterImage, "ghcr.io/vkp-app/addons/prometheus-adapter:1.3.6"),
+							Name: cluster.GetEnv(cluster.EnvAddonMetricsAdapterImage, imagePromAdapter),
 						},
 					},
 				},

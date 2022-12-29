@@ -8,6 +8,7 @@ import (
 	"fmt"
 	vclusterv1alpha1 "github.com/loft-sh/cluster-api-provider-vcluster/api/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"os"
@@ -21,8 +22,34 @@ import (
 var valuesTemplate string
 
 var valuesTpl = template.Must(template.New("values.yaml").Parse(valuesTemplate))
+var nameserverIP string
 
+const (
+	imageCoreDNS     = "coredns/coredns:1.8.7"
+	imagePluginSync  = "dev.local/vkp/vcluster-plugin-sync:latest"
+	imagePluginHooks = "dev.local/vkp/vcluster-plugin-hooks:latest"
+
+	tplNameserver = "__VKP_DNS_IP__"
+	tplPrefix     = "__VKP_"
+	// Deprecated
+	tplPrefixLegacy = "__GLASS_"
+
+	chartName    = "vcluster"
+	chartRepo    = "https://charts.loft.sh"
+	chartVersion = "0.13.0"
+)
+
+// DNSIP fetches the IP address of the configured
+// DNS name server. It does this by reading the contents
+// of the /etc/resolv.conf file.
+//
+// Since the IP will never change in the lifetime of the container
+// it is cached in a global variable: nameserverIP
 func DNSIP() (string, error) {
+	// incredibly basic cache mechanism.
+	if nameserverIP != "" {
+		return nameserverIP, nil
+	}
 	data, err := os.ReadFile("/etc/resolv.conf")
 	if err != nil {
 		return "", err
@@ -30,7 +57,10 @@ func DNSIP() (string, error) {
 	lines := strings.Split(string(data), "\n")
 	for _, l := range lines {
 		if strings.HasPrefix(l, "nameserver ") {
-			return strings.TrimPrefix(l, "nameserver "), nil
+			ns := strings.TrimPrefix(l, "nameserver ")
+			// might need a mutex?
+			nameserverIP = ns
+			return ns, nil
 		}
 	}
 	return "", errors.New("unable to locate nameserver in /etc/resolv.conf")
@@ -51,14 +81,14 @@ func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.
 		return nil, err
 	}
 	envVars := map[string]string{
-		"__VKP_DNS_IP__": dnsIP,
+		tplNameserver: dnsIP,
 	}
 	for _, kv := range os.Environ() {
 		k, v, ok := strings.Cut(kv, "=")
 		if !ok {
 			continue
 		}
-		if strings.HasPrefix(k, "__VKP_") || strings.HasPrefix(kv, "__GLASS_") {
+		if strings.HasPrefix(k, tplPrefix) || strings.HasPrefix(kv, tplPrefixLegacy) {
 			log.V(5).Info("found environment variable to pass down to clusters", "key", k)
 			envVars[k] = v
 		}
@@ -71,11 +101,11 @@ func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.
 		Ingress: ValuesIngress{
 			Host:          strings.TrimPrefix(hostname, "api."),
 			TLSSecretName: IngressSecretName(cluster.GetName()),
-			ClassName:     getEnv(EnvIngressClass, "nginx"),
-			Issuer:        getEnv(EnvIngressIssuer, ""),
+			ClassName:     GetEnv(EnvIngressClass, "nginx"),
+			Issuer:        GetEnv(EnvIngressIssuer, ""),
 		},
 		IDP: ValuesIDP{
-			URL:        getEnv(EnvIDPURL, ""),
+			URL:        GetEnv(EnvIDPURL, ""),
 			SecretName: DexSecretName(cluster.GetName()),
 			CustomCA:   dexCustomCA,
 		},
@@ -85,15 +115,15 @@ func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.
 			Connection:   fmt.Sprintf("%s?sslmode=require", strings.ReplaceAll(haConnectionString, "postgresql://", "postgres://")),
 			ReplicaCount: 2,
 		},
-		OpenShift:     getEnv(EnvIsOpenShift, "false") == "true",
+		OpenShift:     GetEnv(EnvIsOpenShift, "false") == "true",
 		Image:         version.Spec.Image.String(),
 		VclusterImage: os.Getenv(EnvVclusterImage),
-		CoreDNSImage:  getEnv(EnvCoreDNSImage, "coredns/coredns:1.8.7"),
+		CoreDNSImage:  GetEnv(EnvCoreDNSImage, imageCoreDNS),
 		CustomCA:      customCA,
 		Plugins: ValuesPlugins{
-			SyncImage:  getEnv(EnvSyncImage, "dev.local/vkp/vcluster-plugin-sync:latest"),
-			HookImage:  getEnv(EnvHookImage, "dev.local/vkp/vcluster-plugin-hooks:latest"),
-			PullPolicy: getEnv(EnvPluginPolicy, "Never"),
+			SyncImage:  GetEnv(EnvSyncImage, imagePluginSync),
+			HookImage:  GetEnv(EnvHookImage, imagePluginHooks),
+			PullPolicy: GetEnv(EnvPluginPolicy, string(corev1.PullNever)),
 		},
 		EnvVars:           envVars,
 		PlatformNamespace: os.Getenv("KUBERNETES_NAMESPACE"),
@@ -116,20 +146,20 @@ func VCluster(ctx context.Context, cluster *v1alpha1.Cluster, version *v1alpha1.
 			},
 			HelmRelease: &vclusterv1alpha1.VirtualClusterHelmRelease{
 				Chart: vclusterv1alpha1.VirtualClusterHelmChart{
-					Name:    getOrDefault(version.Spec.Chart.Name, getEnv(EnvChartName, "vcluster")),
-					Repo:    getOrDefault(version.Spec.Chart.Repository, getEnv(EnvChartRepo, "https://charts.loft.sh")),
-					Version: getOrDefault(version.Spec.Chart.Version, getEnv(EnvChartVersion, "0.13.0")),
+					Name:    getOrDefault(version.Spec.Chart.Name, GetEnv(EnvChartName, chartName)),
+					Repo:    getOrDefault(version.Spec.Chart.Repository, GetEnv(EnvChartRepo, chartRepo)),
+					Version: getOrDefault(version.Spec.Chart.Version, GetEnv(EnvChartVersion, chartVersion)),
 				},
 				Values: values.String(),
 			},
 			// this will be ignored since we're manually setting the image version
 			// above
-			KubernetesVersion: pointer.String(getEnv(EnvKubeVersion, "1.25")),
+			KubernetesVersion: pointer.String(GetEnv(EnvKubeVersion, "1.25")),
 		},
 	}, nil
 }
 
-func getEnv(key, defaultValue string) string {
+func GetEnv(key, defaultValue string) string {
 	val := os.Getenv(key)
 	if val == "" {
 		return defaultValue

@@ -9,7 +9,8 @@ import (
 func Namespace(tr *paasv1alpha1.Tenant) *corev1.Namespace {
 	return &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: tr.GetName(),
+			Name:   tr.GetName(),
+			Labels: Labels(tr),
 		},
 	}
 }
