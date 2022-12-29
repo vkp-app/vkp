@@ -20,6 +20,7 @@ func main() {
 
 	// resource sync
 	plugin.MustRegister(crdresources.NewServiceMonitorSyncer(ctx))
+	plugin.MustRegister(crdresources.NewOAuthClientSyncer(ctx))
 
 	// start
 	plugin.MustStart()

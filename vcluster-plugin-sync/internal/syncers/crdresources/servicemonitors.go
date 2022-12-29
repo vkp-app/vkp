@@ -63,7 +63,7 @@ func (s *ServiceMonitorSyncer) translateUpdate(po, vo *promv1.ServiceMonitor) *p
 	// check annotations and labels
 	changed, updatedAnnotations, updatedLabels := s.TranslateMetadataUpdate(vo, po)
 	if changed {
-		updated = newIfNil(updated, po)
+		updated = s.newIfNil(updated, po)
 		updated.Annotations = updatedAnnotations
 		updated.Labels = updatedLabels
 	}
@@ -71,7 +71,7 @@ func (s *ServiceMonitorSyncer) translateUpdate(po, vo *promv1.ServiceMonitor) *p
 	// check spec
 	ps := s.rewriteSpec(&vo.Spec, vo.GetNamespace())
 	if !equality.Semantic.DeepEqual(*ps, po.Spec) {
-		updated = newIfNil(updated, po)
+		updated = s.newIfNil(updated, po)
 		updated.Spec = *ps
 	}
 
@@ -93,7 +93,7 @@ func (s *ServiceMonitorSyncer) rewriteSpec(v *promv1.ServiceMonitorSpec, namespa
 	return v
 }
 
-func newIfNil(updated *promv1.ServiceMonitor, po *promv1.ServiceMonitor) *promv1.ServiceMonitor {
+func (*ServiceMonitorSyncer) newIfNil(updated *promv1.ServiceMonitor, po *promv1.ServiceMonitor) *promv1.ServiceMonitor {
 	if updated == nil {
 		return po.DeepCopy()
 	}

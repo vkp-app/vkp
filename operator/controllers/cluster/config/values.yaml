@@ -205,3 +205,6 @@ plugin:
           - apiGroups: ["cert-manager.io"]
             resources: ["certificates"]
             verbs: ["get", "list", "watch"]
+          - apiGroups: ["idp.dcas.dev"]
+            resources: ["oauthclients"]
+            verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

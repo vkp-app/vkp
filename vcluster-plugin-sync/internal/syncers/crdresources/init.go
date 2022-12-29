@@ -9,6 +9,7 @@ import (
 const KoDataPathEnv = "KO_DATA_PATH"
 const (
 	CustomResourceServiceMonitorFile = "monitoring.coreos.com_servicemonitors.yaml"
+	CustomResourceOAuthClientFile    = "idp.dcas.dev_oauthclients.yaml"
 )
 
 func init() {
