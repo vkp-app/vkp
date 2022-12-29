@@ -7,7 +7,7 @@ grafana:
   enabled: false
 prometheus-node-exporter:
   image:
-    repository: harbor.dcas.dev/quay.io/prometheus/node-exporter
+    registry: harbor.dcas.dev/quay.io
   prometheus:
     monitor:
       relabelings:
@@ -40,18 +40,18 @@ prometheusOperator:
       podAnnotations:
         linkerd.io/inject: disabled
       image:
-        repository: harbor.dcas.dev/k8s.gcr.io/ingress-nginx/kube-webhook-certgen
+        registry: harbor.dcas.dev/quay.io
   image:
-    repository: harbor.dcas.dev/quay.io/prometheus-operator/prometheus-operator
+    registry: harbor.dcas.dev/quay.io
   prometheusConfigReloader:
     image:
-      repository: harbor.dcas.dev/quay.io/prometheus-operator/prometheus-config-reloader
+      registry: harbor.dcas.dev/quay.io
   thanosImage:
-    repository: harbor.dcas.dev/quay.io/thanos/thanos
+    registry: harbor.dcas.dev/quay.io
 alertmanager:
   alertmanagerSpec:
     image:
-      repository: harbor.dcas.dev/quay.io/prometheus/alertmanager
+      registry: harbor.dcas.dev/quay.io
 prometheus:
   ingress:
     enabled: true
@@ -67,7 +67,7 @@ prometheus:
           - prometheus.192-168-49-2.nip.io
   prometheusSpec:
     image:
-      repository: harbor.dcas.dev/quay.io/prometheus/prometheus
+      registry: harbor.dcas.dev/quay.io
     ruleSelectorNilUsesHelmValues: false
     ruleSelector: {}
     serviceMonitorSelectorNilUsesHelmValues: false
@@ -84,3 +84,50 @@ prometheus:
 #          resources:
 #            requests:
 #              storage: 5Gi
+kubelet:
+  serviceMonitor:
+    resource: true
+    resourcePath: /metrics/resource
+    resourceMetricRelabelings:
+      - action: keep
+        regex: container_cpu_usage_seconds_total|container_memory_working_set_bytes|scrape_error
+        sourceLabels:
+          - __name__
+      - action: replace
+        replacement: $1
+        sourceLabels:
+          - __name__
+        targetLabel: __name__
+    cAdvisorMetricRelabelings:
+      - action: drop
+        regex: container_(network_tcp_usage_total|network_udp_usage_total|tasks_state|cpu_load_average_10s)
+        sourceLabels:
+          - __name__
+      - action: drop
+        regex: (container_spec_.*|container_file_descriptors|container_sockets|container_threads_max|container_threads|container_start_time_seconds|container_last_seen);;
+        sourceLabels:
+          - __name__
+          - pod
+          - namespace
+      - action: drop
+        regex: (container_blkio_device_usage_total);.+
+        sourceLabels:
+          - __name__
+          - container
+      - action: drop
+        regex: container_memory_failures_total
+        sourceLabels:
+          - __name__
+      - regex: container_fs_usage_bytes
+        replacement: "true"
+        sourceLabels:
+          - __name__
+        targetLabel: __tmp_keep_metric
+      - action: drop
+        regex: ;(container_fs_.*);.+
+        sourceLabels:
+          - __tmp_keep_metric
+          - __name__
+          - container
+      - action: labeldrop
+        regex: __tmp_keep_metric

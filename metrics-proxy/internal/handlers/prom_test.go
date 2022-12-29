@@ -5,6 +5,47 @@ import (
 	"testing"
 )
 
+func TestPrometheusRewrite_reversePods(t *testing.T) {
+	data := `{
+    "status": "success",
+    "data": {
+        "resultType": "vector",
+        "result": [
+            {
+                "metric": {
+                    "container": "openshift-console",
+                    "pod": "openshift-console-59fbd45645-d9wgt-x-openshift-conso-4e12073125"
+                },
+                "value": [
+                    1672300639.751,
+                    "34668544"
+                ]
+            }
+        ]
+    }
+}`
+	expected := `{
+    "status": "success",
+    "data": {
+        "resultType": "vector",
+        "result": [
+            {
+                "metric": {
+                    "container": "openshift-console",
+                    "pod": "openshift-console-59fbd45645-d9wgt"
+                },
+                "value": [
+                    1672300639.751,
+                    "34668544"
+                ]
+            }
+        ]
+    }
+}`
+	out := reversePods(data, []string{"openshift-console-59fbd45645-d9wgt"})
+	assert.EqualValues(t, expected, out)
+}
+
 func TestPrometheusRewrite_getQueryInfo(t *testing.T) {
 	var cases = []struct {
 		query     string

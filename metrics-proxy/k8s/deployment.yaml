@@ -29,7 +29,7 @@ spec:
         - name: metrics-proxy
           image: vkp/metrics-proxy
           args:
-            - --v=5
+            - --v=10
             - --port=8443
             - --prometheus-url=http://prometheus-olm-prometheus.monitoring.svc.cluster.local:9090
             - --tls-cert-file=/var/run/secrets/paas.dcas.dev/pki/tls.crt

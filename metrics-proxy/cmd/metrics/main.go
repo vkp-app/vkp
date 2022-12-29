@@ -41,6 +41,7 @@ func main() {
 		return
 	}
 	proxy := httputil.NewSingleHostReverseProxy(uri)
+	proxy.ModifyResponse = handlers.PrometheusRewriteResponse
 
 	// configure routing
 	router := mux.NewRouter()

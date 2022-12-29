@@ -11,6 +11,8 @@ import {
 	DialogTitle,
 	Typography
 } from "@mui/material";
+import Icon from "@mdi/react";
+import {mdiContentCopy} from "@mdi/js";
 
 interface Props {
 	open: boolean;
@@ -57,10 +59,23 @@ const KubeConfigDialog: React.FC<Props> = ({open, config, onClose}): JSX.Element
 					</code>
 				</Card>
 				<Box>
-					<Typography
-						color="textPrimary">
-						Setup guide
-					</Typography>
+					<Box sx={{display: "flex"}}>
+						<Typography
+							color="textPrimary">
+							Setup guide
+						</Typography>
+						<Box sx={{flexGrow: 1}}/>
+						<Button
+							onClick={() => {
+								void navigator.clipboard.writeText(data);
+							}}
+							startIcon={<Icon
+								path={mdiContentCopy}
+								size={0.7}
+							/>}>
+							Copy
+						</Button>
+					</Box>
 					<ol>
 						<li>Create the <code>$HOME/.kube/config</code> file containing the above data.</li>
 						<li>Run a command (e.g. <code>kubectl get pods</code>) to trigger the login.</li>
