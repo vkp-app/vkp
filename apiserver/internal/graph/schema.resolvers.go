@@ -7,7 +7,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/robfig/cron"
 	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
 	"gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/generated"
@@ -207,6 +209,26 @@ func (r *mutationResolver) SetClusterAccessors(ctx context.Context, tenant strin
 	if err := r.Update(ctx, cr); err != nil {
 		log.Error(err, "failed to update cluster")
 		return false, err
+	}
+	return true, nil
+}
+
+// SetClusterMaintenanceWindow is the resolver for the setClusterMaintenanceWindow field.
+func (r *mutationResolver) SetClusterMaintenanceWindow(ctx context.Context, tenant string, cluster string, window string) (bool, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster)
+	log.Info("updating cluster maintenance window")
+	// fetch the AppliedClusterVersion
+	acv := &paasv1alpha1.AppliedClusterVersion{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: cluster}, acv); err != nil {
+		log.Error(err, "failed to retrieve AppliedClusterVersion")
+		return false, fmt.Errorf("failed to retrieve cluster version information: %w", err)
+	}
+
+	// update the resource
+	acv.Spec.MaintenanceWindow = window
+	if err := r.Update(ctx, acv); err != nil {
+		log.Error(err, "failed to update AppliedClusterVersion")
+		return false, fmt.Errorf("failed to update maintenance window: %w", err)
 	}
 	return true, nil
 }
@@ -429,6 +451,27 @@ func (r *queryResolver) ClusterInstalledAddons(ctx context.Context, tenant strin
 		})
 	}
 	return names, nil
+}
+
+// ClusterMaintenanceWindow is the resolver for the clusterMaintenanceWindow field.
+func (r *queryResolver) ClusterMaintenanceWindow(ctx context.Context, tenant string, cluster string) (*model.MaintenanceWindow, error) {
+	log := logr.FromContextOrDiscard(ctx).WithValues("tenant", tenant, "cluster", cluster)
+	log.Info("updating cluster maintenance window")
+	// fetch the AppliedClusterVersion
+	acv := &paasv1alpha1.AppliedClusterVersion{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: tenant, Name: cluster}, acv); err != nil {
+		log.Error(err, "failed to retrieve AppliedClusterVersion")
+		return nil, fmt.Errorf("failed to retrieve cluster version information: %w", err)
+	}
+	schedule, err := cron.ParseStandard(acv.Spec.MaintenanceWindow)
+	if err != nil {
+		log.Error(err, "failed to parse maintenance window schedule - this should never happen")
+		return nil, err
+	}
+	return &model.MaintenanceWindow{
+		Schedule: acv.Spec.MaintenanceWindow,
+		Next:     schedule.Next(time.Now()).Unix(),
+	}, nil
 }
 
 // CurrentUser is the resolver for the currentUser field.

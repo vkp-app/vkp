@@ -42,7 +42,8 @@ omit_slice_element_pointers: true
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1"
+  - "gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
+  - "gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1"
 #  - "gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model"
 
 # This section declares type mapping between the GraphQL and go type systems

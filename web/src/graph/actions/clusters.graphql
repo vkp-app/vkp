@@ -30,6 +30,10 @@ query cluster($tenant: ID!, $cluster: ID!) {
         phase
         name
     }
+    clusterMaintenanceWindow(tenant: $tenant, cluster: $cluster) {
+        schedule
+        next
+    }
 }
 
 mutation createCluster($tenant: ID!, $input: NewCluster!) {

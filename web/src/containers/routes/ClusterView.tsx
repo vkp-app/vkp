@@ -18,7 +18,13 @@ import {makeStyles} from "tss-react/mui";
 import Icon from "@mdi/react";
 import {mdiOpenInNew} from "@mdi/js";
 import InlineError from "../alert/InlineError";
-import {Cluster, useCanEditClusterQuery, useClusterQuery, useKubeConfigLazyQuery} from "../../generated/graphql";
+import {
+	Cluster,
+	MaintenanceWindow,
+	useCanEditClusterQuery,
+	useClusterQuery,
+	useKubeConfigLazyQuery
+} from "../../generated/graphql";
 import StandardLayout from "../layout/StandardLayout";
 import BackButton from "../layout/BackButton";
 import ClusterMetadataView from "./cluster/ClusterMetadataView";
@@ -176,6 +182,7 @@ const ClusterView: React.FC = (): JSX.Element => {
 			</ListSubheader>
 			<ClusterSettingsView
 				cluster={data?.cluster as Cluster | null}
+				maintenanceWindow={data?.clusterMaintenanceWindow as MaintenanceWindow | null}
 				readOnly={!canEditCluster.data?.hasClusterAccess ?? true}
 			/>
 			<ListSubheader>

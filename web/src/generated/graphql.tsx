@@ -1,5 +1,5 @@
-import * as Apollo from '@apollo/client';
-import {gql} from '@apollo/client';
+import * as Apollo from "@apollo/client";
+import {gql} from "@apollo/client";
 
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -76,6 +76,12 @@ export type ClusterStatus = {
   webURL: Scalars['String'];
 };
 
+export type MaintenanceWindow = {
+  __typename?: 'MaintenanceWindow';
+  next: Scalars['Int'];
+  schedule: Scalars['String'];
+};
+
 export type Metric = {
   __typename?: 'Metric';
   format: MetricFormat;
@@ -106,6 +112,7 @@ export type Mutation = {
   deleteCluster: Scalars['Boolean'];
   installAddon: Scalars['Boolean'];
   setClusterAccessors: Scalars['Boolean'];
+  setClusterMaintenanceWindow: Scalars['Boolean'];
   setTenantAccessors: Scalars['Boolean'];
   uninstallAddon: Scalars['Boolean'];
 };
@@ -147,6 +154,13 @@ export type MutationSetClusterAccessorsArgs = {
 };
 
 
+export type MutationSetClusterMaintenanceWindowArgs = {
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+  window: Scalars['String'];
+};
+
+
 export type MutationSetTenantAccessorsArgs = {
   accessors: Array<AccessRefInput>;
   tenant: Scalars['ID'];
@@ -176,6 +190,7 @@ export type Query = {
   cluster: Cluster;
   clusterAddons: Array<ClusterAddon>;
   clusterInstalledAddons: Array<AddonBindingStatus>;
+  clusterMaintenanceWindow: MaintenanceWindow;
   clusterMetrics: Array<Metric>;
   clustersInTenant: Array<Cluster>;
   currentUser: User;
@@ -200,6 +215,12 @@ export type QueryClusterAddonsArgs = {
 
 
 export type QueryClusterInstalledAddonsArgs = {
+  cluster: Scalars['ID'];
+  tenant: Scalars['ID'];
+};
+
+
+export type QueryClusterMaintenanceWindowArgs = {
   cluster: Scalars['ID'];
   tenant: Scalars['ID'];
 };
@@ -334,7 +355,7 @@ export type ClusterQueryVariables = Exact<{
 }>;
 
 
-export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: ReleaseTrack, status: { __typename?: 'ClusterStatus', kubeVersion: string, platformVersion: string, kubeURL: string, webURL: string }, accessors: Array<{ __typename?: 'AccessRef', user: string, group: string, readOnly: boolean }> }, clusterInstalledAddons: Array<{ __typename?: 'AddonBindingStatus', phase: AddonPhase, name: string }> };
+export type ClusterQuery = { __typename?: 'Query', cluster: { __typename?: 'Cluster', name: string, tenant: string, track: ReleaseTrack, status: { __typename?: 'ClusterStatus', kubeVersion: string, platformVersion: string, kubeURL: string, webURL: string }, accessors: Array<{ __typename?: 'AccessRef', user: string, group: string, readOnly: boolean }> }, clusterInstalledAddons: Array<{ __typename?: 'AddonBindingStatus', phase: AddonPhase, name: string }>, clusterMaintenanceWindow: { __typename?: 'MaintenanceWindow', schedule: string, next: number } };
 
 export type CreateClusterMutationVariables = Exact<{
   tenant: Scalars['ID'];
@@ -704,6 +725,10 @@ export const ClusterDocument = gql`
   clusterInstalledAddons(tenant: $tenant, cluster: $cluster) {
     phase
     name
+  }
+  clusterMaintenanceWindow(tenant: $tenant, cluster: $cluster) {
+    schedule
+    next
   }
 }
     `;

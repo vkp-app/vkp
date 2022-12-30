@@ -16,15 +16,18 @@ import {
 	Switch
 } from "@mui/material";
 import {Link, useNavigate} from "react-router-dom";
-import {Cluster, useDeleteClusterMutation} from "../../../generated/graphql";
+import {formatDistance} from "date-fns";
+import cronstrue from "cronstrue";
+import {Cluster, MaintenanceWindow, useDeleteClusterMutation} from "../../../generated/graphql";
 import InlineError from "../../alert/InlineError";
 
 interface Props {
 	cluster: Cluster | null;
+	maintenanceWindow: MaintenanceWindow | null;
 	readOnly: boolean;
 }
 
-const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element => {
+const ClusterSettingsView: React.FC<Props> = ({cluster, maintenanceWindow, readOnly}): JSX.Element => {
 	// hooks
 	const navigate = useNavigate();
 	const [deleteCluster, {loading, error}] = useDeleteClusterMutation();
@@ -52,6 +55,17 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element 
 	return <Card
 		sx={{p: 2}}>
 		<List>
+			<ListItem>
+				<ListItemText
+					primary="Maintenance automation"
+					secondary={<span>
+						Schedule: {maintenanceWindow?.schedule === "* * * * *" ? "at any time" : cronstrue.toString(maintenanceWindow?.schedule || "* * * * *", {throwExceptionOnParseError: false}).toLocaleLowerCase()}<br/>
+						{maintenanceWindow?.schedule !== "* * * * *" && <React.Fragment>
+							Next window: in {formatDistance((maintenanceWindow?.next || 0) * 1000, Date.now())}
+						</React.Fragment>}
+					</span>}
+				/>
+			</ListItem>
 			<ListItem>
 				<ListItemText
 					primary="Permissions"

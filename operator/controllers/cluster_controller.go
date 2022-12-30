@@ -324,12 +324,8 @@ func (r *ClusterReconciler) reconcileAppliedClusterVersion(ctx context.Context, 
 		}
 		return err
 	}
-	// reconcile by forcibly overwriting
-	// any changes
-	if !reflect.DeepEqual(acv.Spec, found.Spec) {
-		_ = ctrl.SetControllerReference(cr, acv, r.Scheme)
-		return r.SafeUpdate(ctx, found, acv)
-	}
+	// don't patch anything since we want it to
+	// be user-configurable
 	return nil
 }
 

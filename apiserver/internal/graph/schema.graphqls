@@ -112,6 +112,11 @@ type AccessRef {
   readOnly: Boolean!
 }
 
+type MaintenanceWindow {
+  schedule: String!
+  next: Int!
+}
+
 input AccessRefInput {
   user: String!
   group: String!
@@ -127,6 +132,7 @@ type Query {
 
   clusterAddons(tenant: ID! @hasTenantAccess(write: false)): [ClusterAddon!]! @hasRole(role: USER)
   clusterInstalledAddons(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): [AddonBindingStatus!]! @hasRole(role: USER)
+  clusterMaintenanceWindow(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): MaintenanceWindow! @hasRole(role: USER)
 
   currentUser: User! @hasRole(role: USER)
 
@@ -149,7 +155,8 @@ type Mutation {
   createTenant(tenant: String!): Tenant! @hasRole(role: USER)
   createCluster(tenant: ID!, input: NewCluster! @hasTenantAccess(write: true)): Cluster! @hasRole(role: USER)
   deleteCluster(tenant: ID!, cluster: ID! @hasTenantAccess(write: true)): Boolean! @hasRole(role: USER)
-  setClusterAccessors(tenant: ID!, cluster: ID!, accessors: [AccessRefInput!]!, @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
+  setClusterAccessors(tenant: ID!, cluster: ID!, accessors: [AccessRefInput!]! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
+  setClusterMaintenanceWindow(tenant: ID!, cluster: ID!, window: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
 
   installAddon(tenant: ID!, cluster: ID!, addon: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
   uninstallAddon(tenant: ID!, cluster: ID!, addon: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)

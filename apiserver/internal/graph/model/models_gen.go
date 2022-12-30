@@ -21,6 +21,11 @@ type AddonBindingStatus struct {
 	Phase v1alpha1.AddonPhase `json:"phase"`
 }
 
+type MaintenanceWindow struct {
+	Schedule string `json:"schedule"`
+	Next     int64  `json:"next"`
+}
+
 type Metric struct {
 	Name   string        `json:"name"`
 	Metric string        `json:"metric"`

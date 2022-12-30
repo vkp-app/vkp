@@ -14,6 +14,7 @@ require (
 	github.com/imdario/mergo v0.3.13
 	github.com/prometheus/client_golang v1.13.0
 	github.com/prometheus/common v0.37.0
+	github.com/robfig/cron v1.2.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 	github.com/vektah/gqlparser/v2 v2.5.1

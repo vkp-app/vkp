@@ -87,6 +87,11 @@ type ComplexityRoot struct {
 		WebURL          func(childComplexity int) int
 	}
 
+	MaintenanceWindow struct {
+		Next     func(childComplexity int) int
+		Schedule func(childComplexity int) int
+	}
+
 	Metric struct {
 		Format func(childComplexity int) int
 		Metric func(childComplexity int) int
@@ -100,14 +105,15 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		ApproveTenant       func(childComplexity int, tenant string) int
-		CreateCluster       func(childComplexity int, tenant string, input model.NewCluster) int
-		CreateTenant        func(childComplexity int, tenant string) int
-		DeleteCluster       func(childComplexity int, tenant string, cluster string) int
-		InstallAddon        func(childComplexity int, tenant string, cluster string, addon string) int
-		SetClusterAccessors func(childComplexity int, tenant string, cluster string, accessors []model.AccessRefInput) int
-		SetTenantAccessors  func(childComplexity int, tenant string, accessors []model.AccessRefInput) int
-		UninstallAddon      func(childComplexity int, tenant string, cluster string, addon string) int
+		ApproveTenant               func(childComplexity int, tenant string) int
+		CreateCluster               func(childComplexity int, tenant string, input model.NewCluster) int
+		CreateTenant                func(childComplexity int, tenant string) int
+		DeleteCluster               func(childComplexity int, tenant string, cluster string) int
+		InstallAddon                func(childComplexity int, tenant string, cluster string, addon string) int
+		SetClusterAccessors         func(childComplexity int, tenant string, cluster string, accessors []model.AccessRefInput) int
+		SetClusterMaintenanceWindow func(childComplexity int, tenant string, cluster string, window string) int
+		SetTenantAccessors          func(childComplexity int, tenant string, accessors []model.AccessRefInput) int
+		UninstallAddon              func(childComplexity int, tenant string, cluster string, addon string) int
 	}
 
 	NamespacedName struct {
@@ -116,18 +122,19 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Cluster                func(childComplexity int, tenant string, cluster string) int
-		ClusterAddons          func(childComplexity int, tenant string) int
-		ClusterInstalledAddons func(childComplexity int, tenant string, cluster string) int
-		ClusterMetrics         func(childComplexity int, tenant string, cluster string) int
-		ClustersInTenant       func(childComplexity int, tenant string) int
-		CurrentUser            func(childComplexity int) int
-		HasClusterAccess       func(childComplexity int, tenant string, cluster string, write bool) int
-		HasRole                func(childComplexity int, role model.Role) int
-		HasTenantAccess        func(childComplexity int, tenant string, write bool) int
-		RenderKubeconfig       func(childComplexity int, tenant string, cluster string) int
-		Tenant                 func(childComplexity int, tenant string) int
-		Tenants                func(childComplexity int) int
+		Cluster                  func(childComplexity int, tenant string, cluster string) int
+		ClusterAddons            func(childComplexity int, tenant string) int
+		ClusterInstalledAddons   func(childComplexity int, tenant string, cluster string) int
+		ClusterMaintenanceWindow func(childComplexity int, tenant string, cluster string) int
+		ClusterMetrics           func(childComplexity int, tenant string, cluster string) int
+		ClustersInTenant         func(childComplexity int, tenant string) int
+		CurrentUser              func(childComplexity int) int
+		HasClusterAccess         func(childComplexity int, tenant string, cluster string, write bool) int
+		HasRole                  func(childComplexity int, role model.Role) int
+		HasTenantAccess          func(childComplexity int, tenant string, write bool) int
+		RenderKubeconfig         func(childComplexity int, tenant string, cluster string) int
+		Tenant                   func(childComplexity int, tenant string) int
+		Tenants                  func(childComplexity int) int
 	}
 
 	Tenant struct {
@@ -167,6 +174,7 @@ type MutationResolver interface {
 	CreateCluster(ctx context.Context, tenant string, input model.NewCluster) (*v1alpha1.Cluster, error)
 	DeleteCluster(ctx context.Context, tenant string, cluster string) (bool, error)
 	SetClusterAccessors(ctx context.Context, tenant string, cluster string, accessors []model.AccessRefInput) (bool, error)
+	SetClusterMaintenanceWindow(ctx context.Context, tenant string, cluster string, window string) (bool, error)
 	InstallAddon(ctx context.Context, tenant string, cluster string, addon string) (bool, error)
 	UninstallAddon(ctx context.Context, tenant string, cluster string, addon string) (bool, error)
 	ApproveTenant(ctx context.Context, tenant string) (bool, error)
@@ -179,6 +187,7 @@ type QueryResolver interface {
 	Cluster(ctx context.Context, tenant string, cluster string) (*v1alpha1.Cluster, error)
 	ClusterAddons(ctx context.Context, tenant string) ([]v1alpha1.ClusterAddon, error)
 	ClusterInstalledAddons(ctx context.Context, tenant string, cluster string) ([]model.AddonBindingStatus, error)
+	ClusterMaintenanceWindow(ctx context.Context, tenant string, cluster string) (*model.MaintenanceWindow, error)
 	CurrentUser(ctx context.Context) (*model.User, error)
 	ClusterMetrics(ctx context.Context, tenant string, cluster string) ([]model.Metric, error)
 	RenderKubeconfig(ctx context.Context, tenant string, cluster string) (string, error)
@@ -355,6 +364,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ClusterStatus.WebURL(childComplexity), true
 
+	case "MaintenanceWindow.next":
+		if e.complexity.MaintenanceWindow.Next == nil {
+			break
+		}
+
+		return e.complexity.MaintenanceWindow.Next(childComplexity), true
+
+	case "MaintenanceWindow.schedule":
+		if e.complexity.MaintenanceWindow.Schedule == nil {
+			break
+		}
+
+		return e.complexity.MaintenanceWindow.Schedule(childComplexity), true
+
 	case "Metric.format":
 		if e.complexity.Metric.Format == nil {
 			break
@@ -469,6 +492,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetClusterAccessors(childComplexity, args["tenant"].(string), args["cluster"].(string), args["accessors"].([]model.AccessRefInput)), true
 
+	case "Mutation.setClusterMaintenanceWindow":
+		if e.complexity.Mutation.SetClusterMaintenanceWindow == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setClusterMaintenanceWindow_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetClusterMaintenanceWindow(childComplexity, args["tenant"].(string), args["cluster"].(string), args["window"].(string)), true
+
 	case "Mutation.setTenantAccessors":
 		if e.complexity.Mutation.SetTenantAccessors == nil {
 			break
@@ -542,6 +577,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ClusterInstalledAddons(childComplexity, args["tenant"].(string), args["cluster"].(string)), true
+
+	case "Query.clusterMaintenanceWindow":
+		if e.complexity.Query.ClusterMaintenanceWindow == nil {
+			break
+		}
+
+		args, err := ec.field_Query_clusterMaintenanceWindow_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ClusterMaintenanceWindow(childComplexity, args["tenant"].(string), args["cluster"].(string)), true
 
 	case "Query.clusterMetrics":
 		if e.complexity.Query.ClusterMetrics == nil {
@@ -881,6 +928,11 @@ type AccessRef {
   readOnly: Boolean!
 }
 
+type MaintenanceWindow {
+  schedule: String!
+  next: Int!
+}
+
 input AccessRefInput {
   user: String!
   group: String!
@@ -896,6 +948,7 @@ type Query {
 
   clusterAddons(tenant: ID! @hasTenantAccess(write: false)): [ClusterAddon!]! @hasRole(role: USER)
   clusterInstalledAddons(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): [AddonBindingStatus!]! @hasRole(role: USER)
+  clusterMaintenanceWindow(tenant: ID!, cluster: ID! @hasClusterAccess(write: false)): MaintenanceWindow! @hasRole(role: USER)
 
   currentUser: User! @hasRole(role: USER)
 
@@ -918,7 +971,8 @@ type Mutation {
   createTenant(tenant: String!): Tenant! @hasRole(role: USER)
   createCluster(tenant: ID!, input: NewCluster! @hasTenantAccess(write: true)): Cluster! @hasRole(role: USER)
   deleteCluster(tenant: ID!, cluster: ID! @hasTenantAccess(write: true)): Boolean! @hasRole(role: USER)
-  setClusterAccessors(tenant: ID!, cluster: ID!, accessors: [AccessRefInput!]!, @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
+  setClusterAccessors(tenant: ID!, cluster: ID!, accessors: [AccessRefInput!]! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
+  setClusterMaintenanceWindow(tenant: ID!, cluster: ID!, window: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
 
   installAddon(tenant: ID!, cluster: ID!, addon: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
   uninstallAddon(tenant: ID!, cluster: ID!, addon: String! @hasClusterAccess(write: true)): Boolean! @hasRole(role: USER)
@@ -1197,6 +1251,56 @@ func (ec *executionContext) field_Mutation_setClusterAccessors_args(ctx context.
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_setClusterMaintenanceWindow_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenant"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["cluster"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cluster"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["window"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("window"))
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, true)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasClusterAccess == nil {
+				return nil, errors.New("directive hasClusterAccess is not implemented")
+			}
+			return ec.directives.HasClusterAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg2 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+		}
+	}
+	args["window"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_setTenantAccessors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1340,6 +1444,47 @@ func (ec *executionContext) field_Query_clusterAddons_args(ctx context.Context, 
 }
 
 func (ec *executionContext) field_Query_clusterInstalledAddons_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["tenant"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenant"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["cluster"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cluster"))
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			write, err := ec.unmarshalNBoolean2bool(ctx, false)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasClusterAccess == nil {
+				return nil, errors.New("directive hasClusterAccess is not implemented")
+			}
+			return ec.directives.HasClusterAccess(ctx, rawArgs, directive0, write)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg1 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+		}
+	}
+	args["cluster"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_clusterMaintenanceWindow_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1881,7 +2026,7 @@ func (ec *executionContext) _AddonBindingStatus_phase(ctx context.Context, field
 	}
 	res := resTmp.(v1alpha1.AddonPhase)
 	fc.Result = res
-	return ec.marshalNAddonPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonPhase(ctx, field.Selections, res)
+	return ec.marshalNAddonPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAddonPhase(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AddonBindingStatus_phase(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2013,7 +2158,7 @@ func (ec *executionContext) _Cluster_track(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(v1alpha1.ReleaseTrack)
 	fc.Result = res
-	return ec.marshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐReleaseTrack(ctx, field.Selections, res)
+	return ec.marshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐReleaseTrack(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Cluster_track(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2057,7 +2202,7 @@ func (ec *executionContext) _Cluster_status(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(v1alpha1.ClusterStatus)
 	fc.Result = res
-	return ec.marshalNClusterStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterStatus(ctx, field.Selections, res)
+	return ec.marshalNClusterStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐClusterStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Cluster_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2111,7 +2256,7 @@ func (ec *executionContext) _Cluster_accessors(ctx context.Context, field graphq
 	}
 	res := resTmp.([]v1alpha1.AccessRef)
 	fc.Result = res
-	return ec.marshalNAccessRef2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAccessRefᚄ(ctx, field.Selections, res)
+	return ec.marshalNAccessRef2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAccessRefᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Cluster_accessors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2383,7 +2528,7 @@ func (ec *executionContext) _ClusterAddon_source(ctx context.Context, field grap
 	}
 	res := resTmp.(v1alpha1.AddonSource)
 	fc.Result = res
-	return ec.marshalNAddonSource2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonSource(ctx, field.Selections, res)
+	return ec.marshalNAddonSource2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAddonSource(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ClusterAddon_source(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2614,6 +2759,94 @@ func (ec *executionContext) fieldContext_ClusterStatus_webURL(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaintenanceWindow_schedule(ctx context.Context, field graphql.CollectedField, obj *model.MaintenanceWindow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MaintenanceWindow_schedule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Schedule, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MaintenanceWindow_schedule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaintenanceWindow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MaintenanceWindow_next(ctx context.Context, field graphql.CollectedField, obj *model.MaintenanceWindow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MaintenanceWindow_next(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Next, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt2int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MaintenanceWindow_next(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MaintenanceWindow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2927,7 +3160,7 @@ func (ec *executionContext) _Mutation_createTenant(ctx context.Context, field gr
 		if data, ok := tmp.(*v1alpha1.Tenant); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Tenant`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1.Tenant`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2941,7 +3174,7 @@ func (ec *executionContext) _Mutation_createTenant(ctx context.Context, field gr
 	}
 	res := resTmp.(*v1alpha1.Tenant)
 	fc.Result = res
-	return ec.marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenant(ctx, field.Selections, res)
+	return ec.marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createTenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3018,7 +3251,7 @@ func (ec *executionContext) _Mutation_createCluster(ctx context.Context, field g
 		if data, ok := tmp.(*v1alpha1.Cluster); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Cluster`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1.Cluster`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3032,7 +3265,7 @@ func (ec *executionContext) _Mutation_createCluster(ctx context.Context, field g
 	}
 	res := resTmp.(*v1alpha1.Cluster)
 	fc.Result = res
-	return ec.marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐCluster(ctx, field.Selections, res)
+	return ec.marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐCluster(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createCluster(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3223,6 +3456,85 @@ func (ec *executionContext) fieldContext_Mutation_setClusterAccessors(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_setClusterAccessors_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setClusterMaintenanceWindow(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_setClusterMaintenanceWindow(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().SetClusterMaintenanceWindow(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string), fc.Args["window"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_setClusterMaintenanceWindow(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setClusterMaintenanceWindow_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3671,7 +3983,7 @@ func (ec *executionContext) _Query_tenants(ctx context.Context, field graphql.Co
 		if data, ok := tmp.([]v1alpha1.Tenant); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Tenant`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1.Tenant`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3685,7 +3997,7 @@ func (ec *executionContext) _Query_tenants(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.([]v1alpha1.Tenant)
 	fc.Result = res
-	return ec.marshalNTenant2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantᚄ(ctx, field.Selections, res)
+	return ec.marshalNTenant2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenantᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_tenants(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3751,7 +4063,7 @@ func (ec *executionContext) _Query_tenant(ctx context.Context, field graphql.Col
 		if data, ok := tmp.(*v1alpha1.Tenant); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Tenant`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1.Tenant`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3765,7 +4077,7 @@ func (ec *executionContext) _Query_tenant(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*v1alpha1.Tenant)
 	fc.Result = res
-	return ec.marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenant(ctx, field.Selections, res)
+	return ec.marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_tenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3842,7 +4154,7 @@ func (ec *executionContext) _Query_clustersInTenant(ctx context.Context, field g
 		if data, ok := tmp.([]v1alpha1.Cluster); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Cluster`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1.Cluster`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3856,7 +4168,7 @@ func (ec *executionContext) _Query_clustersInTenant(ctx context.Context, field g
 	}
 	res := resTmp.([]v1alpha1.Cluster)
 	fc.Result = res
-	return ec.marshalNCluster2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterᚄ(ctx, field.Selections, res)
+	return ec.marshalNCluster2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐClusterᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_clustersInTenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3933,7 +4245,7 @@ func (ec *executionContext) _Query_cluster(ctx context.Context, field graphql.Co
 		if data, ok := tmp.(*v1alpha1.Cluster); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.Cluster`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1.Cluster`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3947,7 +4259,7 @@ func (ec *executionContext) _Query_cluster(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(*v1alpha1.Cluster)
 	fc.Result = res
-	return ec.marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐCluster(ctx, field.Selections, res)
+	return ec.marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐCluster(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_cluster(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4024,7 +4336,7 @@ func (ec *executionContext) _Query_clusterAddons(ctx context.Context, field grap
 		if data, ok := tmp.([]v1alpha1.ClusterAddon); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/operator/api/v1alpha1.ClusterAddon`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1.ClusterAddon`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4038,7 +4350,7 @@ func (ec *executionContext) _Query_clusterAddons(ctx context.Context, field grap
 	}
 	res := resTmp.([]v1alpha1.ClusterAddon)
 	fc.Result = res
-	return ec.marshalNClusterAddon2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterAddonᚄ(ctx, field.Selections, res)
+	return ec.marshalNClusterAddon2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐClusterAddonᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_clusterAddons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4160,6 +4472,91 @@ func (ec *executionContext) fieldContext_Query_clusterInstalledAddons(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_clusterInstalledAddons_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_clusterMaintenanceWindow(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_clusterMaintenanceWindow(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ClusterMaintenanceWindow(rctx, fc.Args["tenant"].(string), fc.Args["cluster"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.MaintenanceWindow); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *gitlab.dcas.dev/k8s/kube-glass/apiserver/internal/graph/model.MaintenanceWindow`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.MaintenanceWindow)
+	fc.Result = res
+	return ec.marshalNMaintenanceWindow2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMaintenanceWindow(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_clusterMaintenanceWindow(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "schedule":
+				return ec.fieldContext_MaintenanceWindow_schedule(ctx, field)
+			case "next":
+				return ec.fieldContext_MaintenanceWindow_next(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MaintenanceWindow", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_clusterMaintenanceWindow_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -4890,7 +5287,7 @@ func (ec *executionContext) _Tenant_observedClusters(ctx context.Context, field 
 	}
 	res := resTmp.([]v1alpha1.NamespacedName)
 	fc.Result = res
-	return ec.marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedNameᚄ(ctx, field.Selections, res)
+	return ec.marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐNamespacedNameᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tenant_observedClusters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4940,7 +5337,7 @@ func (ec *executionContext) _Tenant_status(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(v1alpha1.TenantStatus)
 	fc.Result = res
-	return ec.marshalNTenantStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantStatus(ctx, field.Selections, res)
+	return ec.marshalNTenantStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenantStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tenant_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4988,7 +5385,7 @@ func (ec *executionContext) _Tenant_accessors(ctx context.Context, field graphql
 	}
 	res := resTmp.([]v1alpha1.AccessRef)
 	fc.Result = res
-	return ec.marshalNAccessRef2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAccessRefᚄ(ctx, field.Selections, res)
+	return ec.marshalNAccessRef2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAccessRefᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tenant_accessors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5040,7 +5437,7 @@ func (ec *executionContext) _TenantStatus_phase(ctx context.Context, field graph
 	}
 	res := resTmp.(v1alpha1.TenantPhase)
 	fc.Result = res
-	return ec.marshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantPhase(ctx, field.Selections, res)
+	return ec.marshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenantPhase(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_TenantStatus_phase(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6987,7 +7384,7 @@ func (ec *executionContext) unmarshalInputNewCluster(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track"))
-			it.Track, err = ec.unmarshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐReleaseTrack(ctx, v)
+			it.Track, err = ec.unmarshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐReleaseTrack(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7382,6 +7779,41 @@ func (ec *executionContext) _ClusterStatus(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var maintenanceWindowImplementors = []string{"MaintenanceWindow"}
+
+func (ec *executionContext) _MaintenanceWindow(ctx context.Context, sel ast.SelectionSet, obj *model.MaintenanceWindow) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, maintenanceWindowImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MaintenanceWindow")
+		case "schedule":
+
+			out.Values[i] = ec._MaintenanceWindow_schedule(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "next":
+
+			out.Values[i] = ec._MaintenanceWindow_next(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var metricImplementors = []string{"Metric"}
 
 func (ec *executionContext) _Metric(ctx context.Context, sel ast.SelectionSet, obj *model.Metric) graphql.Marshaler {
@@ -7516,6 +7948,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_setClusterAccessors(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setClusterMaintenanceWindow":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setClusterMaintenanceWindow(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -7747,6 +8188,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_clusterInstalledAddons(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "clusterMaintenanceWindow":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_clusterMaintenanceWindow(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -8397,11 +8861,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAccessRef2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAccessRef(ctx context.Context, sel ast.SelectionSet, v v1alpha1.AccessRef) graphql.Marshaler {
+func (ec *executionContext) marshalNAccessRef2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAccessRef(ctx context.Context, sel ast.SelectionSet, v v1alpha1.AccessRef) graphql.Marshaler {
 	return ec._AccessRef(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAccessRef2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAccessRefᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.AccessRef) graphql.Marshaler {
+func (ec *executionContext) marshalNAccessRef2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAccessRefᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.AccessRef) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8425,7 +8889,7 @@ func (ec *executionContext) marshalNAccessRef2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkub
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAccessRef2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAccessRef(ctx, sel, v[i])
+			ret[i] = ec.marshalNAccessRef2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAccessRef(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8515,13 +8979,13 @@ func (ec *executionContext) marshalNAddonBindingStatus2ᚕgitlabᚗdcasᚗdevᚋ
 	return ret
 }
 
-func (ec *executionContext) unmarshalNAddonPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonPhase(ctx context.Context, v interface{}) (v1alpha1.AddonPhase, error) {
+func (ec *executionContext) unmarshalNAddonPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAddonPhase(ctx context.Context, v interface{}) (v1alpha1.AddonPhase, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := v1alpha1.AddonPhase(tmp)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAddonPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonPhase(ctx context.Context, sel ast.SelectionSet, v v1alpha1.AddonPhase) graphql.Marshaler {
+func (ec *executionContext) marshalNAddonPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAddonPhase(ctx context.Context, sel ast.SelectionSet, v v1alpha1.AddonPhase) graphql.Marshaler {
 	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -8531,13 +8995,13 @@ func (ec *executionContext) marshalNAddonPhase2gitlabᚗdcasᚗdevᚋk8sᚋkube�
 	return res
 }
 
-func (ec *executionContext) unmarshalNAddonSource2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonSource(ctx context.Context, v interface{}) (v1alpha1.AddonSource, error) {
+func (ec *executionContext) unmarshalNAddonSource2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAddonSource(ctx context.Context, v interface{}) (v1alpha1.AddonSource, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := v1alpha1.AddonSource(tmp)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAddonSource2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐAddonSource(ctx context.Context, sel ast.SelectionSet, v v1alpha1.AddonSource) graphql.Marshaler {
+func (ec *executionContext) marshalNAddonSource2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐAddonSource(ctx context.Context, sel ast.SelectionSet, v v1alpha1.AddonSource) graphql.Marshaler {
 	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -8562,11 +9026,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐCluster(ctx context.Context, sel ast.SelectionSet, v v1alpha1.Cluster) graphql.Marshaler {
+func (ec *executionContext) marshalNCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐCluster(ctx context.Context, sel ast.SelectionSet, v v1alpha1.Cluster) graphql.Marshaler {
 	return ec._Cluster(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCluster2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.Cluster) graphql.Marshaler {
+func (ec *executionContext) marshalNCluster2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐClusterᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.Cluster) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8590,7 +9054,7 @@ func (ec *executionContext) marshalNCluster2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkube�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐCluster(ctx, sel, v[i])
+			ret[i] = ec.marshalNCluster2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐCluster(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8610,7 +9074,7 @@ func (ec *executionContext) marshalNCluster2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkube�
 	return ret
 }
 
-func (ec *executionContext) marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐCluster(ctx context.Context, sel ast.SelectionSet, v *v1alpha1.Cluster) graphql.Marshaler {
+func (ec *executionContext) marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐCluster(ctx context.Context, sel ast.SelectionSet, v *v1alpha1.Cluster) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8620,11 +9084,11 @@ func (ec *executionContext) marshalNCluster2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkube�
 	return ec._Cluster(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNClusterAddon2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterAddon(ctx context.Context, sel ast.SelectionSet, v v1alpha1.ClusterAddon) graphql.Marshaler {
+func (ec *executionContext) marshalNClusterAddon2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐClusterAddon(ctx context.Context, sel ast.SelectionSet, v v1alpha1.ClusterAddon) graphql.Marshaler {
 	return ec._ClusterAddon(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNClusterAddon2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterAddonᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.ClusterAddon) graphql.Marshaler {
+func (ec *executionContext) marshalNClusterAddon2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐClusterAddonᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.ClusterAddon) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8648,7 +9112,7 @@ func (ec *executionContext) marshalNClusterAddon2ᚕgitlabᚗdcasᚗdevᚋk8sᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNClusterAddon2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterAddon(ctx, sel, v[i])
+			ret[i] = ec.marshalNClusterAddon2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐClusterAddon(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8668,7 +9132,7 @@ func (ec *executionContext) marshalNClusterAddon2ᚕgitlabᚗdcasᚗdevᚋk8sᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNClusterStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐClusterStatus(ctx context.Context, sel ast.SelectionSet, v v1alpha1.ClusterStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNClusterStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐClusterStatus(ctx context.Context, sel ast.SelectionSet, v v1alpha1.ClusterStatus) graphql.Marshaler {
 	return ec._ClusterStatus(ctx, sel, &v)
 }
 
@@ -8700,6 +9164,20 @@ func (ec *executionContext) marshalNInt2int64(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNMaintenanceWindow2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMaintenanceWindow(ctx context.Context, sel ast.SelectionSet, v model.MaintenanceWindow) graphql.Marshaler {
+	return ec._MaintenanceWindow(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMaintenanceWindow2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMaintenanceWindow(ctx context.Context, sel ast.SelectionSet, v *model.MaintenanceWindow) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MaintenanceWindow(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNMetric2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋapiserverᚋinternalᚋgraphᚋmodelᚐMetric(ctx context.Context, sel ast.SelectionSet, v model.Metric) graphql.Marshaler {
@@ -8808,11 +9286,11 @@ func (ec *executionContext) marshalNMetricValue2ᚕgitlabᚗdcasᚗdevᚋk8sᚋk
 	return ret
 }
 
-func (ec *executionContext) marshalNNamespacedName2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedName(ctx context.Context, sel ast.SelectionSet, v v1alpha1.NamespacedName) graphql.Marshaler {
+func (ec *executionContext) marshalNNamespacedName2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐNamespacedName(ctx context.Context, sel ast.SelectionSet, v v1alpha1.NamespacedName) graphql.Marshaler {
 	return ec._NamespacedName(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedNameᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.NamespacedName) graphql.Marshaler {
+func (ec *executionContext) marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐNamespacedNameᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.NamespacedName) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8836,7 +9314,7 @@ func (ec *executionContext) marshalNNamespacedName2ᚕgitlabᚗdcasᚗdevᚋk8s�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNNamespacedName2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐNamespacedName(ctx, sel, v[i])
+			ret[i] = ec.marshalNNamespacedName2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐNamespacedName(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8861,13 +9339,13 @@ func (ec *executionContext) unmarshalNNewCluster2gitlabᚗdcasᚗdevᚋk8sᚋkub
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐReleaseTrack(ctx context.Context, v interface{}) (v1alpha1.ReleaseTrack, error) {
+func (ec *executionContext) unmarshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐReleaseTrack(ctx context.Context, v interface{}) (v1alpha1.ReleaseTrack, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := v1alpha1.ReleaseTrack(tmp)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐReleaseTrack(ctx context.Context, sel ast.SelectionSet, v v1alpha1.ReleaseTrack) graphql.Marshaler {
+func (ec *executionContext) marshalNReleaseTrack2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐReleaseTrack(ctx context.Context, sel ast.SelectionSet, v v1alpha1.ReleaseTrack) graphql.Marshaler {
 	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -8934,11 +9412,11 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	return ret
 }
 
-func (ec *executionContext) marshalNTenant2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenant(ctx context.Context, sel ast.SelectionSet, v v1alpha1.Tenant) graphql.Marshaler {
+func (ec *executionContext) marshalNTenant2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenant(ctx context.Context, sel ast.SelectionSet, v v1alpha1.Tenant) graphql.Marshaler {
 	return ec._Tenant(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTenant2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.Tenant) graphql.Marshaler {
+func (ec *executionContext) marshalNTenant2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenantᚄ(ctx context.Context, sel ast.SelectionSet, v []v1alpha1.Tenant) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8962,7 +9440,7 @@ func (ec *executionContext) marshalNTenant2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkube�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTenant2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenant(ctx, sel, v[i])
+			ret[i] = ec.marshalNTenant2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenant(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8982,7 +9460,7 @@ func (ec *executionContext) marshalNTenant2ᚕgitlabᚗdcasᚗdevᚋk8sᚋkube�
 	return ret
 }
 
-func (ec *executionContext) marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenant(ctx context.Context, sel ast.SelectionSet, v *v1alpha1.Tenant) graphql.Marshaler {
+func (ec *executionContext) marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenant(ctx context.Context, sel ast.SelectionSet, v *v1alpha1.Tenant) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8992,13 +9470,13 @@ func (ec *executionContext) marshalNTenant2ᚖgitlabᚗdcasᚗdevᚋk8sᚋkube�
 	return ec._Tenant(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantPhase(ctx context.Context, v interface{}) (v1alpha1.TenantPhase, error) {
+func (ec *executionContext) unmarshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenantPhase(ctx context.Context, v interface{}) (v1alpha1.TenantPhase, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := v1alpha1.TenantPhase(tmp)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantPhase(ctx context.Context, sel ast.SelectionSet, v v1alpha1.TenantPhase) graphql.Marshaler {
+func (ec *executionContext) marshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenantPhase(ctx context.Context, sel ast.SelectionSet, v v1alpha1.TenantPhase) graphql.Marshaler {
 	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -9008,7 +9486,7 @@ func (ec *executionContext) marshalNTenantPhase2gitlabᚗdcasᚗdevᚋk8sᚋkube
 	return res
 }
 
-func (ec *executionContext) marshalNTenantStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapiᚋv1alpha1ᚐTenantStatus(ctx context.Context, sel ast.SelectionSet, v v1alpha1.TenantStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNTenantStatus2gitlabᚗdcasᚗdevᚋk8sᚋkubeᚑglassᚋoperatorᚋapisᚋpaasᚋv1alpha1ᚐTenantStatus(ctx context.Context, sel ast.SelectionSet, v v1alpha1.TenantStatus) graphql.Marshaler {
 	return ec._TenantStatus(ctx, sel, &v)
 }
 

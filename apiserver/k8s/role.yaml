@@ -7,6 +7,13 @@ rules:
   - apiGroups:
       - paas.dcas.dev
     resources:
+      - appliedclusterversions
+    verbs:
+      - get
+      - update
+  - apiGroups:
+      - paas.dcas.dev
+    resources:
       - clusters
     verbs:
       - get
