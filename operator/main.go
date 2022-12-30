@@ -164,10 +164,11 @@ func main() {
 	}
 
 	if err = (&controllers.ClusterReconciler{
-		Client:  mgr.GetClient(),
-		Scheme:  mgr.GetScheme(),
-		DexCA:   dexCA,
-		Options: clusterOpts,
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("cluster-controller"),
+		DexCA:    dexCA,
+		Options:  clusterOpts,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Cluster")
 		os.Exit(1)
@@ -181,8 +182,9 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.ClusterAddonReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("clusteraddon-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ClusterAddon")
 		os.Exit(1)
@@ -202,9 +204,10 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&idpcontrollers.OAuthClientReconciler{
-		Client:  mgr.GetClient(),
-		Scheme:  mgr.GetScheme(),
-		Options: idpOptions,
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("oauthclient-controller"),
+		Options:  idpOptions,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OAuthClient")
 		os.Exit(1)

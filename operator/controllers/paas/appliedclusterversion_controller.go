@@ -33,6 +33,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const (
+	eventOutOfWindow = "OutOfWindow"
+	eventUpdated     = "Updated"
+)
+
 // AppliedClusterVersionReconciler reconciles a AppliedClusterVersion object
 type AppliedClusterVersionReconciler struct {
 	client.Client
@@ -93,7 +98,7 @@ func (r *AppliedClusterVersionReconciler) Reconcile(ctx context.Context, req ctr
 
 	if !inWindow(window, time.Now()) {
 		log.Info("skipping version update as we are not inside the maintenance window", "window", acv.Spec.MaintenanceWindow)
-		r.Recorder.Eventf(acv, corev1.EventTypeNormal, "OutOfWindow", `Skipping maintenance check as we are outside the requested maintenance window. Next window: "%s"`, window.Next(time.Now()))
+		r.Recorder.Eventf(acv, corev1.EventTypeNormal, eventOutOfWindow, `Skipping maintenance check as we are outside the requested maintenance window. Next window: "%s"`, window.Next(time.Now()))
 		return ctrl.Result{RequeueAfter: time.Hour}, nil
 	}
 
@@ -102,7 +107,7 @@ func (r *AppliedClusterVersionReconciler) Reconcile(ctx context.Context, req ctr
 		return ctrl.Result{}, nil
 	}
 	// update the status of our resource
-	r.Recorder.Eventf(acv, corev1.EventTypeNormal, "Updated", `Updated cluster version (was: "%s", now: "%s")`, acv.Status.VersionRef.Name, cv.GetName())
+	r.Recorder.Eventf(acv, corev1.EventTypeNormal, eventUpdated, `Updated cluster version (was: "%s", now: "%s")`, acv.Status.VersionRef.Name, cv.GetName())
 	acv.Status.VersionRef.Name = cv.GetName()
 
 	// update the status

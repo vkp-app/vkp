@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -36,8 +37,14 @@ import (
 // ClusterAddonReconciler reconciles a ClusterAddon object
 type ClusterAddonReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
+
+const (
+	eventAddonFailed   = "AddonDigestFailed"
+	eventAddonResolved = "AddonDigestResolved"
+)
 
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusteraddons,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusteraddons/status,verbs=get;update;patch
@@ -164,6 +171,7 @@ func (r *ClusterAddonReconciler) reconcileOCI(ctx context.Context, car *paasv1al
 	log.V(1).Info("parsing OCI reference")
 	ref, err := name.ParseReference(res.OCI.Name)
 	if err != nil {
+		r.Recorder.Eventf(car, corev1.EventTypeWarning, eventAddonFailed, "Failed to parse OCI image name %s: %s", res.OCI.Name, err.Error())
 		log.Error(err, "failed to parse OCI image reference")
 		return err
 	}
@@ -171,9 +179,12 @@ func (r *ClusterAddonReconciler) reconcileOCI(ctx context.Context, car *paasv1al
 	auth, _ := ociutil.GetAuth(ctx, r.Client, car.GetNamespace(), &res.OCI)
 	desc, err := remote.Head(ref, auth...)
 	if err != nil {
+		r.Recorder.Eventf(car, corev1.EventTypeWarning, eventAddonFailed, "Failed to resolve OCI digest for image %s: %s", ref.String(), err.Error())
 		log.Error(err, "failed to HEAD image")
 		return err
 	}
+
+	r.Recorder.Eventf(car, corev1.EventTypeNormal, eventAddonResolved, "Successfully resolved OCI digest for image %s: %s", ref.String(), desc.Digest.String())
 
 	// store the digest
 	car.Status.ResourceDigests[paasv1alpha1.OciDigestKey(res.OCI.Name)] = desc.Digest.String()

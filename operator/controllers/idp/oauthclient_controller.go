@@ -25,6 +25,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,11 +36,20 @@ import (
 	idpv1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1"
 )
 
+const (
+	eventClientCreated      = "DexClientCreated"
+	eventClientDeleted      = "DexClientDeleted"
+	eventClientCreateFailed = "DexClientCreateFailed"
+	eventClientUpdateFailed = "DexClientUpdateFailed"
+	eventClientDeleteFailed = "DexClientDeleteFailed"
+)
+
 // OAuthClientReconciler reconciles a OAuthClient object
 type OAuthClientReconciler struct {
 	client.Client
-	Scheme  *runtime.Scheme
-	Options OAuthClientOptions
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
+	Options  OAuthClientOptions
 }
 
 type OAuthClientOptions struct {
@@ -135,10 +145,12 @@ func (r *OAuthClientReconciler) reconcileDexClient(ctx context.Context, or *idpv
 	// create the client
 	resp, err := dexClient.CreateClient(ctx, &api.CreateClientReq{Client: oauthClient})
 	if err != nil {
+		r.Recorder.Eventf(or, corev1.EventTypeWarning, eventClientCreateFailed, `Failed to create Dex client "%s": %s`, DexClientId(or), err)
 		log.Error(err, "failed to create Dex client")
 		return err
 	}
 	if !resp.AlreadyExists {
+		r.Recorder.Eventf(or, corev1.EventTypeNormal, eventClientCreated, `Successfully created Dex client "%s"`, DexClientId(or))
 		return nil
 	}
 	// reconcile the client.
@@ -153,6 +165,7 @@ func (r *OAuthClientReconciler) reconcileDexClient(ctx context.Context, or *idpv
 		LogoUrl:      oauthClient.LogoUrl,
 	})
 	if err != nil {
+		r.Recorder.Eventf(or, corev1.EventTypeWarning, eventClientUpdateFailed, `Failed to update Dex client "%s": %s`, DexClientId(or), err)
 		log.Error(err, "failed to update Dex client")
 		return err
 	}
@@ -174,9 +187,11 @@ func (r *OAuthClientReconciler) finalizeDexClient(ctx context.Context, or *idpv1
 		Id: DexClientId(or),
 	})
 	if err != nil {
+		r.Recorder.Eventf(or, corev1.EventTypeWarning, eventClientDeleteFailed, `Failed to delete Dex client "%s": %s`, DexClientId(or), err)
 		log.Error(err, "failed to delete Dex client")
 		return err
 	}
+	r.Recorder.Eventf(or, corev1.EventTypeNormal, eventClientDeleted, `Successfully deleted Dex client "%s"`, DexClientId(or))
 	return nil
 }
 

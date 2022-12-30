@@ -32,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	"os"
 	"reflect"
 	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
@@ -42,12 +43,18 @@ import (
 	"time"
 )
 
+const (
+	eventDatabaseUserCreated      = "DatabaseUserCreated"
+	eventDatabaseUserCreateFailed = "DatabaseUserCreateFailed"
+)
+
 // ClusterReconciler reconciles a Cluster object
 type ClusterReconciler struct {
 	client.Client
-	Scheme  *runtime.Scheme
-	DexCA   string
-	Options ClusterOptions
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
+	DexCA    string
+	Options  ClusterOptions
 }
 
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters,verbs=get;list;watch;create;update;patch;delete
@@ -482,9 +489,11 @@ func (r *ClusterReconciler) reconcileDatabase(ctx context.Context, cr *v1alpha1.
 		},
 	})
 	if err := r.Update(ctx, db); err != nil {
+		r.Recorder.Eventf(cr, corev1.EventTypeWarning, eventDatabaseUserCreateFailed, `Failed to create database and user "%s": %s`, database, err.Error())
 		log.Error(err, "failed to update HA database resource")
 		return ctrl.Result{}, "", err
 	}
+	r.Recorder.Eventf(cr, corev1.EventTypeNormal, eventDatabaseUserCreated, `Successfully created database and user "%s"`, database)
 
 	// fetch the connection string
 	return r.getConnectionString(ctx, username)
