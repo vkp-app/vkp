@@ -13,6 +13,7 @@ require (
 	github.com/loft-sh/cluster-api-provider-vcluster v0.1.3
 	github.com/onsi/ginkgo/v2 v2.2.0
 	github.com/onsi/gomega v1.20.2
+	github.com/robfig/cron v1.2.0
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/zap v1.21.0
 	google.golang.org/grpc v1.51.0

@@ -24,6 +24,8 @@ import (
 // AppliedClusterVersionSpec defines the desired state of AppliedClusterVersion
 type AppliedClusterVersionSpec struct {
 	ClusterRef corev1.LocalObjectReference `json:"clusterRef"`
+	//+kubebuilder:default:="* * * * *"
+	MaintenanceWindow string `json:"maintenanceWindow,omitempty"`
 }
 
 // AppliedClusterVersionStatus defines the observed state of AppliedClusterVersion

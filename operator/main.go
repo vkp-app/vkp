@@ -210,10 +210,15 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&paascontrollers.AppliedClusterVersionReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("appliedclusterversion-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AppliedClusterVersion")
+		os.Exit(1)
+	}
+	if err = (&paasv1alpha1.AppliedClusterVersion{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "AppliedClusterVersion")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

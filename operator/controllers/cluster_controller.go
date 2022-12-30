@@ -26,7 +26,6 @@ import (
 	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/tenant"
-	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/release"
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,6 +38,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
+	"time"
 )
 
 // ClusterReconciler reconciles a Cluster object
@@ -154,7 +154,10 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 	}
 
-	return ctrl.Result{}, nil
+	// always requeue after 1 hour so that
+	// we can perform upgrades during maintenance
+	// windows.
+	return ctrl.Result{RequeueAfter: time.Hour}, nil
 }
 
 func (r *ClusterReconciler) reconcileID(ctx context.Context, cr *v1alpha1.Cluster) error {
@@ -188,7 +191,7 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *v1alpha1.
 	log := logging.FromContext(ctx)
 	log.Info("reconciling vcluster")
 
-	latestVersion, err := release.GetLatest(ctx, r.Client, cr.Spec.Track)
+	latestVersion, err := r.getClusterTrack(ctx, cr)
 	if err != nil {
 		return err
 	}
@@ -223,6 +226,24 @@ func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *v1alpha1.
 		return r.SafeUpdate(ctx, found, vcluster)
 	}
 	return nil
+}
+
+func (r *ClusterReconciler) getClusterTrack(ctx context.Context, cr *v1alpha1.Cluster) (*v1alpha1.ClusterVersion, error) {
+	log := logging.FromContext(ctx)
+	log.V(1).Info("fetching most-appropriate cluster version")
+
+	acv := &v1alpha1.AppliedClusterVersion{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: cr.GetName()}, acv); err != nil {
+		log.Error(err, "failed to retrieve AppliedClusterVersion resource")
+		return nil, err
+	}
+
+	track := &v1alpha1.ClusterVersion{}
+	if err := r.Get(ctx, types.NamespacedName{Name: acv.Status.VersionRef.Name}, track); err != nil {
+		log.Error(err, "failed to retrieve ClusterVersion")
+		return nil, err
+	}
+	return track, nil
 }
 
 func (r *ClusterReconciler) reconcileCluster(ctx context.Context, cr *v1alpha1.Cluster) error {

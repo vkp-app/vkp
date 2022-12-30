@@ -46,6 +46,9 @@ spec:
                     type: string
                 type: object
                 x-kubernetes-map-type: atomic
+              maintenanceWindow:
+                default: '* * * * *'
+                type: string
             required:
             - clusterRef
             type: object

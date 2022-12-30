@@ -18,10 +18,14 @@ package paas
 
 import (
 	"context"
+	"github.com/robfig/cron"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/release"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
+	"time"
 
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,7 +36,8 @@ import (
 // AppliedClusterVersionReconciler reconciles a AppliedClusterVersion object
 type AppliedClusterVersionReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=appliedclusterversions,verbs=get;list;watch;create;update;patch;delete
@@ -79,7 +84,25 @@ func (r *AppliedClusterVersionReconciler) Reconcile(ctx context.Context, req ctr
 		return ctrl.Result{}, err
 	}
 
+	// check if we're within a maintenance window
+	window, err := cron.ParseStandard(acv.Spec.MaintenanceWindow)
+	if err != nil {
+		log.Error(err, "failed to parse maintenance window CRON", "window", acv.Spec.MaintenanceWindow)
+		return ctrl.Result{}, err
+	}
+
+	if !inWindow(window, time.Now()) {
+		log.Info("skipping version update as we are not inside the maintenance window", "window", acv.Spec.MaintenanceWindow)
+		r.Recorder.Eventf(acv, corev1.EventTypeNormal, "OutOfWindow", `Skipping maintenance check as we are outside the requested maintenance window. Next window: "%s"`, window.Next(time.Now()))
+		return ctrl.Result{RequeueAfter: time.Hour}, nil
+	}
+
+	// return early if there have been no changes
+	if acv.Status.VersionRef.Name == cv.GetName() {
+		return ctrl.Result{}, nil
+	}
 	// update the status of our resource
+	r.Recorder.Eventf(acv, corev1.EventTypeNormal, "Updated", `Updated cluster version (was: "%s", now: "%s")`, acv.Status.VersionRef.Name, cv.GetName())
 	acv.Status.VersionRef.Name = cv.GetName()
 
 	// update the status
@@ -89,6 +112,13 @@ func (r *AppliedClusterVersionReconciler) Reconcile(ctx context.Context, req ctr
 	}
 
 	return ctrl.Result{}, nil
+}
+
+// inWindow returns whether a given time is within
+// a CRON schedule.
+func inWindow(s cron.Schedule, t time.Time) bool {
+	next := s.Next(t)
+	return next.Before(t.Add(time.Second * 90))
 }
 
 // SetupWithManager sets up the controller with the Manager.

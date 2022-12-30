@@ -47,6 +47,7 @@ func AppliedClusterVersion(cr *paasv1alpha1.Cluster) *paasv1alpha1.AppliedCluste
 			ClusterRef: corev1.LocalObjectReference{
 				Name: cr.GetName(),
 			},
+			MaintenanceWindow: "* * * * *",
 		},
 	}
 }

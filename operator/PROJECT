@@ -69,4 +69,8 @@ resources:
   kind: AppliedClusterVersion
   path: gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1
   version: v1alpha1
+  webhooks:
+    defaulting: true
+    validation: true
+    webhookVersion: v1
 version: "3"
