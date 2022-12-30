@@ -176,48 +176,11 @@ build index:
       when: never
     - when: on_success
 
-release:
-  stage: release
-  image: harbor.dcas.dev/registry.gitlab.com/gitlab-org/release-cli:latest
-  allow_failure: true
-  script:
-    - echo "Create release $VERSION"
-    - sed -i "s/VERSION/$VERSION/g" .gitlab/release_notes.md
-  dependencies: []
-  needs:
-    - job: build apiserver
-      optional: true
-    - job: build metrics-proxy
-      optional: true
-    - job: build plugin-hooks
-      optional: true
-    - job: build plugin-sync
-      optional: true
-    - job: build web
-      optional: true
-    - job: build operator
-      optional: true
-    - job: build web-login
-      optional: true
-    - job: build bundle
-      optional: true
-    - job: build index
-      optional: true
-    - job: build chart
-      optional: true
-  release:
-    name: "VKP $VERSION"
-    ref: "$CI_COMMIT_SHA"
-    tag_name: "v$VERSION"
-    description: .gitlab/release_notes.md
-  rules:
-    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
-      when: never
-    - when: on_success
-
 include:
   - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/CNB.gitlab-ci.yml'
   - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/Kaniko.gitlab-ci.yml'
   - local: .gitlab/ci/ko.gitlab-ci.yml
   - local: .gitlab/ci/bundle.gitlab-ci.yml
   - local: .gitlab/ci/chart.gitlab-ci.yml
+  - local: .gitlab/ci/release-gitlab.gitlab-ci.yml
+  - local: .gitlab/ci/release-github.gitlab-ci.yml

@@ -1,0 +1,42 @@
+release github:
+  stage: release
+  image: harbor.dcas.dev/registry.gitlab.com/av1o/base-images/alpine:3
+  allow_failure: true
+  variables:
+    GH_REPO: vkp-app/vkp
+    GH_PROMPT_DISABLED: "true"
+  script:
+    - echo "Create release $VERSION"
+    - sed -i "s/VERSION/$VERSION/g" .gitlab/release_notes.md
+    - |
+      wget -qO- https://github.com/cli/cli/releases/download/v2.21.1/gh_2.21.1_linux_amd64.tar.gz | tar xvz gh_2.21.1_linux_amd64/bin/gh
+      chmod +x gh_2.21.1_linux_amd64/bin/gh
+      export PATH="$PATH:$CI_PROJECT_DIR/gh_2.21.1_linux_amd64/bin"
+    - gh release create "v$VERSION" --target "$CI_COMMIT_SHA" --title "VKP $VERSION" --notes-file .gitlab/release_notes.md
+  dependencies: []
+  needs:
+    - job: build apiserver
+      optional: true
+    - job: build metrics-proxy
+      optional: true
+    - job: build plugin-hooks
+      optional: true
+    - job: build plugin-sync
+      optional: true
+    - job: build web
+      optional: true
+    - job: build operator
+      optional: true
+    - job: build web-login
+      optional: true
+    - job: build bundle
+      optional: true
+    - job: build index
+      optional: true
+    - job: build chart
+      optional: true
+    - job: release gitlab
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - when: on_success
