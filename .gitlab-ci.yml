@@ -96,7 +96,9 @@ build web-login:
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
-    - when: on_success
+    - changes:
+        - web-login/**/*
+        - .gitlab-ci.yml
 
 build operator:
   extends: .build-ko

@@ -39,7 +39,7 @@ import {makeStyles} from "tss-react/mui";
 import Icon from "@mdi/react";
 import {mdiAccountCircle, mdiChevronDown, mdiHelpCircle} from "@mdi/js";
 import {useCurrentUserQuery} from "../generated/graphql";
-import {FF_BANNER_COLOUR, FF_BANNER_ENABLED, FF_BANNER_HEIGHT, FF_BANNER_TEXT} from "../config/constants";
+import {FF_BANNER_COLOUR, FF_BANNER_ENABLED, FF_BANNER_HEIGHT, FF_BANNER_TEXT, FF_HELP_URL} from "../config/constants";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	grow: {
@@ -174,11 +174,11 @@ const Nav: React.FC<NavProps> = ({loading = false}: NavProps): JSX.Element => {
 						<IconButton
 							style={{margin: 8}}
 							disabled={loading}
-							component={Link}
 							centerRipple={false}
 							size="small"
 							color="inherit"
-							to="/help/overview">
+							href={FF_HELP_URL}
+							target="_blank">
 							<Icon
 								path={mdiHelpCircle}
 								size={1}
