@@ -84,6 +84,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
+	github.com/robfig/cron v1.2.0 // indirect
 	github.com/russross/blackfriday v1.6.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/cobra v1.6.0 // indirect
