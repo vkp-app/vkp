@@ -1,4 +1,4 @@
-package cluster
+package clusterutil
 
 import (
 	"math/rand"

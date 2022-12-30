@@ -16,3 +16,5 @@ resources:
 - auth_proxy_role.yaml
 - auth_proxy_role_binding.yaml
 - auth_proxy_client_clusterrole.yaml
+- event_recorder_role.yaml
+- event_recorder_role_binding.yaml

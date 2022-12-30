@@ -36,6 +36,7 @@ type ClusterSpec struct {
 	Storage Storage          `json:"storage,omitempty"`
 
 	// Track defines the frequency of system updates.
+	//+kubebuilder:validation:Enum=Stable;Regular;Rapid;Beta
 	Track ReleaseTrack `json:"track,omitempty"`
 
 	// Accessors define who is authorised to interact with the cluster.
@@ -44,6 +45,8 @@ type ClusterSpec struct {
 }
 
 type HighAvailability struct {
+	// Enabled sets whether the Virtual Control Plane is run in high-availability mode. Cannot be changed once set.
+	//
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	Enabled bool `json:"enabled,omitempty"`
 }
@@ -54,6 +57,7 @@ type Storage struct {
 	// Size in Gi of the clusters backing disk.
 	//
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Size (Gi)",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
+	//+kubebuilder:validation:Minimum:=1
 	Size int `json:"size,omitempty"`
 }
 

@@ -221,6 +221,10 @@ func main() {
 		setupLog.Error(err, "unable to create webhook", "webhook", "AppliedClusterVersion")
 		os.Exit(1)
 	}
+	if err = (&paasv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Cluster")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

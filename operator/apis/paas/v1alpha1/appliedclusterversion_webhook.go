@@ -86,5 +86,5 @@ func (r *AppliedClusterVersion) validateAppliedClusterVersion() error {
 	if len(allErrs) == 0 {
 		return nil
 	}
-	return errors.NewInvalid(schema.GroupKind{Group: GroupVersion.Group, Kind: "AppliedClusterVersion"}, r.Name, allErrs)
+	return errors.NewInvalid(schema.GroupKind{Group: GroupVersion.Group, Kind: KindAppliedClusterVersion}, r.Name, allErrs)
 }

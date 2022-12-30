@@ -68,18 +68,26 @@ spec:
               ha:
                 properties:
                   enabled:
+                    description: Enabled sets whether the Virtual Control Plane is
+                      run in high-availability mode. Cannot be changed once set.
                     type: boolean
                 type: object
               storage:
                 properties:
                   size:
                     description: Size in Gi of the clusters backing disk.
+                    minimum: 1
                     type: integer
                   storageClassName:
                     type: string
                 type: object
               track:
                 description: Track defines the frequency of system updates.
+                enum:
+                - Stable
+                - Regular
+                - Rapid
+                - Beta
                 type: string
             type: object
           status:

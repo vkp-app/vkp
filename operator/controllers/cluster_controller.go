@@ -25,6 +25,7 @@ import (
 	idpv1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/clusterutil"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/tenant"
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
@@ -160,12 +161,13 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return ctrl.Result{RequeueAfter: time.Hour}, nil
 }
 
+// Deprecated
 func (r *ClusterReconciler) reconcileID(ctx context.Context, cr *v1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.V(1).Info("reconciling cluster ID")
 
 	if cr.Status.ClusterID == "" {
-		clusterID := cluster.NewID()
+		clusterID := clusterutil.NewID()
 		log.Info("generated cluster ID", "ID", clusterID)
 		cr.Status.ClusterID = clusterID
 		return r.Status().Update(ctx, cr)
@@ -173,6 +175,7 @@ func (r *ClusterReconciler) reconcileID(ctx context.Context, cr *v1alpha1.Cluste
 	return nil
 }
 
+// Deprecated
 func (r *ClusterReconciler) reconcileDomain(ctx context.Context, cr *v1alpha1.Cluster) error {
 	log := logging.FromContext(ctx)
 	log.V(1).Info("reconciling cluster domain")
@@ -181,7 +184,7 @@ func (r *ClusterReconciler) reconcileDomain(ctx context.Context, cr *v1alpha1.Cl
 	// so that we can manage it independently
 	// of the operator
 	if cr.Status.ClusterDomain == "" {
-		cr.Status.ClusterDomain = os.Getenv(cluster.EnvHostname)
+		cr.Status.ClusterDomain = os.Getenv(clusterutil.EnvHostname)
 		return r.Status().Update(ctx, cr)
 	}
 	return nil
