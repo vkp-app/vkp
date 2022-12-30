@@ -96,10 +96,16 @@ spec:
                         directory. Mutually-exclusive with ConfigMap and Secret.
                       type: string
                   type: object
+                minItems: 1
                 type: array
               source:
                 description: Source indicates where the addon came from and how trustworthy
                   it should be considered.
+                enum:
+                - Official
+                - Platform
+                - Community
+                - Unknown
                 type: string
               sourceURL:
                 description: SourceURL is an external HTTP address that can be used

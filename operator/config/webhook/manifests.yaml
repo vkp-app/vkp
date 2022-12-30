@@ -51,6 +51,26 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
+      path: /mutate-paas-dcas-dev-v1alpha1-clusteraddon
+  failurePolicy: Fail
+  name: mclusteraddon.kb.io
+  rules:
+  - apiGroups:
+    - paas.dcas.dev
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clusteraddons
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
       path: /mutate-paas-dcas-dev-v1alpha1-clusteraddonbinding
   failurePolicy: Fail
   name: mclusteraddonbinding.kb.io
@@ -131,6 +151,26 @@ webhooks:
     - UPDATE
     resources:
     - clusters
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-paas-dcas-dev-v1alpha1-clusteraddon
+  failurePolicy: Fail
+  name: vclusteraddon.kb.io
+  rules:
+  - apiGroups:
+    - paas.dcas.dev
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clusteraddons
   sideEffects: None
 - admissionReviewVersions:
   - v1

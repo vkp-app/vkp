@@ -57,6 +57,11 @@ spec:
                 - tag
                 type: object
               track:
+                enum:
+                - Stable
+                - Regular
+                - Rapid
+                - Beta
                 type: string
             required:
             - image

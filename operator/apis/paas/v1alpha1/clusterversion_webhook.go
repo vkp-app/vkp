@@ -85,7 +85,7 @@ func (r *ClusterVersion) ValidateDelete() error {
 	clusterversionlog.Info("validate delete", "name", r.Name)
 
 	// straight-up block deletion
-	return errors.NewInvalid(schema.GroupKind{Group: GroupVersion.Group, Kind: KindClusterAddonBinding}, r.Name, []*field.Error{
+	return errors.NewInvalid(schema.GroupKind{Group: GroupVersion.Group, Kind: KindClusterVersion}, r.Name, []*field.Error{
 		field.Forbidden(field.NewPath("spec"), "cluster versions cannot be deleted as it could destroy active clusters"),
 	})
 }

@@ -30,6 +30,7 @@ type ClusterVersionSpec struct {
 	Image ClusterVersionImage `json:"image"`
 	Chart ClusterVersionChart `json:"chart,omitempty"`
 	//+kubebuilder:validation:Required
+	//+kubebuilder:validation:Enum=Stable;Regular;Rapid;Beta
 	Track ReleaseTrack `json:"track"`
 }
 

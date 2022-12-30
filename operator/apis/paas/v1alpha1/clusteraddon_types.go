@@ -34,6 +34,7 @@ const (
 // ClusterAddonSpec defines the desired state of ClusterAddon
 type ClusterAddonSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Resources"
+	//+kubebuilder:validation:MinItems:=1
 	Resources []RemoteRef `json:"resources"`
 
 	// DisplayName is the human-readable name of the addon shown in
@@ -58,6 +59,7 @@ type ClusterAddonSpec struct {
 	// trustworthy it should be considered.
 	//
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Source"
+	//+kubebuilder:validation:Enum=Official;Platform;Community;Unknown
 	Source AddonSource `json:"source,omitempty"`
 	// SourceURL is an external HTTP address that can be used by users
 	// to find more information about an addon.

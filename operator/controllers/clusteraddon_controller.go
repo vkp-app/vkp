@@ -67,6 +67,7 @@ func (r *ClusterAddonReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, nil
 	}
 
+	// todo remove defaulting in favour of webhook
 	if car.Spec.Source == "" {
 		car.Spec.Source = paasv1alpha1.SourceUnknown
 		if err := r.Update(ctx, car); err != nil {
