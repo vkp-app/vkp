@@ -44,6 +44,7 @@ spec:
               redirectURIs:
                 items:
                   type: string
+                minItems: 1
                 type: array
               secretRef:
                 description: SecretKeySelector selects a key of a Secret.

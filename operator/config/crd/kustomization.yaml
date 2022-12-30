@@ -19,7 +19,7 @@ patchesStrategicMerge:
 - patches/webhook_in_clusteraddons.yaml
 - patches/webhook_in_clusteraddonbindings.yaml
 - patches/webhook_in_clusterversions.yaml
-#- patches/webhook_in_oauthclients.yaml
+- patches/webhook_in_idp_oauthclients.yaml
 - patches/webhook_in_paas_appliedclusterversions.yaml
 #+kubebuilder:scaffold:crdkustomizewebhookpatch
 
@@ -30,7 +30,7 @@ patchesStrategicMerge:
 - patches/cainjection_in_clusteraddons.yaml
 - patches/cainjection_in_clusteraddonbindings.yaml
 - patches/cainjection_in_clusterversions.yaml
-#- patches/cainjection_in_oauthclients.yaml
+- patches/cainjection_in_idp_oauthclients.yaml
 - patches/cainjection_in_paas_appliedclusterversions.yaml
 #+kubebuilder:scaffold:crdkustomizecainjectionpatch
 

@@ -23,9 +23,12 @@ import (
 
 // OAuthClientSpec defines the desired state of OAuthClient
 type OAuthClientSpec struct {
-	ClientID        string                   `json:"id"`
+	//+kubebuilder:validation:Required
+	ClientID string `json:"id"`
+	//+kubebuilder:validation:Required
 	ClientSecretRef corev1.SecretKeySelector `json:"secretRef"`
 
+	//+kubebuilder:validation:MinItems:=1
 	RedirectURIs []string `json:"redirectURIs"`
 
 	TrustedPeers []string `json:"trustedPeers,omitempty"`

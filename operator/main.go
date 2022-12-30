@@ -240,6 +240,10 @@ func main() {
 		setupLog.Error(err, "unable to create webhook", "webhook", "ClusterAddon")
 		os.Exit(1)
 	}
+	if err = (&idpv1.OAuthClient{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "OAuthClient")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
