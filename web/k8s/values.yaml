@@ -62,6 +62,7 @@ sidecars:
       - --upstream=http://localhost:8080
       - --scope=openid profile email groups
       - --custom-templates-dir=/srv/templates
+      - --skip-provider-button=true
     env:
       - name: SSL_CERT_FILE
         value: /var/run/secrets/dcas.dev/tls/ca.crt

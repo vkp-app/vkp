@@ -92,6 +92,7 @@ spec:
             - --code-challenge-method=S256
             - --upstream=http://localhost:8080
             - --scope=openid profile email groups
+            - --skip-provider-button=true
             {{- if .Values.oauthProxy.embedStaticResources }}
             - --custom-templates-dir=/srv/templates
             {{- end }}

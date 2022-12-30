@@ -105,7 +105,6 @@ const AddonItem: React.FC<Props> = ({item, phase, loading, readOnly, onInstall, 
 				/>}
 			</CardActions>}
 		</Card>
-	</Grid2
->
+	</Grid2>
 }
 export default AddonItem;
