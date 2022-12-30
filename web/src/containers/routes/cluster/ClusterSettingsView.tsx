@@ -8,10 +8,12 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	FormControlLabel,
 	List,
 	ListItem,
 	ListItemSecondaryAction,
-	ListItemText
+	ListItemText,
+	Switch
 } from "@mui/material";
 import {Link, useNavigate} from "react-router-dom";
 import {Cluster, useDeleteClusterMutation} from "../../../generated/graphql";
@@ -28,6 +30,7 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element 
 	const [deleteCluster, {loading, error}] = useDeleteClusterMutation();
 
 	const [showDelete, setShowDelete] = useState<boolean>(false);
+	const [allowDelete, setAllowDelete] = useState<boolean>(false);
 
 	const onDeleteCluster = (): void => {
 		if (!cluster)
@@ -39,6 +42,11 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element 
 				navigate(`/clusters/${cluster.tenant}`);
 			}
 		});
+	}
+
+	const handleClose = (): void => {
+		setShowDelete(() => false);
+		setAllowDelete(() => false);
 	}
 
 	return <Card
@@ -75,13 +83,20 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element 
 		</List>
 		<Dialog
 			open={showDelete}
-			onClose={() => setShowDelete(() => false)}>
+			onClose={handleClose}>
 			<DialogTitle>
 				Delete cluster
 			</DialogTitle>
 			<DialogContent>
 				All cluster and workload resources will be removed.
 				<b>If you have running applications, they will be permanently deleted.</b>
+				<br/>
+				<FormControlLabel
+					value={allowDelete}
+					onChange={(event, checked) => setAllowDelete(() => checked)}
+					control={<Switch color="error"/>}
+					label="I understand"
+				/>
 				{!loading && <Box
 					sx={{mt: 1}}>
 					<InlineError
@@ -99,7 +114,7 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, readOnly}): JSX.Element 
 				<Button
 					onClick={() => onDeleteCluster()}
 					color="error"
-					disabled={loading}
+					disabled={loading || !allowDelete}
 					startIcon={loading && <CircularProgress
 						size={16}
 						color="error"
