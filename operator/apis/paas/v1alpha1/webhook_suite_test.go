@@ -108,6 +108,9 @@ var _ = BeforeSuite(func() {
 	err = (&ClusterAddonBinding{}).SetupWebhookWithManager(mgr)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = (&ClusterVersion{}).SetupWebhookWithManager(mgr)
+	Expect(err).NotTo(HaveOccurred())
+
 	//+kubebuilder:scaffold:webhook
 
 	go func() {

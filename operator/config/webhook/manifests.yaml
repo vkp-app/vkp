@@ -65,6 +65,26 @@ webhooks:
     resources:
     - clusteraddonbindings
   sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-paas-dcas-dev-v1alpha1-clusterversion
+  failurePolicy: Fail
+  name: mclusterversion.kb.io
+  rules:
+  - apiGroups:
+    - paas.dcas.dev
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clusterversions
+  sideEffects: None
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -131,4 +151,25 @@ webhooks:
     - UPDATE
     resources:
     - clusteraddonbindings
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-paas-dcas-dev-v1alpha1-clusterversion
+  failurePolicy: Fail
+  name: vclusterversion.kb.io
+  rules:
+  - apiGroups:
+    - paas.dcas.dev
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - clusterversions
   sideEffects: None

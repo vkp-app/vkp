@@ -4,4 +4,5 @@ const (
 	KindAppliedClusterVersion = "AppliedClusterVersion"
 	KindCluster               = "Cluster"
 	KindClusterAddonBinding   = "ClusterAddonBinding"
+	KindClusterVersion        = "ClusterVersion"
 )
