@@ -17,7 +17,7 @@ patchesStrategicMerge:
 - patches/webhook_in_clusters.yaml
 #- patches/webhook_in_tenants.yaml
 #- patches/webhook_in_clusteraddons.yaml
-#- patches/webhook_in_clusteraddonbindings.yaml
+- patches/webhook_in_clusteraddonbindings.yaml
 #- patches/webhook_in_clusterversions.yaml
 #- patches/webhook_in_oauthclients.yaml
 - patches/webhook_in_paas_appliedclusterversions.yaml
@@ -28,7 +28,7 @@ patchesStrategicMerge:
 - patches/cainjection_in_clusters.yaml
 #- patches/cainjection_in_tenants.yaml
 #- patches/cainjection_in_clusteraddons.yaml
-#- patches/cainjection_in_clusteraddonbindings.yaml
+- patches/cainjection_in_clusteraddonbindings.yaml
 #- patches/cainjection_in_clusterversions.yaml
 #- patches/cainjection_in_oauthclients.yaml
 - patches/cainjection_in_paas_appliedclusterversions.yaml

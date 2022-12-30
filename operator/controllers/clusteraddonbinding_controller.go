@@ -71,6 +71,7 @@ func (r *ClusterAddonBindingReconciler) Reconcile(ctx context.Context, req ctrl.
 // into labels so that the API can find them using a label selector.
 //
 // It's a bit of a hack :/
+// Deprecated: in favour of a validating webhook
 func (r *ClusterAddonBindingReconciler) reconcileLabels(ctx context.Context, br *paasv1alpha1.ClusterAddonBinding) error {
 	log := logging.FromContext(ctx)
 	labels := br.GetLabels()
