@@ -52,6 +52,7 @@ type ClusterReconciler struct {
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=paas.dcas.dev,resources=clusters/finalizers,verbs=update
+//+kubebuilder:rbac:groups=paas.dcas.dev,resources=appliedclusterversions,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=vclusters,verbs=get;list;watch;create;update;patch;delete
@@ -128,6 +129,9 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileCluster(ctx, cr); err != nil {
+		return ctrl.Result{}, err
+	}
+	if err := r.reconcileAppliedClusterVersion(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileIngress(ctx, cr); err != nil {
@@ -277,6 +281,33 @@ func (r *ClusterReconciler) reconcileCertificate(ctx context.Context, cr *v1alph
 	if !reflect.DeepEqual(cert.Spec, found.Spec) {
 		_ = ctrl.SetControllerReference(cr, cert, r.Scheme)
 		return r.SafeUpdate(ctx, found, cert)
+	}
+	return nil
+}
+
+func (r *ClusterReconciler) reconcileAppliedClusterVersion(ctx context.Context, cr *v1alpha1.Cluster) error {
+	log := logging.FromContext(ctx)
+	log.Info("reconciling AppliedClusterVersion")
+
+	acv := cluster.AppliedClusterVersion(cr)
+
+	found := &v1alpha1.AppliedClusterVersion{}
+	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: acv.GetName()}, found); err != nil {
+		if errors.IsNotFound(err) {
+			_ = ctrl.SetControllerReference(cr, acv, r.Scheme)
+			if err := r.Create(ctx, acv); err != nil {
+				log.Error(err, "failed to create AppliedClusterVersion")
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	// reconcile by forcibly overwriting
+	// any changes
+	if !reflect.DeepEqual(acv.Spec, found.Spec) {
+		_ = ctrl.SetControllerReference(cr, acv, r.Scheme)
+		return r.SafeUpdate(ctx, found, acv)
 	}
 	return nil
 }
@@ -508,6 +539,7 @@ func (r *ClusterReconciler) SafeUpdate(ctx context.Context, old, new client.Obje
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Cluster{}).
+		Owns(&v1alpha1.AppliedClusterVersion{}).
 		Owns(&vclusterv1alpha1.VCluster{}).
 		Owns(&capiv1betav1.Cluster{}).
 		Owns(&netv1.Ingress{}).

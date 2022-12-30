@@ -60,4 +60,13 @@ resources:
   kind: OAuthClient
   path: gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1
   version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: dcas.dev
+  group: paas
+  kind: AppliedClusterVersion
+  path: gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1
+  version: v1alpha1
 version: "3"

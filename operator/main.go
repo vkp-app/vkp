@@ -42,9 +42,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+
 	idpv1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers"
 	idpcontrollers "gitlab.dcas.dev/k8s/kube-glass/operator/controllers/idp"
+	paascontrollers "gitlab.dcas.dev/k8s/kube-glass/operator/controllers/paas"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -205,6 +207,13 @@ func main() {
 		Options: idpOptions,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OAuthClient")
+		os.Exit(1)
+	}
+	if err = (&paascontrollers.AppliedClusterVersionReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AppliedClusterVersion")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

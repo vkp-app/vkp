@@ -35,3 +35,18 @@ func Cluster(cluster *paasv1alpha1.Cluster) *capiv1betav1.Cluster {
 		},
 	}
 }
+
+func AppliedClusterVersion(cr *paasv1alpha1.Cluster) *paasv1alpha1.AppliedClusterVersion {
+	return &paasv1alpha1.AppliedClusterVersion{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.GetName(),
+			Namespace: cr.GetNamespace(),
+			Labels:    Labels(cr),
+		},
+		Spec: paasv1alpha1.AppliedClusterVersionSpec{
+			ClusterRef: corev1.LocalObjectReference{
+				Name: cr.GetName(),
+			},
+		},
+	}
+}

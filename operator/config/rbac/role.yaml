@@ -131,6 +131,32 @@ rules:
 - apiGroups:
   - paas.dcas.dev
   resources:
+  - appliedclusterversions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - appliedclusterversions/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - appliedclusterversions/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - paas.dcas.dev
+  resources:
   - clusteraddonbindings
   verbs:
   - create

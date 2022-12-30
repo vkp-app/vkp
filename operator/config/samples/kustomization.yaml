@@ -8,4 +8,5 @@ resources:
 - paas_v1alpha1_clusteraddonbinding.yaml
 - paas_v1alpha1_clusterversion.yaml
 - idp_v1_oauthclient.yaml
+- paas_v1alpha1_appliedclusterversion.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

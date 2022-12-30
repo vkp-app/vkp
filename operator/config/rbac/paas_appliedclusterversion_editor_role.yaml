@@ -1,0 +1,31 @@
+# permissions for end users to edit appliedclusterversions.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: appliedclusterversion-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: operator
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+  name: appliedclusterversion-editor-role
+rules:
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - appliedclusterversions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - paas.dcas.dev
+  resources:
+  - appliedclusterversions/status
+  verbs:
+  - get
