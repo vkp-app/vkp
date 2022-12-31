@@ -42,6 +42,7 @@ var _ webhook.Defaulter = &ClusterVersion{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *ClusterVersion) Default() {
 	clusterversionlog.Info("default", "name", r.Name)
+	r.Labels[LabelTrackRef] = string(r.Spec.Track)
 }
 
 //+kubebuilder:webhook:path=/validate-paas-dcas-dev-v1alpha1-clusterversion,mutating=false,failurePolicy=fail,sideEffects=None,groups=paas.dcas.dev,resources=clusterversions,verbs=create;update;delete,versions=v1alpha1,name=vclusterversion.kb.io,admissionReviewVersions=v1
@@ -71,6 +72,10 @@ func (r *ClusterVersion) ValidateUpdate(old runtime.Object) error {
 	// expect that they serve the same image
 	if or.Spec.Image.Tag != r.Spec.Image.Tag {
 		allErrs = append(allErrs, field.Forbidden(field.NewPath("spec").Child("image").Child("tag"), "image tag cannot be changed - create a new cluster version instead"))
+	}
+
+	if r.Labels[LabelTrackRef] != string(r.Spec.Track) {
+		allErrs = append(allErrs, field.Forbidden(field.NewPath("metadata").Child("labels").Key(LabelTrackRef), "system fields cannot be changed"))
 	}
 
 	if len(allErrs) == 0 {

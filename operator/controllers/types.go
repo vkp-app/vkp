@@ -5,6 +5,12 @@ const (
 	secretKeyDbConn = "pgbouncer-uri"
 )
 
+const (
+	ConditionAddonDigest         = "DigestResolved"
+	ConditionAddonDigestResolved = "Resolved"
+	ConditionAddonDigestErr      = "Error"
+)
+
 type TenantOptions struct {
 	SkipDefaultAddons bool
 	CustomCAFile      string

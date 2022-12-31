@@ -92,7 +92,8 @@ type OCIRemoteRef struct {
 
 // ClusterAddonStatus defines the observed state of ClusterAddon
 type ClusterAddonStatus struct {
-	ResourceDigests map[string]string `json:"resourceDigests,omitempty"`
+	ResourceDigests map[string]string  `json:"resourceDigests,omitempty"`
+	Conditions      []metav1.Condition `json:"conditions,omitempty"`
 }
 
 func ConfigMapDigestKey(name string) string {

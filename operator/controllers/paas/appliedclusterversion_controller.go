@@ -18,10 +18,14 @@ package paas
 
 import (
 	"context"
+	"fmt"
 	"github.com/robfig/cron"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/release"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/statusutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	logging "sigs.k8s.io/controller-runtime/pkg/log"
@@ -31,11 +35,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-const (
-	eventOutOfWindow = "OutOfWindow"
-	eventUpdated     = "Updated"
 )
 
 // AppliedClusterVersionReconciler reconciles a AppliedClusterVersion object
@@ -86,8 +85,25 @@ func (r *AppliedClusterVersionReconciler) Reconcile(ctx context.Context, req ctr
 	// fetch the latest version
 	cv, err := release.GetLatest(ctx, r.Client, cr.Spec.Track)
 	if err != nil {
+		// update the conditions
+		meta.SetStatusCondition(&acv.Status.Conditions, metav1.Condition{
+			Type:    ConditionVersionReady,
+			Status:  metav1.ConditionFalse,
+			Reason:  ConditionVersionReadyReasonErr,
+			Message: err.Error(),
+		})
+		_ = statusutil.SetStatus(ctx, r.Client, acv)
 		return ctrl.Result{}, err
 	}
+
+	// update the conditions
+	meta.SetStatusCondition(&acv.Status.Conditions, metav1.Condition{
+		Type:    ConditionVersionReady,
+		Status:  metav1.ConditionTrue,
+		Reason:  ConditionVersionReadyReasonFound,
+		Message: fmt.Sprintf("%s (Kubernetes v%s)", cv.GetName(), cv.Status.VersionNumber.String()),
+	})
+	_ = statusutil.SetStatus(ctx, r.Client, acv)
 
 	// check if we're within a maintenance window
 	window, err := cron.ParseStandard(acv.Spec.MaintenanceWindow)
@@ -99,7 +115,14 @@ func (r *AppliedClusterVersionReconciler) Reconcile(ctx context.Context, req ctr
 	if !inWindow(window, time.Now()) {
 		log.Info("skipping version update as we are not inside the maintenance window", "window", acv.Spec.MaintenanceWindow)
 		r.Recorder.Eventf(acv, corev1.EventTypeNormal, eventOutOfWindow, `Skipping maintenance check as we are outside the requested maintenance window. Next window: "%s"`, window.Next(time.Now()))
-		return ctrl.Result{RequeueAfter: time.Hour}, nil
+		// update the conditions
+		meta.SetStatusCondition(&acv.Status.Conditions, metav1.Condition{
+			Type:    ConditionInWindow,
+			Status:  metav1.ConditionFalse,
+			Reason:  ConditionInWindowReasonOut,
+			Message: fmt.Sprintf("Next window: %s", window.Next(time.Now())),
+		})
+		return ctrl.Result{RequeueAfter: time.Hour}, statusutil.SetStatus(ctx, r.Client, acv)
 	}
 
 	// return early if there have been no changes
@@ -111,12 +134,12 @@ func (r *AppliedClusterVersionReconciler) Reconcile(ctx context.Context, req ctr
 	acv.Status.VersionRef.Name = cv.GetName()
 
 	// update the status
-	if err := r.Status().Update(ctx, acv); err != nil {
-		log.Error(err, "failed to update status")
-		return ctrl.Result{}, err
-	}
-
-	return ctrl.Result{}, nil
+	meta.SetStatusCondition(&acv.Status.Conditions, metav1.Condition{
+		Type:   ConditionInWindow,
+		Reason: ConditionInWindowReasonIn,
+		Status: metav1.ConditionTrue,
+	})
+	return ctrl.Result{}, statusutil.SetStatus(ctx, r.Client, acv)
 }
 
 // inWindow returns whether a given time is within

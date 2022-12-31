@@ -21,9 +21,12 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/statusutil"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/pkg/ociutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
@@ -87,24 +90,29 @@ func (r *ClusterAddonReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// generate digests for all resources
 	car.Status.ResourceDigests = map[string]string{}
 
+	var err error
 	for _, rr := range car.Spec.Resources {
 		if rr.URL != "" {
-			if err := r.reconcileUri(ctx, car, &rr); err != nil {
+			err = r.reconcileUri(ctx, car, &rr)
+			if err != nil {
 				log.Error(err, "failed to reconcile remote URL")
 				continue
 			}
 		} else if rr.ConfigMap.Name != "" {
-			if err := r.reconcileConfigMap(ctx, car, &rr); err != nil {
+			err = r.reconcileConfigMap(ctx, car, &rr)
+			if err != nil {
 				log.Error(err, "failed to reconcile ConfigMap")
 				continue
 			}
 		} else if rr.Secret.Name != "" {
-			if err := r.reconcileSecret(ctx, car, &rr); err != nil {
+			err = r.reconcileSecret(ctx, car, &rr)
+			if err != nil {
 				log.Error(err, "failed to reconcile Secret")
 				continue
 			}
 		} else if rr.OCI.Name != "" {
-			if err := r.reconcileOCI(ctx, car, &rr); err != nil {
+			err = r.reconcileOCI(ctx, car, &rr)
+			if err != nil {
 				log.Error(err, "failed to reconcile OCI")
 				continue
 			}
@@ -112,16 +120,23 @@ func (r *ClusterAddonReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	if len(car.Status.ResourceDigests) == 0 {
-		return ctrl.Result{}, nil
+		meta.SetStatusCondition(&car.Status.Conditions, metav1.Condition{
+			Type:    ConditionAddonDigest,
+			Status:  metav1.ConditionFalse,
+			Reason:  ConditionAddonDigestErr,
+			Message: err.Error(),
+		})
+		return ctrl.Result{}, statusutil.SetStatus(ctx, r.Client, car)
 	}
+
+	meta.SetStatusCondition(&car.Status.Conditions, metav1.Condition{
+		Type:   ConditionAddonDigest,
+		Status: metav1.ConditionTrue,
+		Reason: ConditionAddonDigestResolved,
+	})
 
 	// update the status
-	if err := r.Status().Update(ctx, car); err != nil {
-		log.Error(err, "failed to update addon status")
-		return ctrl.Result{}, err
-	}
-
-	return ctrl.Result{}, nil
+	return ctrl.Result{}, statusutil.SetStatus(ctx, r.Client, car)
 }
 
 func (r *ClusterAddonReconciler) reconcileConfigMap(ctx context.Context, car *paasv1alpha1.ClusterAddon, res *paasv1alpha1.RemoteRef) error {

@@ -31,6 +31,7 @@ type AppliedClusterVersionSpec struct {
 // AppliedClusterVersionStatus defines the observed state of AppliedClusterVersion
 type AppliedClusterVersionStatus struct {
 	VersionRef corev1.LocalObjectReference `json:"versionRef,omitempty"`
+	Conditions []metav1.Condition          `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
