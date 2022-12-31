@@ -111,11 +111,9 @@ func (r *Cluster) validateLabels(old *Cluster) field.ErrorList {
 	if err := webhookutil.RequireLabel(r.Labels, LabelTrackRef, string(r.Spec.Track)); err != nil {
 		allErrs = append(allErrs, err)
 	}
-	if old == nil {
-		return allErrs
-	}
-	// allow annotation changes if they haven't been set
-	if old.Annotations[LabelClusterID] == "" || old.Annotations[LabelClusterDomain] == "" {
+	// allow annotation changes if they haven't been set.
+	// this should only be needed when upgrading a cluster to v0.5.2
+	if old == nil || old.Annotations[LabelClusterID] == "" || old.Annotations[LabelClusterDomain] == "" {
 		return allErrs
 	}
 	if err := webhookutil.RequireAnnotation(r.Annotations, LabelClusterID, old.Annotations[LabelClusterID]); err != nil {
