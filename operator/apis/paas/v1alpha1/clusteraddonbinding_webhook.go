@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"fmt"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/webhookutil"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -43,6 +44,10 @@ var _ webhook.Defaulter = &ClusterAddonBinding{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *ClusterAddonBinding) Default() {
 	clusteraddonbindinglog.Info("default", "name", r.Name)
+
+	if r.Labels == nil {
+		r.Labels = map[string]string{}
+	}
 
 	r.Labels[LabelClusterRef] = r.Spec.ClusterRef.Name
 	r.Labels[LabelClusterAddonRef] = r.Spec.ClusterAddonRef.Name
@@ -72,6 +77,8 @@ func (r *ClusterAddonBinding) ValidateCreate() error {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("metadata").Child("name"), r.Name, "resource name must follow the clustername-addonname format"))
 	}
 
+	allErrs = append(allErrs, r.validateLabels()...)
+
 	if len(allErrs) == 0 {
 		return nil
 	}
@@ -95,18 +102,24 @@ func (r *ClusterAddonBinding) ValidateUpdate(old runtime.Object) error {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("clusterAddonRef").Child("name"), r.Spec.ClusterRef.Name, "addon reference cannot be changed"))
 	}
 
-	if r.Labels[LabelClusterRef] != r.Spec.ClusterRef.Name {
-		allErrs = append(allErrs, field.Forbidden(field.NewPath("metadata").Child("labels").Key(LabelClusterRef), "system fields cannot be changed"))
-	}
-	if r.Labels[LabelClusterAddonRef] != r.Spec.ClusterRef.Name {
-		allErrs = append(allErrs, field.Forbidden(field.NewPath("metadata").Child("labels").Key(LabelClusterAddonRef), "system fields cannot be changed"))
-	}
+	allErrs = append(allErrs, r.validateLabels()...)
 
 	if len(allErrs) == 0 {
 		return nil
 	}
 
 	return errors.NewInvalid(schema.GroupKind{Group: GroupVersion.Group, Kind: KindClusterAddonBinding}, r.Name, allErrs)
+}
+
+func (r *ClusterAddonBinding) validateLabels() field.ErrorList {
+	var allErrs field.ErrorList
+	if err := webhookutil.RequireLabel(r.Labels, LabelClusterRef, r.Spec.ClusterRef.Name); err != nil {
+		allErrs = append(allErrs, err)
+	}
+	if err := webhookutil.RequireLabel(r.Labels, LabelClusterAddonRef, r.Spec.ClusterAddonRef.Name); err != nil {
+		allErrs = append(allErrs, err)
+	}
+	return allErrs
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type

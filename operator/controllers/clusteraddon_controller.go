@@ -77,16 +77,6 @@ func (r *ClusterAddonReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, nil
 	}
 
-	// todo remove defaulting in favour of webhook
-	if car.Spec.Source == "" {
-		car.Spec.Source = paasv1alpha1.SourceUnknown
-		if err := r.Update(ctx, car); err != nil {
-			log.Error(err, "failed to update addon source")
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{Requeue: true}, nil
-	}
-
 	// generate digests for all resources
 	car.Status.ResourceDigests = map[string]string{}
 

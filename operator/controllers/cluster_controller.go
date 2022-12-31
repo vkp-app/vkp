@@ -25,7 +25,6 @@ import (
 	idpv1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/idp/v1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/cluster"
-	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/clusterutil"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/tenant"
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
@@ -33,7 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
-	"os"
 	"reflect"
 	capiv1betav1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -100,34 +98,33 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		return ctrl.Result{}, nil
 	}
-	cr.Status.WebURL = fmt.Sprintf("console.%s.%s", cr.Status.ClusterID, cr.Status.ClusterDomain)
-	// add the release track to the labels
-	// so that we can use a labelSelector
-	// to find it.
-	if val := cr.Labels[v1alpha1.LabelTrackRef]; val != string(cr.Spec.Track) {
-		if cr.Labels == nil {
-			cr.Labels = map[string]string{}
+
+	// backwards compat hack for #76
+	if cr.Annotations[v1alpha1.LabelClusterID] == "" || cr.Annotations[v1alpha1.LabelClusterDomain] == "" {
+		if cr.Annotations == nil {
+			cr.Annotations = map[string]string{}
 		}
-		cr.Labels[v1alpha1.LabelTrackRef] = string(cr.Spec.Track)
+		cr.Annotations[v1alpha1.LabelClusterID] = cr.Status.ClusterID
+		cr.Annotations[v1alpha1.LabelClusterDomain] = cr.Status.ClusterDomain
 		if err := r.Update(ctx, cr); err != nil {
-			log.Error(err, "failed to update cluster resource")
+			log.Error(err, "failed to update annotations")
 			return ctrl.Result{}, err
 		}
-	}
+		return ctrl.Result{Requeue: true}, nil
 
-	// cluster ID must be reconciled
-	// first
-	if err := r.reconcileID(ctx, cr); err != nil {
-		return ctrl.Result{}, err
 	}
+	cr.Status.WebURL = fmt.Sprintf("console.%s.%s", cr.Status.ClusterID, cr.Status.ClusterDomain)
+	cr.Status.ClusterID = cr.Annotations[v1alpha1.LabelClusterID]
+	cr.Status.ClusterDomain = cr.Annotations[v1alpha1.LabelClusterDomain]
+
 	res, conn, err := r.reconcileDatabase(ctx, cr)
 	if err != nil || res.Requeue {
 		return res, err
 	}
-	if err := r.reconcileDomain(ctx, cr); err != nil {
+	if err := r.reconcileDexSecret(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
-	if err := r.reconcileDexSecret(ctx, cr); err != nil {
+	if err := r.reconcileAppliedClusterVersion(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileVCluster(ctx, cr, conn); err != nil {
@@ -137,9 +134,6 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileCluster(ctx, cr); err != nil {
-		return ctrl.Result{}, err
-	}
-	if err := r.reconcileAppliedClusterVersion(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := r.reconcileIngress(ctx, cr); err != nil {
@@ -166,35 +160,6 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// we can perform upgrades during maintenance
 	// windows.
 	return ctrl.Result{RequeueAfter: time.Hour}, nil
-}
-
-// Deprecated
-func (r *ClusterReconciler) reconcileID(ctx context.Context, cr *v1alpha1.Cluster) error {
-	log := logging.FromContext(ctx)
-	log.V(1).Info("reconciling cluster ID")
-
-	if cr.Status.ClusterID == "" {
-		clusterID := clusterutil.NewID()
-		log.Info("generated cluster ID", "ID", clusterID)
-		cr.Status.ClusterID = clusterID
-		return r.Status().Update(ctx, cr)
-	}
-	return nil
-}
-
-// Deprecated
-func (r *ClusterReconciler) reconcileDomain(ctx context.Context, cr *v1alpha1.Cluster) error {
-	log := logging.FromContext(ctx)
-	log.V(1).Info("reconciling cluster domain")
-
-	// set the cluster domain
-	// so that we can manage it independently
-	// of the operator
-	if cr.Status.ClusterDomain == "" {
-		cr.Status.ClusterDomain = os.Getenv(clusterutil.EnvHostname)
-		return r.Status().Update(ctx, cr)
-	}
-	return nil
 }
 
 func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *v1alpha1.Cluster, haConnectionString string) error {
@@ -348,10 +313,7 @@ func (r *ClusterReconciler) reconcileIngress(ctx context.Context, cr *v1alpha1.C
 	found := &netv1.Ingress{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: cr.GetNamespace(), Name: cr.GetName()}, found); err != nil {
 		if errors.IsNotFound(err) {
-			if err := ctrl.SetControllerReference(cr, ing, r.Scheme); err != nil {
-				log.Error(err, "failed to set controller reference")
-				return err
-			}
+			_ = ctrl.SetControllerReference(cr, ing, r.Scheme)
 			if err := r.Create(ctx, ing); err != nil {
 				log.Error(err, "failed to create ingress")
 				return err
@@ -363,10 +325,7 @@ func (r *ClusterReconciler) reconcileIngress(ctx context.Context, cr *v1alpha1.C
 	// reconcile by forcibly overwriting
 	// any changes
 	if !reflect.DeepEqual(ing.Spec, found.Spec) {
-		if err := ctrl.SetControllerReference(cr, ing, r.Scheme); err != nil {
-			log.Error(err, "failed to set controller reference")
-			return err
-		}
+		_ = ctrl.SetControllerReference(cr, ing, r.Scheme)
 		return r.SafeUpdate(ctx, found, ing)
 	}
 	return nil

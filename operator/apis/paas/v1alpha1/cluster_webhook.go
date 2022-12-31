@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/clusterutil"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/webhookutil"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -45,13 +46,21 @@ var _ webhook.Defaulter = &Cluster{}
 func (r *Cluster) Default() {
 	clusterlog.Info("default", "name", r.Name)
 
+	if r.Annotations == nil {
+		r.Annotations = map[string]string{}
+	}
+	if r.Labels == nil {
+		r.Labels = map[string]string{}
+	}
+
 	// generate the cluster ID
-	if r.Status.ClusterID == "" {
-		r.Status.ClusterID = clusterutil.NewID()
+	if r.Annotations[LabelClusterID] == "" {
+		r.Annotations[LabelClusterID] = clusterutil.NewID()
 	}
-	if r.Status.ClusterDomain == "" {
-		r.Status.ClusterDomain = os.Getenv(clusterutil.EnvHostname)
+	if r.Annotations[LabelClusterDomain] == "" {
+		r.Annotations[LabelClusterDomain] = os.Getenv(clusterutil.EnvHostname)
 	}
+	r.Labels[LabelTrackRef] = string(r.Spec.Track)
 }
 
 //+kubebuilder:webhook:path=/validate-paas-dcas-dev-v1alpha1-cluster,mutating=false,failurePolicy=fail,sideEffects=None,groups=paas.dcas.dev,resources=clusters,verbs=create;update,versions=v1alpha1,name=vcluster.kb.io,admissionReviewVersions=v1
@@ -62,7 +71,15 @@ var _ webhook.Validator = &Cluster{}
 func (r *Cluster) ValidateCreate() error {
 	clusterlog.Info("validate create", "name", r.Name)
 
-	return nil
+	var allErrs field.ErrorList
+
+	allErrs = append(allErrs, r.validateLabels(nil)...)
+
+	if len(allErrs) == 0 {
+		return nil
+	}
+
+	return errors.NewInvalid(schema.GroupKind{Group: GroupVersion.Group, Kind: KindCluster}, r.Name, allErrs)
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
@@ -80,12 +97,34 @@ func (r *Cluster) ValidateUpdate(old runtime.Object) error {
 	if or.Spec.Storage.StorageClassName != r.Spec.Storage.StorageClassName {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("storage").Child("storageClassName"), r.Spec.Storage.StorageClassName, "storage class cannot be changed"))
 	}
+	allErrs = append(allErrs, r.validateLabels(or)...)
 
 	if len(allErrs) == 0 {
 		return nil
 	}
 
 	return errors.NewInvalid(schema.GroupKind{Group: GroupVersion.Group, Kind: KindCluster}, r.Name, allErrs)
+}
+
+func (r *Cluster) validateLabels(old *Cluster) field.ErrorList {
+	var allErrs field.ErrorList
+	if err := webhookutil.RequireLabel(r.Labels, LabelTrackRef, string(r.Spec.Track)); err != nil {
+		allErrs = append(allErrs, err)
+	}
+	if old == nil {
+		return allErrs
+	}
+	// allow annotation changes if they haven't been set
+	if old.Annotations[LabelClusterID] == "" || old.Annotations[LabelClusterDomain] == "" {
+		return allErrs
+	}
+	if err := webhookutil.RequireAnnotation(r.Annotations, LabelClusterID, old.Annotations[LabelClusterID]); err != nil {
+		allErrs = append(allErrs, err)
+	}
+	if err := webhookutil.RequireAnnotation(r.Annotations, LabelClusterDomain, old.Annotations[LabelClusterDomain]); err != nil {
+		allErrs = append(allErrs, err)
+	}
+	return allErrs
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type

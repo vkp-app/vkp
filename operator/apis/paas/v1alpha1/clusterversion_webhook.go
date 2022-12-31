@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"gitlab.dcas.dev/k8s/kube-glass/operator/controllers/webhookutil"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -42,6 +43,9 @@ var _ webhook.Defaulter = &ClusterVersion{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *ClusterVersion) Default() {
 	clusterversionlog.Info("default", "name", r.Name)
+	if r.Labels == nil {
+		r.Labels = map[string]string{}
+	}
 	r.Labels[LabelTrackRef] = string(r.Spec.Track)
 }
 
@@ -53,7 +57,15 @@ var _ webhook.Validator = &ClusterVersion{}
 func (r *ClusterVersion) ValidateCreate() error {
 	clusterversionlog.Info("validate create", "name", r.Name)
 
-	return nil
+	var allErrs field.ErrorList
+
+	allErrs = append(allErrs, r.validateLabels()...)
+
+	if len(allErrs) == 0 {
+		return nil
+	}
+
+	return errors.NewInvalid(schema.GroupKind{Group: GroupVersion.Group, Kind: KindCluster}, r.Name, allErrs)
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
@@ -74,15 +86,21 @@ func (r *ClusterVersion) ValidateUpdate(old runtime.Object) error {
 		allErrs = append(allErrs, field.Forbidden(field.NewPath("spec").Child("image").Child("tag"), "image tag cannot be changed - create a new cluster version instead"))
 	}
 
-	if r.Labels[LabelTrackRef] != string(r.Spec.Track) {
-		allErrs = append(allErrs, field.Forbidden(field.NewPath("metadata").Child("labels").Key(LabelTrackRef), "system fields cannot be changed"))
-	}
+	allErrs = append(allErrs, r.validateLabels()...)
 
 	if len(allErrs) == 0 {
 		return nil
 	}
 
 	return errors.NewInvalid(schema.GroupKind{Group: GroupVersion.Group, Kind: KindCluster}, r.Name, allErrs)
+}
+
+func (r *ClusterVersion) validateLabels() field.ErrorList {
+	var allErrs field.ErrorList
+	if err := webhookutil.RequireLabel(r.Labels, LabelTrackRef, string(r.Spec.Track)); err != nil {
+		allErrs = append(allErrs, err)
+	}
+	return allErrs
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type

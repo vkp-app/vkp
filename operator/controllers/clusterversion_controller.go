@@ -20,6 +20,7 @@ import (
 	"context"
 	"github.com/Masterminds/semver"
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
+	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/statusutil"
 	"k8s.io/apimachinery/pkg/api/errors"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -59,19 +60,6 @@ func (r *ClusterVersionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, nil
 	}
 
-	// reconcile labels that we use
-	// for listing
-	if val := cvr.ObjectMeta.Labels[paasv1alpha1.LabelTrackRef]; val != string(cvr.Spec.Track) {
-		// panic guard
-		if cvr.ObjectMeta.Labels == nil {
-			cvr.ObjectMeta.Labels = map[string]string{}
-		}
-		cvr.ObjectMeta.Labels[paasv1alpha1.LabelTrackRef] = string(cvr.Spec.Track)
-		if err := r.Update(ctx, cvr); err != nil {
-			log.Error(err, "failed to update cluster version")
-			return ctrl.Result{}, err
-		}
-	}
 	// parse the semantic version
 	sv, err := semver.NewVersion(cvr.Spec.Image.Tag)
 	if err != nil {
@@ -86,12 +74,8 @@ func (r *ClusterVersionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		Minor: sv.Minor(),
 		Patch: sv.Patch(),
 	}
-	if err := r.Status().Update(ctx, cvr); err != nil {
-		log.Error(err, "failed to update cluster version status")
-		return ctrl.Result{}, err
-	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{}, statusutil.SetStatus(ctx, r.Client, cvr)
 }
 
 // SetupWithManager sets up the controller with the Manager.

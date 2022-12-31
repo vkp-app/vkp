@@ -30,6 +30,11 @@ const (
 	TrackBeta    ReleaseTrack = "Beta"
 )
 
+const (
+	LabelClusterID     = "paas.dcas.dev/cluster-id"
+	LabelClusterDomain = "paas.dcas.dev/cluster-domain"
+)
+
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
 	HA      HighAvailability `json:"ha,omitempty"`
@@ -92,7 +97,9 @@ type ClusterStatus struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Dashboard URL",xDescriptors="urn:alm:descriptor:org.w3:link"
 	WebURL string `json:"webURL,omitempty"`
 
-	ClusterID       string `json:"clusterID,omitempty"`
+	// Deprecated
+	ClusterID string `json:"clusterID,omitempty"`
+	// Deprecated
 	ClusterDomain   string `json:"clusterDomain,omitempty"`
 	ClusterDatabase string `json:"clusterDatabase,omitempty"`
 

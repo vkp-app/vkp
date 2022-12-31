@@ -59,42 +59,9 @@ func (r *ClusterAddonBindingReconciler) Reconcile(ctx context.Context, req ctrl.
 		return ctrl.Result{}, nil
 	}
 
-	// reconcile
-	if err := r.reconcileLabels(ctx, br); err != nil {
-		return ctrl.Result{}, err
-	}
+	// nothing to reconcile yet...
 
 	return ctrl.Result{}, nil
-}
-
-// reconcileLabels copies the cluster and addon name
-// into labels so that the API can find them using a label selector.
-//
-// It's a bit of a hack :/
-// Deprecated: in favour of a validating webhook
-func (r *ClusterAddonBindingReconciler) reconcileLabels(ctx context.Context, br *paasv1alpha1.ClusterAddonBinding) error {
-	log := logging.FromContext(ctx)
-	labels := br.GetLabels()
-	if labels == nil {
-		labels = map[string]string{}
-	}
-	var changed bool
-	if val := labels[paasv1alpha1.LabelClusterRef]; val != br.Spec.ClusterRef.Name {
-		labels[paasv1alpha1.LabelClusterRef] = br.Spec.ClusterRef.Name
-		changed = true
-	}
-	if val := labels[paasv1alpha1.LabelClusterAddonRef]; val != br.Spec.ClusterAddonRef.Name {
-		labels[paasv1alpha1.LabelClusterAddonRef] = br.Spec.ClusterAddonRef.Name
-		changed = true
-	}
-	if changed {
-		br.SetLabels(labels)
-		if err := r.Update(ctx, br); err != nil {
-			log.Error(err, "failed to update binding labels")
-			return err
-		}
-	}
-	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
