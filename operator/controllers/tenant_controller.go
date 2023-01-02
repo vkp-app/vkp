@@ -212,10 +212,7 @@ func (r *TenantReconciler) reconcileAddon(ctx context.Context, car *v1alpha1.Clu
 	found := &v1alpha1.ClusterAddon{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: tr.GetName(), Name: car.GetName()}, found); err != nil {
 		if errors.IsNotFound(err) {
-			if err := ctrl.SetControllerReference(tr, car, r.Scheme); err != nil {
-				log.Error(err, "failed to set controller reference")
-				return err
-			}
+			_ = ctrl.SetControllerReference(tr, car, r.Scheme)
 			if err := r.Create(ctx, car); err != nil {
 				log.Error(err, "failed to create addon")
 				return err
@@ -224,10 +221,7 @@ func (r *TenantReconciler) reconcileAddon(ctx context.Context, car *v1alpha1.Clu
 		}
 		return err
 	}
-	if err := ctrl.SetControllerReference(tr, car, r.Scheme); err != nil {
-		log.Error(err, "failed to set controller reference")
-		return err
-	}
+	_ = ctrl.SetControllerReference(tr, car, r.Scheme)
 
 	// reconcile any changes
 	if !reflect.DeepEqual(car.Spec, found.Spec) {
@@ -270,6 +264,7 @@ func (r *TenantReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Tenant{}).
 		Owns(&corev1.Namespace{}).
+		Owns(&v1alpha1.ClusterAddon{}).
 		Owns(&corev1.Secret{}).
 		Complete(r)
 }
