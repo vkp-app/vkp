@@ -98,7 +98,7 @@ const ClusterMaintenanceWindow: React.FC = (): JSX.Element => {
 				avatar={<Switch
 					checked={windowEnabled}
 					onChange={(e, checked) => setWindowEnabled(() => checked)}
-					disabled={loading}
+					disabled={loading || maintenancePolicy.error != null}
 				/>}
 			/>
 			<FormControl
@@ -115,7 +115,7 @@ const ClusterMaintenanceWindow: React.FC = (): JSX.Element => {
 							key={d}
 							control={<Checkbox/>}
 							label={d}
-							disabled={loading}
+							disabled={loading || maintenancePolicy.error != null}
 							checked={selectedDays.includes(sc)}
 							value={selectedDays.includes(sc)}
 							onChange={(e, checked) => checked ? setSelectedDays(s => [...s, sc]) : setSelectedDays(s => s.filter(v => v !== sc))}
@@ -132,7 +132,7 @@ const ClusterMaintenanceWindow: React.FC = (): JSX.Element => {
 			<Box sx={{flexGrow: 1}}/>
 			<Button
 				sx={{ml: 1}}
-				disabled={loading}
+				disabled={loading || maintenancePolicy.error != null}
 				onClick={handleSave}>
 				Update
 			</Button>
