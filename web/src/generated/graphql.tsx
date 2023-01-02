@@ -390,6 +390,23 @@ export type KubeConfigQueryVariables = Exact<{
 
 export type KubeConfigQuery = { __typename?: 'Query', renderKubeconfig: string };
 
+export type MaintenancePolicyQueryVariables = Exact<{
+  tenant: Scalars['ID'];
+  cluster: Scalars['ID'];
+}>;
+
+
+export type MaintenancePolicyQuery = { __typename?: 'Query', clusterMaintenanceWindow: { __typename?: 'MaintenanceWindow', schedule: string, next: number } };
+
+export type SetMaintenancePolicyMutationVariables = Exact<{
+  tenant: Scalars['ID'];
+  cluster: Scalars['ID'];
+  schedule: Scalars['String'];
+}>;
+
+
+export type SetMaintenancePolicyMutation = { __typename?: 'Mutation', setClusterMaintenanceWindow: boolean };
+
 export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -894,6 +911,80 @@ export function useKubeConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type KubeConfigQueryHookResult = ReturnType<typeof useKubeConfigQuery>;
 export type KubeConfigLazyQueryHookResult = ReturnType<typeof useKubeConfigLazyQuery>;
 export type KubeConfigQueryResult = Apollo.QueryResult<KubeConfigQuery, KubeConfigQueryVariables>;
+export const MaintenancePolicyDocument = gql`
+    query maintenancePolicy($tenant: ID!, $cluster: ID!) {
+  clusterMaintenanceWindow(tenant: $tenant, cluster: $cluster) {
+    schedule
+    next
+  }
+}
+    `;
+
+/**
+ * __useMaintenancePolicyQuery__
+ *
+ * To run a query within a React component, call `useMaintenancePolicyQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMaintenancePolicyQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMaintenancePolicyQuery({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      cluster: // value for 'cluster'
+ *   },
+ * });
+ */
+export function useMaintenancePolicyQuery(baseOptions: Apollo.QueryHookOptions<MaintenancePolicyQuery, MaintenancePolicyQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MaintenancePolicyQuery, MaintenancePolicyQueryVariables>(MaintenancePolicyDocument, options);
+      }
+export function useMaintenancePolicyLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MaintenancePolicyQuery, MaintenancePolicyQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MaintenancePolicyQuery, MaintenancePolicyQueryVariables>(MaintenancePolicyDocument, options);
+        }
+export type MaintenancePolicyQueryHookResult = ReturnType<typeof useMaintenancePolicyQuery>;
+export type MaintenancePolicyLazyQueryHookResult = ReturnType<typeof useMaintenancePolicyLazyQuery>;
+export type MaintenancePolicyQueryResult = Apollo.QueryResult<MaintenancePolicyQuery, MaintenancePolicyQueryVariables>;
+export const SetMaintenancePolicyDocument = gql`
+    mutation setMaintenancePolicy($tenant: ID!, $cluster: ID!, $schedule: String!) {
+  setClusterMaintenanceWindow(
+    tenant: $tenant
+    cluster: $cluster
+    window: $schedule
+  )
+}
+    `;
+export type SetMaintenancePolicyMutationFn = Apollo.MutationFunction<SetMaintenancePolicyMutation, SetMaintenancePolicyMutationVariables>;
+
+/**
+ * __useSetMaintenancePolicyMutation__
+ *
+ * To run a mutation, you first call `useSetMaintenancePolicyMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetMaintenancePolicyMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setMaintenancePolicyMutation, { data, loading, error }] = useSetMaintenancePolicyMutation({
+ *   variables: {
+ *      tenant: // value for 'tenant'
+ *      cluster: // value for 'cluster'
+ *      schedule: // value for 'schedule'
+ *   },
+ * });
+ */
+export function useSetMaintenancePolicyMutation(baseOptions?: Apollo.MutationHookOptions<SetMaintenancePolicyMutation, SetMaintenancePolicyMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetMaintenancePolicyMutation, SetMaintenancePolicyMutationVariables>(SetMaintenancePolicyDocument, options);
+      }
+export type SetMaintenancePolicyMutationHookResult = ReturnType<typeof useSetMaintenancePolicyMutation>;
+export type SetMaintenancePolicyMutationResult = Apollo.MutationResult<SetMaintenancePolicyMutation>;
+export type SetMaintenancePolicyMutationOptions = Apollo.BaseMutationOptions<SetMaintenancePolicyMutation, SetMaintenancePolicyMutationVariables>;
 export const CurrentUserDocument = gql`
     query currentUser {
   currentUser {

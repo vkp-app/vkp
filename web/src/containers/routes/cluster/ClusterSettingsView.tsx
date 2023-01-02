@@ -52,6 +52,8 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, maintenanceWindow, readO
 		setAllowDelete(() => false);
 	}
 
+	const cronExpr = cronstrue.toString(maintenanceWindow?.schedule || "* * * * *", {throwExceptionOnParseError: false});
+
 	return <Card
 		sx={{p: 2}}>
 		<List>
@@ -59,12 +61,20 @@ const ClusterSettingsView: React.FC<Props> = ({cluster, maintenanceWindow, readO
 				<ListItemText
 					primary="Maintenance automation"
 					secondary={<span>
-						Schedule: {maintenanceWindow?.schedule === "* * * * *" ? "at any time" : cronstrue.toString(maintenanceWindow?.schedule || "* * * * *", {throwExceptionOnParseError: false}).toLocaleLowerCase()}<br/>
+						Schedule: {maintenanceWindow?.schedule === "* * * * *" ? "at any time" : cronExpr.charAt(0).toLocaleLowerCase() + cronExpr.slice(1)}<br/>
 						{maintenanceWindow?.schedule !== "* * * * *" && <React.Fragment>
 							Next window: in {formatDistance((maintenanceWindow?.next || 0) * 1000, Date.now())}
 						</React.Fragment>}
 					</span>}
 				/>
+				<ListItemSecondaryAction>
+					<Button
+						disabled={readOnly || cluster == null}
+						component={Link}
+						to={`/clusters/${cluster?.tenant}/cluster/${cluster?.name}/-/maintenance`}>
+						Open
+					</Button>
+				</ListItemSecondaryAction>
 			</ListItem>
 			<ListItem>
 				<ListItemText

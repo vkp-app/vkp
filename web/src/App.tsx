@@ -18,6 +18,7 @@ import ClusterAccessorList from "./containers/routes/ClusterAccessorList";
 import TenantAccessorList from "./containers/routes/TenantAccessorList";
 import About from "./containers/routes/About";
 import {FF_BANNER_ENABLED, FF_BANNER_HEIGHT} from "./config/constants";
+import ClusterMaintenanceWindow from "./containers/routes/cluster/ClusterMaintenanceWindow";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -189,6 +190,10 @@ const App: React.FC = (): JSX.Element => {
 							<Route
 								path="/clusters/:tenant/cluster/:name/-/accessors"
 								element={<ClusterAccessorList/>}
+							/>
+							<Route
+								path="/clusters/:tenant/cluster/:name/-/maintenance"
+								element={<ClusterMaintenanceWindow/>}
 							/>
 							<Route
 								path="/clusters/:tenant/cluster/:name"

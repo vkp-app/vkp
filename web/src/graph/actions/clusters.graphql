@@ -53,3 +53,14 @@ mutation setClusterAccessors($tenant: ID!, $cluster: ID!, $accessors: [AccessRef
 query kubeConfig($tenant: ID!, $cluster: ID!) {
     renderKubeconfig(tenant: $tenant, cluster: $cluster)
 }
+
+query maintenancePolicy($tenant: ID!, $cluster: ID!) {
+    clusterMaintenanceWindow(tenant: $tenant, cluster: $cluster) {
+        schedule
+        next
+    }
+}
+
+mutation setMaintenancePolicy($tenant: ID!, $cluster: ID!, $schedule: String!) {
+    setClusterMaintenanceWindow(tenant: $tenant, cluster: $cluster, window: $schedule)
+}
