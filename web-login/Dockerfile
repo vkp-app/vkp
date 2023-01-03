@@ -1,5 +1,5 @@
 ARG DEX_VERSION=v2.35.3
-FROM cr.vkp.app/ghcr.io/dexidp/dex:${DEX_VERSION}
+FROM harbor.dcas.dev/ghcr.io/dexidp/dex:${DEX_VERSION}
 
 ENV DEX_FRONTEND_DIR=/srv/dex/web
 
