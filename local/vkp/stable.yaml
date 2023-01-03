@@ -1,0 +1,21 @@
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-24-1-stable
+spec:
+  image:
+    registry: harbor.dcas.dev/docker.io
+    repository: rancher/k3s
+    tag: v1.24.1-k3s1
+  track: Stable
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-24-7-stable
+spec:
+  image:
+    registry: harbor.dcas.dev/docker.io
+    repository: rancher/k3s
+    tag: v1.24.7-k3s1
+  track: Stable

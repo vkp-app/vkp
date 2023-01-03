@@ -1,2 +1,5 @@
 resources:
-  - tracks.yaml
+  - stable.yaml
+  - regular.yaml
+  - rapid.yaml
+  - beta.yaml

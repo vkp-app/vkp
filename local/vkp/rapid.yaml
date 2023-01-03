@@ -1,0 +1,11 @@
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-25-3-rapid
+spec:
+  image:
+    registry: harbor.dcas.dev/docker.io
+    repository: rancher/k3s
+    tag: v1.25.3-k3s1
+  track: Rapid
