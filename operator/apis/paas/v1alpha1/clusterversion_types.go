@@ -76,6 +76,7 @@ func (in *ClusterVersionNumber) String() string {
 //+kubebuilder:resource:scope=Cluster
 
 // ClusterVersion is the Schema for the clusterversions API
+// +kubebuilder:printcolumn:name="Tag",type=string,JSONPath=`.spec.image.tag`
 type ClusterVersion struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

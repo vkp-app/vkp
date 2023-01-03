@@ -9,3 +9,14 @@ spec:
     repository: rancher/k3s
     tag: v1.25.4-rc4-k3s1
   track: Beta
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-26-0-beta
+spec:
+  image:
+    registry: harbor.dcas.dev/docker.io
+    repository: rancher/k3s
+    tag: v1.26.0-k3s1
+  track: Beta

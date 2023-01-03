@@ -38,6 +38,7 @@ type AppliedClusterVersionStatus struct {
 //+kubebuilder:subresource:status
 
 // AppliedClusterVersion is the Schema for the appliedclusterversions API
+// +kubebuilder:printcolumn:name="Version",type=string,JSONPath=`.status.versionRef.name`
 type AppliedClusterVersion struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

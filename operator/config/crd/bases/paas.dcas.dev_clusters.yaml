@@ -96,8 +96,10 @@ spec:
               clusterDatabase:
                 type: string
               clusterDomain:
+                description: Deprecated
                 type: string
               clusterID:
+                description: Deprecated
                 type: string
               conditions:
                 items:

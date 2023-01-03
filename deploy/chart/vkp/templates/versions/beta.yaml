@@ -1,0 +1,27 @@
+{{- if .Values.vkp.clusterVersions.default.enabled }}
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-25-4-rc4-beta
+spec:
+  image:
+    {{- if .Values.global.imageRegistry | default .Values.vkp.clusterVersions.image.registry }}
+    registry: {{ .Values.global.imageRegistry | default .Values.vkp.clusterVersions.image.registry }}
+    {{- end }}
+    repository: {{ .Values.vkp.clusterVersions.image.repository }}
+    tag: v1.25.4-rc4-k3s1
+  track: Beta
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-26-0-beta
+spec:
+  image:
+    {{- if .Values.global.imageRegistry | default .Values.vkp.clusterVersions.image.registry }}
+    registry: {{ .Values.global.imageRegistry | default .Values.vkp.clusterVersions.image.registry }}
+    {{- end }}
+    repository: {{ .Values.vkp.clusterVersions.image.repository }}
+    tag: v1.26.0-k3s1
+  track: Beta
+{{- end }}
