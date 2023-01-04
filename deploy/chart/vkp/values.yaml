@@ -94,6 +94,8 @@ oauthProxy:
 #  containerSecurityContext: {}
 
 metrics_proxy:
+  # -- Enable or disable the Metrics Proxy component.
+  enabled: true
   image:
     # -- Metrics Proxy image registry
     registry: ghcr.io
@@ -144,9 +146,9 @@ vkp:
   certificates:
     # -- Name of the Cert Manager namespace that we can use to create ClusterIssuer's
     certManagerNamespace: cert-manager
-    customIssuer:
-      # -- Disables the default self-signed issuer used to bootstrap the VKP Certificate Authority.
-      enabled: false
+    issuer:
+      # -- Create the self-signed issuer. If disabled, you will need to ensure that the issuer already exists.
+      create: true
       # -- Name of the Issuer/ClusterIssuer to bootstrap from.
       name: ""
       # -- Kind (Issuer/ClusterIssuer) of the resource to bootstrap from.

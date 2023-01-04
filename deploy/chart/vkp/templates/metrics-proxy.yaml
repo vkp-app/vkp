@@ -1,4 +1,5 @@
 ---
+{{- if .Values.metrics_proxy.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -131,3 +132,4 @@ spec:
     - key encipherment
     - server auth
 ---
+{{- end }}

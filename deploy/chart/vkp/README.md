@@ -1,6 +1,6 @@
 # vkp
 
-![Version: 0.5.5](https://img.shields.io/badge/Version-0.5.5-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
+![Version: 0.6.0](https://img.shields.io/badge/Version-0.6.0-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
 
 ## Values
 
@@ -27,6 +27,7 @@
 | idp.connectors | list | `[{"id":"mock","name":"Mock","type":"mockCallback"}]` | Dex connectors that VKP will delegate authentication to. https://dexidp.io/docs/connectors/ |
 | idp.cookieSecret | string | `""` | Secret to use for the Oauth proxy cookies |
 | idp.existingSecret | string | `""` | Existing secret to load credentials from. Must contain `DEX_CLIENT_SECRET` and `OAUTH2_PROXY_COOKIE_SECRET` keys |
+| metrics_proxy.enabled | bool | `true` | Enable or disable the Metrics Proxy component. |
 | metrics_proxy.image.registry | string | `"ghcr.io"` | Metrics Proxy image registry |
 | metrics_proxy.image.repository | string | `"vkp-app/vkp/metrics-proxy"` | Metrics Proxy image repository |
 | metrics_proxy.image.tag | string | `""` | Metrics Proxy image tag |
@@ -39,9 +40,9 @@
 | prometheus.extraMetrics | list | `[]` | Additional metrics to show on the cluster overview page. |
 | prometheus.url | string | `""` | Url to the prometheus instance. Embedded environment variables will be expanded e.g. `http://$PROMETHEUS_USERNAME:$PROMETHEUS_PASSWORD@prometheus:9090` |
 | vkp.certificates.certManagerNamespace | string | `"cert-manager"` | Name of the Cert Manager namespace that we can use to create ClusterIssuer's |
-| vkp.certificates.customIssuer.enabled | bool | `false` | Disables the default self-signed issuer used to bootstrap the VKP Certificate Authority. |
-| vkp.certificates.customIssuer.kind | string | `"Issuer"` | Kind (Issuer/ClusterIssuer) of the resource to bootstrap from. |
-| vkp.certificates.customIssuer.name | string | `""` | Name of the Issuer/ClusterIssuer to bootstrap from. |
+| vkp.certificates.issuer.create | bool | `true` | Create the self-signed issuer. If disabled, you will need to ensure that the issuer already exists. |
+| vkp.certificates.issuer.kind | string | `"Issuer"` | Kind (Issuer/ClusterIssuer) of the resource to bootstrap from. |
+| vkp.certificates.issuer.name | string | `""` | Name of the Issuer/ClusterIssuer to bootstrap from. |
 | vkp.clusterVersions.default.enabled | bool | `false` | Install default ClusterVersions. Disable to supply your own. |
 | vkp.clusterVersions.image.registry | string | `"docker.io"` | Container registry to pull images from. |
 | vkp.clusterVersions.image.repository | string | `"rancher/k3s"` | Repository containing cluster images. |

@@ -1,8 +1,8 @@
-{{- if not .Values.vkp.certificates.customIssuer.enabled }}
+{{- if .Values.vkp.certificates.issuer.create }}
 apiVersion: cert-manager.io/v1
-kind: Issuer
+kind: {{ .Values.vkp.certificates.issuer.kind }}
 metadata:
-  name: selfsigned-issuer
+  name: {{ .Values.vkp.certificates.issuer.name }}
   namespace: {{ .Values.vkp.certificates.certManagerNamespace }}
 spec:
   selfSigned: {}
@@ -22,13 +22,8 @@ spec:
   privateKey:
     algorithm: ECDSA
   issuerRef:
-    {{ if .Values.vkp.certificates.customIssuer.enabled }}
-    name: {{ .Values.vkp.certificates.customIssuer.name }}
-    kind: {{ .Values.vkp.certificates.customIssuer.kind | default "Issuer" }}
-    {{- else }}
-    name: selfsigned-issuer
-    kind: Issuer
-    {{- end }}
+    name: {{ .Values.vkp.certificates.issuer.name }}
+    kind: {{ .Values.vkp.certificates.issuer.kind }}
     group: cert-manager.io
 ---
 apiVersion: cert-manager.io/v1
