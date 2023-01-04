@@ -1,8 +1,9 @@
-import {Box, IconButton, Link, Tooltip} from "@mui/material";
+import {Box, IconButton, Link as MuiLink, Tooltip} from "@mui/material";
 import React, {ReactNode, useEffect, useMemo, useState} from "react";
 import {useTheme} from "@mui/material/styles";
 import Icon from "@mdi/react";
 import {mdiAlertCircle, mdiCheckCircle, mdiInformation} from "@mdi/js";
+import {Link} from "react-router-dom";
 import {KUBERNETES_VERSION_LATEST, KUBERNETES_VERSION_MAX, KUBERNETES_VERSION_MIN} from "../../../config/constants";
 
 interface Props {
@@ -54,11 +55,11 @@ const ClusterVersionIndicator: React.FC<Props> = ({version, platform, showLabel 
 	return <Box
 		sx={{display: "flex", alignItems: "center"}}>
 		{showLabel && <span>Kubernetes&nbsp;</span>}
-		<Link
-			href={`https://kubernetes.io/releases/#release-v1-${num}`}
-			target="_blank">
+		<MuiLink
+			component={Link}
+			to={`/help/kube-versions#${num}`}>
 			v1.{num}
-		</Link>
+		</MuiLink>
 		{platform && <span>&nbsp;({platform})</span>}
 		<Tooltip title={tooltip}>
 			<IconButton

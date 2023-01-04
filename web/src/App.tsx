@@ -19,6 +19,7 @@ import TenantAccessorList from "./containers/routes/TenantAccessorList";
 import About from "./containers/routes/About";
 import {FF_BANNER_ENABLED, FF_BANNER_HEIGHT} from "./config/constants";
 import ClusterMaintenanceWindow from "./containers/routes/cluster/ClusterMaintenanceWindow";
+import KubeVersionTimeline from "./containers/routes/help/KubeVersionTimeline";
 
 const useStyles = makeStyles()((theme: Theme) => ({
 	root: {
@@ -218,6 +219,10 @@ const App: React.FC = (): JSX.Element => {
 							<Route
 								path="/about"
 								element={<About/>}
+							/>
+							<Route
+								path="/help/kube-versions"
+								element={<KubeVersionTimeline/>}
 							/>
 							<Route
 								path={"/*"}
