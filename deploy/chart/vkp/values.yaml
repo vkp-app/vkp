@@ -150,6 +150,6 @@ vkp:
       # -- Create the self-signed issuer. If disabled, you will need to ensure that the issuer already exists.
       create: true
       # -- Name of the Issuer/ClusterIssuer to bootstrap from.
-      name: ""
+      name: "vkp-selfsigned"
       # -- Kind (Issuer/ClusterIssuer) of the resource to bootstrap from.
       kind: Issuer

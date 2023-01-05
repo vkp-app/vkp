@@ -29,7 +29,7 @@ spec:
         - name: dex
           {{- $data := dict "image" .Values.dex.image "chart" $.Chart "global" $.Values.global }}
           image: {{ include "image" $data }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ .Values.dex.imagePullPolicy }}
           args:
             - dex
             - serve

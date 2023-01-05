@@ -34,7 +34,7 @@ func main() {
 	log, _ := logging.NewZap(context.TODO(), zc)
 
 	// validate the url
-	uri, err := url.Parse(*fPrometheusURL)
+	uri, err := url.Parse(os.ExpandEnv(*fPrometheusURL))
 	if err != nil {
 		log.Error(err, "failed to parse prometheus url")
 		os.Exit(1)

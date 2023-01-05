@@ -1,6 +1,6 @@
 # vkp
 
-![Version: 0.6.0](https://img.shields.io/badge/Version-0.6.0-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
+![Version: 0.6.1](https://img.shields.io/badge/Version-0.6.1-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
 
 ## Values
 
@@ -42,7 +42,7 @@
 | vkp.certificates.certManagerNamespace | string | `"cert-manager"` | Name of the Cert Manager namespace that we can use to create ClusterIssuer's |
 | vkp.certificates.issuer.create | bool | `true` | Create the self-signed issuer. If disabled, you will need to ensure that the issuer already exists. |
 | vkp.certificates.issuer.kind | string | `"Issuer"` | Kind (Issuer/ClusterIssuer) of the resource to bootstrap from. |
-| vkp.certificates.issuer.name | string | `""` | Name of the Issuer/ClusterIssuer to bootstrap from. |
+| vkp.certificates.issuer.name | string | `"vkp-selfsigned"` | Name of the Issuer/ClusterIssuer to bootstrap from. |
 | vkp.clusterVersions.default.enabled | bool | `false` | Install default ClusterVersions. Disable to supply your own. |
 | vkp.clusterVersions.image.registry | string | `"docker.io"` | Container registry to pull images from. |
 | vkp.clusterVersions.image.repository | string | `"rancher/k3s"` | Repository containing cluster images. |

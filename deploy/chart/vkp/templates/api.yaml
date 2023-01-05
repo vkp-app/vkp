@@ -41,6 +41,7 @@ spec:
         - name: apiserver
           {{- $ai := dict "image" .Values.api.image "chart" $.Chart "global" $.Values.global }}
           image: {{ include "image" $ai }}
+          imagePullPolicy: {{ .Values.api.imagePullPolicy }}
           args:
             - --prometheus-url={{ .Values.prometheus.url }}
             - --prometheus-config-file=/etc/vkp/config/prometheus.yaml
@@ -99,6 +100,7 @@ spec:
         - name: oauth-proxy
           {{- $opi := dict "image" .Values.oauthProxy.image "chart" $.Chart "global" $.Values.global }}
           image: {{ include "image" $opi }}
+          imagePullPolicy: {{ .Values.oauthProxy.imagePullPolicy }}
           args:
             - --http-address=:8079
             - --provider=oidc

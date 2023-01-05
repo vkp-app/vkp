@@ -36,6 +36,7 @@ spec:
         - name: web
           {{- $wi := dict "image" .Values.web.image "chart" $.Chart "global" $.Values.global }}
           image: {{ include "image" $wi }}
+          imagePullPolicy: {{ .Values.web.imagePullPolicy }}
           env:
             - name: KUBERNETES_NAMESPACE
               valueFrom:
@@ -79,6 +80,7 @@ spec:
         - name: oauth-proxy
           {{- $opi := dict "image" .Values.oauthProxy.image "chart" $.Chart "global" $.Values.global }}
           image: {{ include "image" $opi }}
+          imagePullPolicy: {{ .Values.oauthProxy.imagePullPolicy }}
           args:
             - --http-address=:8079
             - --provider=oidc
