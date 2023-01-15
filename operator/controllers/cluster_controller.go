@@ -117,6 +117,9 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	cr.Status.ClusterID = cr.Annotations[v1alpha1.LabelClusterID]
 	cr.Status.ClusterDomain = cr.Annotations[v1alpha1.LabelClusterDomain]
 
+	if err := r.safeguardHAClusters(ctx, cr); err != nil {
+		return ctrl.Result{}, err
+	}
 	res, conn, err := r.reconcileDatabase(ctx, cr)
 	if err != nil || res.Requeue {
 		return res, err
@@ -160,6 +163,20 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// we can perform upgrades during maintenance
 	// windows.
 	return ctrl.Result{RequeueAfter: time.Hour}, nil
+}
+
+func (r *ClusterReconciler) safeguardHAClusters(ctx context.Context, cr *v1alpha1.Cluster) error {
+	log := logging.FromContext(ctx)
+	log.V(1).Info("validating cluster HA mode")
+	if !cr.Spec.HA.Enabled {
+		return nil
+	}
+	// make sure we don't reconcile a cluster if
+	// it's in an invalid state
+	if cr.Spec.HA.Enabled && !r.Options.AllowHA {
+		return fmt.Errorf("unable to process HA cluster when HA-support is not enabled")
+	}
+	return nil
 }
 
 func (r *ClusterReconciler) reconcileVCluster(ctx context.Context, cr *v1alpha1.Cluster, haConnectionString string) error {
