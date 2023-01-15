@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	imageDashboardKube = "ghcr.io/vkp-app/addons/dashboard-k8s:1.1.2"
-	imageDashboardOKD  = "ghcr.io/vkp-app/addons/dashboard-okd:1.1.1"
+	imageDashboardKube = "ghcr.io/vkp-app/addons/dashboard-k8s:1.2.0"
+	imageDashboardOKD  = "ghcr.io/vkp-app/addons/dashboard-okd:1.2.0"
 	imagePodInfo       = "ghcr.io/vkp-app/addons/podinfo:1.0.1"
-	imagePromAdapter   = "ghcr.io/vkp-app/addons/prometheus-adapter:1.3.7"
+	imagePromAdapter   = "ghcr.io/vkp-app/addons/prometheus-adapter:1.4.0"
 )
 
 func Addons(tr *v1alpha1.Tenant) []v1alpha1.ClusterAddon {
