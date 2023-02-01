@@ -6,4 +6,5 @@ const (
 	KindClusterAddon          = "ClusterAddon"
 	KindClusterAddonBinding   = "ClusterAddonBinding"
 	KindClusterVersion        = "ClusterVersion"
+	KindTenant                = "Tenant"
 )

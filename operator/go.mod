@@ -8,6 +8,7 @@ require (
 	github.com/crunchydata/postgres-operator v1.3.3-0.20221123231423-d8a2803a913a
 	github.com/dexidp/dex/api/v2 v2.1.0
 	github.com/djcass44/go-utils/logging v0.2.2
+	github.com/go-logr/logr v1.2.3
 	github.com/google/go-containerregistry v0.12.1
 	github.com/jnovack/flag v1.16.0
 	github.com/loft-sh/cluster-api-provider-vcluster v0.1.3
@@ -50,7 +51,6 @@ require (
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-logr/zapr v1.2.3 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
