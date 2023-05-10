@@ -1,6 +1,6 @@
 .build-ko:
   stage: build
-  image: harbor.dcas.dev/registry.gitlab.com/av1o/base-images/go-git:1.19
+  image: harbor.dcas.dev/registry.gitlab.com/av1o/base-images/go-git:1.20
   variables:
     GITHUB_MIRROR: github.com
     KO_CONFIG_PATH: $CI_PROJECT_DIR/.ko.yaml

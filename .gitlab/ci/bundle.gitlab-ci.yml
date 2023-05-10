@@ -1,10 +1,10 @@
 prepare bundle:
   stage: build
-  image: harbor.dcas.dev/registry.gitlab.com/av1o/base-images/go-ubuntu:1.19-rolling
+  image: harbor.dcas.dev/registry.gitlab.com/av1o/base-images/go-ubuntu:1.20-rolling
   script:
     - |
       mkdir -p bin/
-      wget -q -O bin/operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v1.25.2/operator-sdk_linux_amd64
+      wget -q -O bin/operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v1.28.1/operator-sdk_linux_amd64
       chmod +x bin/operator-sdk
       export PATH="$PATH:$CI_PROJECT_DIR/bin"
       operator-sdk version
