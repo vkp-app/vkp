@@ -13,14 +13,14 @@ stages:
   - deploy
   - release
 
-.downstream-go: &downstream-go:
+.downstream-go: &downstream-go
   stage: build
   trigger:
     include:
       - local: .gitlab/ci/go.gitlab-ci.yml
     strategy: depend
 
-.downstream-buildkit: &downstream-buildkit:
+.downstream-buildkit: &downstream-buildkit
   trigger:
     include:
       - local: .gitlab/ci/buildkit.gitlab-ci.yml
