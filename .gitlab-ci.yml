@@ -13,21 +13,8 @@ stages:
   - deploy
   - release
 
-.downstream-go: &downstream-go
-  stage: build
-  trigger:
-    include:
-      - local: .gitlab/ci/go.gitlab-ci.yml
-    strategy: depend
-
-.downstream-buildkit: &downstream-buildkit
-  trigger:
-    include:
-      - local: .gitlab/ci/buildkit.gitlab-ci.yml
-    strategy: depend
-
 build apiserver:
-  <<: *downstream-go
+  extends: .build-go
   variables:
     PROJECT_PATH: apiserver
     BUILD_GO_IMPORTPATH: cmd/apiserver
@@ -40,7 +27,7 @@ build apiserver:
         - .gitlab/ci/ko.gitlab-ci.yml
 
 build metrics-proxy:
-  <<: *downstream-go
+  extends: .build-go
   variables:
     PROJECT_PATH: metrics-proxy
     BUILD_GO_IMPORTPATH: cmd/metrics
@@ -53,7 +40,7 @@ build metrics-proxy:
         - .gitlab/ci/ko.gitlab-ci.yml
 
 build plugin-hooks:
-  <<: *downstream-go
+  extends: .build-go
   variables:
     PROJECT_PATH: vcluster-plugin-hooks
     BUILD_GO_IMPORTPATH: cmd/hooks
@@ -66,7 +53,7 @@ build plugin-hooks:
         - .gitlab/ci/ko.gitlab-ci.yml
 
 build plugin-sync:
-  <<: *downstream-go
+  extends: .build-go
   variables:
     PROJECT_PATH: vcluster-plugin-sync
     BUILD_GO_IMPORTPATH: cmd/sync
@@ -81,10 +68,7 @@ build plugin-sync:
 
 build web:
   stage: build
-  trigger:
-    include:
-      - local: .gitlab/ci/web.gitlab-ci.yml
-    strategy: depend
+  extends: .build-staticweb
   dependencies: []
   variables:
     PROJECT_PATH: web
@@ -98,7 +82,7 @@ build web:
 
 build web-login:
   stage: build
-  <<: *downstream-buildkit
+  extends: .build-buildkit
   dependencies: []
   variables:
     PROJECT_PATH: web-login
@@ -111,7 +95,7 @@ build web-login:
         - .gitlab-ci.yml
 
 build operator:
-  <<: *downstream-go
+  extends: .build-go
   variables:
     PROJECT_PATH: operator
   rules:
@@ -124,7 +108,7 @@ build operator:
 
 build bundle:
   stage: bundle
-  <<: *downstream-buildkit
+  extends: .build-buildkit
   dependencies:
     - prepare bundle
   needs:
@@ -169,7 +153,7 @@ prepare index:
 
 build index:
   stage: deploy
-  <<: *downstream-buildkit
+  extends: .build-buildkit
   dependencies:
     - prepare index
   needs:
@@ -183,9 +167,8 @@ build index:
     - when: on_success
 
 include:
-  - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/CNB.gitlab-ci.yml'
-  - remote: 'https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/Kaniko.gitlab-ci.yml'
-  - local: .gitlab/ci/ko.gitlab-ci.yml
+  - remote: https://gitlab.com/av1o/gitlab-ci-templates/-/raw/v2/build/Go-Base.gitlab-ci.yml
+  - remote: https://gitlab.com/av1o/gitlab-ci-templates/-/raw/v2/build/BuildKit-Base.gitlab-ci.yml
   - local: .gitlab/ci/bundle.gitlab-ci.yml
   - local: .gitlab/ci/chart.gitlab-ci.yml
   - local: .gitlab/ci/release-gitlab.gitlab-ci.yml
