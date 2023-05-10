@@ -37,4 +37,17 @@ spec:
     repository: {{ .Values.vkp.clusterVersions.image.repository }}
     tag: v1.24.9-k3s1
   track: Stable
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-25-9-stable
+spec:
+  image:
+    {{- if .Values.global.imageRegistry | default .Values.vkp.clusterVersions.image.registry }}
+    registry: {{ .Values.global.imageRegistry | default .Values.vkp.clusterVersions.image.registry }}
+    {{- end }}
+    repository: {{ .Values.vkp.clusterVersions.image.repository }}
+    tag: v1.25.9-k3s1
+  track: Stable
 {{- end }}

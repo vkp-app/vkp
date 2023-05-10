@@ -13,10 +13,24 @@ stages:
   - deploy
   - release
 
+.downstream-go: &downstream-go:
+  stage: build
+  trigger:
+    include:
+      - local: .gitlab/ci/go.gitlab-ci.yml
+    strategy: depend
+
+.downstream-buildkit: &downstream-buildkit:
+  trigger:
+    include:
+      - local: .gitlab/ci/buildkit.gitlab-ci.yml
+    strategy: depend
+
 build apiserver:
-  extends: .build-ko
+  <<: *downstream-go
   variables:
     PROJECT_PATH: apiserver
+    BUILD_GO_IMPORTPATH: cmd/apiserver
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -26,9 +40,10 @@ build apiserver:
         - .gitlab/ci/ko.gitlab-ci.yml
 
 build metrics-proxy:
-  extends: .build-ko
+  <<: *downstream-go
   variables:
     PROJECT_PATH: metrics-proxy
+    BUILD_GO_IMPORTPATH: cmd/metrics
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -38,9 +53,10 @@ build metrics-proxy:
         - .gitlab/ci/ko.gitlab-ci.yml
 
 build plugin-hooks:
-  extends: .build-ko
+  <<: *downstream-go
   variables:
     PROJECT_PATH: vcluster-plugin-hooks
+    BUILD_GO_IMPORTPATH: cmd/hooks
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -50,9 +66,11 @@ build plugin-hooks:
         - .gitlab/ci/ko.gitlab-ci.yml
 
 build plugin-sync:
-  extends: .build-ko
+  <<: *downstream-go
   variables:
     PROJECT_PATH: vcluster-plugin-sync
+    BUILD_GO_IMPORTPATH: cmd/sync
+    BUILD_IMAGE_PARENT: harbor.dcas.dev/registry.gitlab.com/av1o/helm-install-image:v3-1.25
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -63,19 +81,13 @@ build plugin-sync:
 
 build web:
   stage: build
-  extends: .auto-build
+  trigger:
+    include:
+      - local: .gitlab/ci/web.gitlab-ci.yml
+    strategy: depend
   dependencies: []
   variables:
-    AUTO_CNB_BUILD_IMAGE: "${AUTO_DEVOPS_REGISTRY_GITLAB}registry.gitlab.com/autokubeops/buildpacks/lifecycle:0.3"
-    AUTO_CNB_RUN_IMAGE: harbor.dcas.dev/docker.io/paketobuildpacks/run:tiny-cnb
     PROJECT_PATH: web
-    BP_STATIC_DIR: build
-    BP_NODE_OUTPUT_DIR: build
-    BP_NODE_VERSION: "~16"
-    BP_STATIC_ENV: .env
-    BP_KEEP_FILES: .env
-  script:
-    - ${AUTO_CNB_BUILD_ENV_VARS} /main
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -86,13 +98,11 @@ build web:
 
 build web-login:
   stage: build
-  extends: .kaniko
+  <<: *downstream-buildkit
   dependencies: []
   variables:
-    KANIKO_CONTEXT: "$CI_PROJECT_DIR/web-login"
-    KANIKO_ARG_DEX_VERSION: v2.35.3
-  before_script:
-    - export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE/dex"
+    PROJECT_PATH: web-login
+    BUILD_ARG_DEX_VERSION: v2.35.3
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -101,7 +111,7 @@ build web-login:
         - .gitlab-ci.yml
 
 build operator:
-  extends: .build-ko
+  <<: *downstream-go
   variables:
     PROJECT_PATH: operator
   rules:
@@ -114,16 +124,14 @@ build operator:
 
 build bundle:
   stage: bundle
-  extends: .kaniko
+  <<: *downstream-buildkit
   dependencies:
     - prepare bundle
   needs:
     - prepare bundle
   variables:
-    KANIKO_DOCKERFILE: bundle.Dockerfile
-    KANIKO_CONTEXT: "$CI_PROJECT_DIR/operator"
-  before_script:
-    - export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE/bundle"
+    BUILD_DOCKERFILE: bundle.Dockerfile
+    PROJECT_PATH: operator
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -161,16 +169,14 @@ prepare index:
 
 build index:
   stage: deploy
-  extends: .kaniko
+  <<: *downstream-buildkit
   dependencies:
     - prepare index
   needs:
     - prepare index
   variables:
-    KANIKO_DOCKERFILE: index.Dockerfile
-    KANIKO_CONTEXT: operator
-  before_script:
-    - export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE/index"
+    BUILD_DOCKERFILE: index.Dockerfile
+    PROJECT_PATH: operator
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never

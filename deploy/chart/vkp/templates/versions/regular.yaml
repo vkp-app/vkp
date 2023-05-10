@@ -24,4 +24,17 @@ spec:
     repository: {{ .Values.vkp.clusterVersions.image.repository }}
     tag: v1.25.5-k3s1
   track: Regular
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-26-4-regular
+spec:
+  image:
+    {{- if .Values.global.imageRegistry | default .Values.vkp.clusterVersions.image.registry }}
+    registry: {{ .Values.global.imageRegistry | default .Values.vkp.clusterVersions.image.registry }}
+    {{- end }}
+    repository: {{ .Values.vkp.clusterVersions.image.repository }}
+    tag: v1.26.4-k3s1
+  track: Regular
 {{- end }}

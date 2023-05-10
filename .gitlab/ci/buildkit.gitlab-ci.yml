@@ -1,0 +1,5 @@
+stages:
+  - build
+
+include:
+  - remote: https://gitlab.com/av1o/gitlab-ci-templates/-/raw/v2/build/BuildKit.gitlab-ci.yml
