@@ -1,10 +1,7 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
   VERSION: "0.5.6"
-  CNB_TAGS: "$VERSION"
-  KO_TAGS: $VERSION
-  KANIKO_TAGS: $VERSION
-  IMG_TAGS: $VERSION
+  BUILD_TAGS: "$VERSION"
 
 stages:
   - build
