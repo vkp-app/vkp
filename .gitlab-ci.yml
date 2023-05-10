@@ -14,6 +14,7 @@ stages:
   - release
 
 build apiserver:
+  stage: build
   extends: .build-go
   variables:
     PROJECT_PATH: apiserver
@@ -27,6 +28,7 @@ build apiserver:
         - .gitlab/ci/ko.gitlab-ci.yml
 
 build metrics-proxy:
+  stage: build
   extends: .build-go
   variables:
     PROJECT_PATH: metrics-proxy
@@ -40,6 +42,7 @@ build metrics-proxy:
         - .gitlab/ci/ko.gitlab-ci.yml
 
 build plugin-hooks:
+  stage: build
   extends: .build-go
   variables:
     PROJECT_PATH: vcluster-plugin-hooks
@@ -53,6 +56,7 @@ build plugin-hooks:
         - .gitlab/ci/ko.gitlab-ci.yml
 
 build plugin-sync:
+  stage: build
   extends: .build-go
   variables:
     PROJECT_PATH: vcluster-plugin-sync
@@ -95,6 +99,7 @@ build web-login:
         - .gitlab-ci.yml
 
 build operator:
+  stage: build
   extends: .build-go
   variables:
     PROJECT_PATH: operator
