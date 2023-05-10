@@ -169,6 +169,7 @@ build index:
 include:
   - remote: https://gitlab.com/av1o/gitlab-ci-templates/-/raw/v2/build/Go-Base.gitlab-ci.yml
   - remote: https://gitlab.com/av1o/gitlab-ci-templates/-/raw/v2/build/BuildKit-Base.gitlab-ci.yml
+  - remote: https://gitlab.com/av1o/gitlab-ci-templates/-/raw/v2/build/StaticWeb-Base.gitlab-ci.yml
   - local: .gitlab/ci/bundle.gitlab-ci.yml
   - local: .gitlab/ci/chart.gitlab-ci.yml
   - local: .gitlab/ci/release-gitlab.gitlab-ci.yml
