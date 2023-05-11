@@ -110,14 +110,16 @@ build operator:
 
 build bundle:
   stage: bundle
-  extends: .build-buildkit
+  extends: .kaniko
   dependencies:
     - prepare bundle
   needs:
     - prepare bundle
   variables:
-    BUILD_DOCKERFILE: bundle.Dockerfile
-    PROJECT_PATH: operator
+    KANIKO_DOCKERFILE: bundle.Dockerfile
+    KANIKO_CONTEXT: "$CI_PROJECT_DIR/operator"
+  before_script:
+    - export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE/bundle"
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -155,14 +157,16 @@ prepare index:
 
 build index:
   stage: deploy
-  extends: .build-buildkit
+  extends: .kaniko
   dependencies:
     - prepare index
   needs:
     - prepare index
   variables:
-    BUILD_DOCKERFILE: index.Dockerfile
-    PROJECT_PATH: operator
+    KANIKO_DOCKERFILE: index.Dockerfile
+    KANIKO_CONTEXT: operator
+  before_script:
+    - export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE/index"
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
       when: never
@@ -172,6 +176,7 @@ include:
   - remote: https://gitlab.com/av1o/gitlab-ci-templates/-/raw/v2/build/Go-Base.gitlab-ci.yml
   - remote: https://gitlab.com/av1o/gitlab-ci-templates/-/raw/v2/build/BuildKit-Base.gitlab-ci.yml
   - remote: https://gitlab.com/av1o/gitlab-ci-templates/-/raw/v2/build/StaticWeb-Base.gitlab-ci.yml
+  - remote: https://gitlab.com/av1o/gitlab-ci-templates/-/raw/master/build/Kaniko.gitlab-ci.yml
   - local: .gitlab/ci/bundle.gitlab-ci.yml
   - local: .gitlab/ci/chart.gitlab-ci.yml
   - local: .gitlab/ci/release-gitlab.gitlab-ci.yml
