@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  VERSION: "0.5.6"
+  VERSION: "0.5.7"
   BUILD_TAGS: "$VERSION"
   KANIKO_TAGS: "$VERSION"
 
@@ -134,7 +134,7 @@ prepare index:
     - job: build operator
       optional: true
   image:
-    name: quay.io/operator-framework/upstream-registry-builder
+    name: quay.io/operator-framework/upstream-registry-builder:v1.26.5
     entrypoint: [""]
   script:
     - |
