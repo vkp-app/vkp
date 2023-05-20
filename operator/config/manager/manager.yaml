@@ -43,7 +43,7 @@ spec:
         name: manager
         env:
           - name: RELATED_IMAGE_VCLUSTER_SYNCER
-            value: docker.io/loftsh/vcluster:0.13.0
+            value: ghcr.io/loft-sh/vcluster:0.15.0
           - name: KUBERNETES_NAMESPACE
             valueFrom:
               fieldRef:

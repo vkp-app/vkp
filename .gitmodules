@@ -1,0 +1,3 @@
+[submodule "cluster-api-provider-vcluster/cluster-api-provider-vcluster"]
+	path = cluster-api-provider-vcluster/cluster-api-provider-vcluster
+	url = https://github.com/loft-sh/cluster-api-provider-vcluster.git

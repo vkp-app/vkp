@@ -36,7 +36,7 @@ const (
 
 	chartName    = "vcluster"
 	chartRepo    = "https://charts.loft.sh"
-	chartVersion = "0.13.0"
+	chartVersion = "0.15.0"
 )
 
 // DNSIP fetches the IP address of the configured

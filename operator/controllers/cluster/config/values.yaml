@@ -1,3 +1,10 @@
+fallbackHostDns: true
+proxy:
+  metricsServer:
+    nodes:
+      enabled: false
+    pods:
+      enabled: true
 ingress:
   enabled: false
 {{- if .OpenShift }}

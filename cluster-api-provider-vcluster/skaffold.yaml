@@ -1,0 +1,16 @@
+apiVersion: skaffold/v3
+kind: Config
+metadata:
+  name: cluster-api-provider-vcluster
+build:
+  tagPolicy:
+    sha256: {}
+  artifacts:
+    - image: dev.local/loft-sh/cluster-api-provider-vcluster
+      context: cluster-api-provider-vcluster
+      docker: {}
+  local:
+    push: false
+deploy:
+  kubectl: {}
+  kubeContext: minikube
