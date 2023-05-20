@@ -59,6 +59,7 @@ func (in *ClusterVersionImage) String() string {
 // ClusterVersionStatus defines the observed state of ClusterVersion
 type ClusterVersionStatus struct {
 	VersionNumber ClusterVersionNumber `json:"versionNumber,omitempty"`
+	Conditions    []metav1.Condition   `json:"conditions,omitempty"`
 }
 
 type ClusterVersionNumber struct {

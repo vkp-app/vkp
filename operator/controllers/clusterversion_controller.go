@@ -22,6 +22,8 @@ import (
 	paasv1alpha1 "gitlab.dcas.dev/k8s/kube-glass/operator/apis/paas/v1alpha1"
 	"gitlab.dcas.dev/k8s/kube-glass/operator/internal/statusutil"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -64,7 +66,13 @@ func (r *ClusterVersionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	sv, err := semver.NewVersion(cvr.Spec.Image.Tag)
 	if err != nil {
 		log.Error(err, "failed to parse semantic version", "tag", cvr.Spec.Image.Tag)
-		return ctrl.Result{}, err
+		meta.SetStatusCondition(&cvr.Status.Conditions, metav1.Condition{
+			Type:    ConditionVersion,
+			Status:  metav1.ConditionFalse,
+			Reason:  ConditionVersionErr,
+			Message: err.Error(),
+		})
+		return ctrl.Result{}, statusutil.SetStatus(ctx, r.Client, cvr)
 	}
 
 	// update the CR to include the semantic
@@ -74,6 +82,12 @@ func (r *ClusterVersionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		Minor: sv.Minor(),
 		Patch: sv.Patch(),
 	}
+
+	meta.SetStatusCondition(&cvr.Status.Conditions, metav1.Condition{
+		Type:   ConditionVersion,
+		Status: metav1.ConditionTrue,
+		Reason: ConditionVersionResolved,
+	})
 
 	return ctrl.Result{}, statusutil.SetStatus(ctx, r.Client, cvr)
 }

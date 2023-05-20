@@ -52,9 +52,10 @@ type TenantSpec struct {
 
 // TenantStatus defines the observed state of Tenant
 type TenantStatus struct {
-	ObservedClusters   []NamespacedName `json:"observedClusters,omitempty"`
-	ObservedNamespaces []string         `json:"observedNamespaces,omitempty"`
-	Phase              TenantPhase      `json:"phase,omitempty"`
+	ObservedClusters   []NamespacedName   `json:"observedClusters,omitempty"`
+	ObservedNamespaces []string           `json:"observedNamespaces,omitempty"`
+	Phase              TenantPhase        `json:"phase,omitempty"`
+	Conditions         []metav1.Condition `json:"conditions,omitempty"`
 }
 
 type NamespacedName struct {

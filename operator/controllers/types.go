@@ -9,6 +9,10 @@ const (
 	ConditionAddonDigest         = "DigestResolved"
 	ConditionAddonDigestResolved = "Resolved"
 	ConditionAddonDigestErr      = "Error"
+
+	ConditionVersion         = "VersionResolved"
+	ConditionVersionResolved = "Resolved"
+	ConditionVersionErr      = "Error"
 )
 
 type TenantOptions struct {

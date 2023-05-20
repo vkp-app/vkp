@@ -102,7 +102,7 @@ build cluster-api-provider-vcluster:
   dependencies: []
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
-    PROJECT_PATH: cluster-api-provider-vcluster
+    PROJECT_PATH: cluster-api-provider-vcluster/cluster-api-provider-vcluster
     BUILD_TAGS: "0.1.4-unreleased.1"
   rules:
     - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
