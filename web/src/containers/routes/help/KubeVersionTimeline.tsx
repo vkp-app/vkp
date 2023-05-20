@@ -24,6 +24,13 @@ interface KubeVersion {
 
 const KUBE_VERSIONS: KubeVersion[] = [
 	{
+		version: 27,
+		name: "Chill Vibes",
+		description: "In-place resource updates, VolumeGroupSnapshot, registry.k8s.io",
+		date: "Q2 2023",
+		link: "https://kubernetes.io/blog/2023/04/11/kubernetes-v1-27-release/"
+	},
+	{
 		version: 26,
 		name: "Electrifying",
 		description: "Control-plane metrics, Pod scheduling improvements.",
@@ -50,6 +57,20 @@ const KUBE_VERSIONS: KubeVersion[] = [
 		description: "IPv4/IPv6 Dual Stack, HPAv2, PodSecurity.",
 		date: "Q4 2021",
 		link: "https://kubernetes.io/blog/2021/12/07/kubernetes-1-23-release-announcement/"
+	},
+	{
+		version: 22,
+		name: "Reaching New Peaks",
+		description: "Server-side Apply, External credential providers",
+		date: "Q3 2021",
+		link: "https://kubernetes.io/blog/2021/08/04/kubernetes-1-22-release-announcement/"
+	},
+	{
+		version: 21,
+		name: "Power to the Community",
+		description: "CronJobs, Immutable Secrets, PV Health",
+		date: "Q2 2021",
+		link: "https://kubernetes.io/blog/2021/04/08/kubernetes-1-21-release-announcement/"
 	}
 ];
 

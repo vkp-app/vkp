@@ -12,6 +12,13 @@ images:
     newName: harbor.dcas.dev/registry.k8s.io/cluster-api/kubeadm-control-plane-controller
 patches:
   - target:
+      name: cluster-api-provider-vcluster-manager-rolebinding
+      kind: ClusterRoleBinding
+    patch: |
+      - op: replace
+        path: /roleRef/name
+        value: cluster-admin
+  - target:
       kind: Deployment
       name: capi-controller-manager
     patch: |

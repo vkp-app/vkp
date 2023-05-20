@@ -34,7 +34,7 @@ spec:
           image: vkp/apiserver
           args:
             - --v=5
-            - --prometheus-url=http://prometheus-olm-prometheus.monitoring.svc.cluster.local:9090
+            - --prometheus-url=http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
             - --prometheus-config-file=/etc/vkp/config/prometheus.yaml
             - --dex-url=https://dex.192-168-49-2.nip.io
           env:
