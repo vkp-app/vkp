@@ -96,6 +96,20 @@ build web-login:
         - web-login/**/*
         - .gitlab-ci.yml
 
+build cluster-api-provider-vcluster:
+  stage: build
+  extends: .build-buildkit
+  dependencies: []
+  variables:
+    PROJECT_PATH: cluster-api-provider-vcluster
+    BUILD_TAGS: "0.1.4-unreleased.1"
+  rules:
+    - if: "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH"
+      when: never
+    - changes:
+        - cluster-api-provider-vcluster/**/*
+        - .gitlab-ci.yml
+
 build operator:
   stage: build
   extends: .build-go
