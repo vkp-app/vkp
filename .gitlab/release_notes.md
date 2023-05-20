@@ -10,6 +10,8 @@
 
 `ghcr.io/vpk-app/vkp/dex:VERSION`
 
+`ghcr.io/vkp-app/vkp/cluster-api-provider-vcluster:0.1.4-unreleased.1`
+
 **Data plane**
 
 `ghcr.io/vkp-app/vkp/vcluster-plugin-hooks:VERSION`

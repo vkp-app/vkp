@@ -1,6 +1,6 @@
 variables:
   BP_OCI_SOURCE: https://github.com/vkp-app/vkp
-  VERSION: "0.5.7"
+  VERSION: "0.6.0"
   BUILD_TAGS: "$VERSION"
   KANIKO_TAGS: "$VERSION"
 
@@ -101,6 +101,7 @@ build cluster-api-provider-vcluster:
   extends: .build-buildkit
   dependencies: []
   variables:
+    GIT_SUBMODULE_STRATEGY: recursive
     PROJECT_PATH: cluster-api-provider-vcluster
     BUILD_TAGS: "0.1.4-unreleased.1"
   rules:

@@ -9,6 +9,13 @@ curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.2.5/
 install /tmp/clusterctl ~/.local/bin/clusterctl
 ```
 
+Build the `cluster-api-provider-vcluster` image:
+
+```shell
+cd cluster-api-provider-vcluster/
+skaffold run
+```
+
 Install the Operator:
 
 ```shell

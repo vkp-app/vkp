@@ -21,6 +21,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"os"
+	"regexp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -59,8 +61,14 @@ func (r *Tenant) ValidateCreate() error {
 
 	var allErrs field.ErrorList
 
-	if strings.HasPrefix(r.ObjectMeta.Name, "kube-") || strings.HasPrefix(r.ObjectMeta.Name, "openshift-") {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("metadata").Child("name"), r.ObjectMeta.Name, "tenant name must not match kube-* or openshift-*"))
+	// validate the name of the tenant.
+	// see (#80)
+	matchers := []nameMatchFunc{r.regexMatch, r.prefixMatch}
+	for _, m := range matchers {
+		err := m(r.ObjectMeta.Name)
+		if err != nil {
+			allErrs = append(allErrs, err)
+		}
 	}
 
 	if len(allErrs) == 0 {
@@ -68,6 +76,32 @@ func (r *Tenant) ValidateCreate() error {
 	}
 
 	return errors.NewInvalid(schema.GroupKind{Group: GroupVersion.Group, Kind: KindTenant}, r.Name, allErrs)
+}
+
+func (*Tenant) prefixMatch(name string) *field.Error {
+	if strings.HasPrefix(name, "kube-") || strings.HasPrefix(name, "openshift-") {
+		return field.Invalid(field.NewPath("metadata").Child("name"), name, "tenant name must not match kube-* or openshift-*")
+	}
+	return nil
+}
+
+func (*Tenant) regexMatch(name string) *field.Error {
+	customRegex := os.Getenv("TENANT_NAME_REGEX")
+	if customRegex == "" {
+		return nil
+	}
+	tenantlog.V(1).Info("parsing tenant name regex", "expr", customRegex)
+	expr, err := regexp.Compile(customRegex)
+	if err != nil {
+		tenantlog.Error(err, "unable to compile tenant name regex")
+		return nil
+	}
+	// if the tenant name doesn't match the custom
+	// regexp, reject it
+	if !expr.MatchString(name) {
+		return field.Invalid(field.NewPath("metadata").Child("name"), name, "tenant name does not match requirements")
+	}
+	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
