@@ -208,3 +208,5 @@ plugin:
           - apiGroups: ["idp.dcas.dev"]
             resources: ["oauthclients"]
             verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+telemetry:
+  disabled: "true"

@@ -30,3 +30,14 @@ spec:
     repository: rancher/k3s
     tag: v1.24.9-k3s1
   track: Stable
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-25-9-stable
+spec:
+  image:
+    registry: harbor.dcas.dev/docker.io
+    repository: rancher/k3s
+    tag: v1.25.9-k3s1
+  track: Stable

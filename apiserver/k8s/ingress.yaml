@@ -3,7 +3,7 @@ apiVersion: networking.k8s.io/v1
 metadata:
   name: apiserver
   annotations:
-    cert-manager.io/cluster-issuer: iss-kube
+    cert-manager.io/cluster-issuer: cndk-ca
   labels:
     app.kubernetes.io/name: vkp
     app.kubernetes.io/component: apiserver

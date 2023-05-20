@@ -23,7 +23,7 @@ spec:
           - name: PAAS_HOSTNAME
             value: k8s.192-168-49-2.nip.io
           - name: PAAS_INGRESS_ISSUER
-            value: iss-kube
+            value: cndk-ca
           - name: PAAS_IDP_URL
             value: https://dex.192-168-49-2.nip.io
           - name: __VKP_PLATFORM_URL__

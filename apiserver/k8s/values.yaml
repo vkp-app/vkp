@@ -10,7 +10,7 @@ ingress:
   tls:
     secretName: tls-apiserver
   annotations:
-    cert-manager.io/cluster-issuer: iss-kube
+    cert-manager.io/cluster-issuer: cndk-ca
   className: nginx
   path: /api
 livenessProbe:

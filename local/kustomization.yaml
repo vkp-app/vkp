@@ -2,7 +2,6 @@ resources:
   - addons
   - clusterapi
   - idp
-  - prometheus
   - ingress-nginx
   - static
   - pki

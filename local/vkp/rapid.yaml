@@ -20,3 +20,14 @@ spec:
     repository: rancher/k3s
     tag: v1.26.0-k3s1
   track: Rapid
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-27-1-rapid
+spec:
+  image:
+    registry: harbor.dcas.dev/docker.io
+    repository: rancher/k3s
+    tag: v1.27.1-k3s1
+  track: Rapid

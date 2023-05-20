@@ -20,3 +20,14 @@ spec:
     repository: rancher/k3s
     tag: v1.25.5-k3s1
   track: Regular
+---
+apiVersion: paas.dcas.dev/v1alpha1
+kind: ClusterVersion
+metadata:
+  name: vkp-26-4-regular
+spec:
+  image:
+    registry: harbor.dcas.dev/docker.io
+    repository: rancher/k3s
+    tag: v1.26.4-k3s1
+  track: Regular

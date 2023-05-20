@@ -27,7 +27,7 @@ ingress:
   enabled: true
   hostname: vkp.192-168-49-2.nip.io
   #  annotations:
-  #    cert-manager.io/cluster-issuer: "iss-kube"
+  #    cert-manager.io/cluster-issuer: "cndk-ca"
   ingressClassName: nginx
   extraTls:
     - secretName: tls-vkp

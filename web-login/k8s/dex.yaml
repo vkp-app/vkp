@@ -32,7 +32,7 @@ ingress:
   enabled: true
   className: nginx
   annotations:
-    cert-manager.io/cluster-issuer: iss-kube
+    cert-manager.io/cluster-issuer: cndk-ca
   hosts:
     - host: dex.192-168-49-2.nip.io
       paths:

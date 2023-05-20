@@ -9,12 +9,16 @@ curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.2.5/
 install /tmp/clusterctl ~/.local/bin/clusterctl
 ```
 
+Install the Operator:
+
+```shell
+cd operator/
+skaffold run
+```
+
 Install resources:
 
 ```shell
-# when using a fresh minikube
-./firstrun.sh
-# otherwise
 make run
 ```
 
@@ -23,13 +27,6 @@ Install the APIServer:
 ```shell
 cd apiserver/
 kubectl apply -k k8s/
-skaffold run
-```
-
-Install the Operator:
-
-```shell
-cd operator/
 skaffold run
 ```
 
